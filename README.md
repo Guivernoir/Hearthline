@@ -35,6 +35,10 @@ Hearthline is an educational simulation, not a production deployment template. R
 
 ## High-Level Architecture
 
+![Hearthline overall network topology](Hearthline.png)
+
+The overall topology image shows the implemented customer, Internet, public Business IT DMZ, and Business IT segments. The OT-facing connection continues below the current Business IT view and remains disabled pending the future OT DMZ phase.
+
 ```text
 Customer LAN
 192.168.0.0/24
@@ -77,7 +81,7 @@ Customer PC
   -> Business WEB-SVR-01
 ```
 
-The Business IT-to-OT path is not active. `Business-FRW-03` remains physically connected but administratively disabled until the OT DMZ design and its allowed communication flows are approved.
+The Business IT-to-OT path is not active. `Business FRW-03` remains physically connected but administratively disabled until the OT DMZ design and its allowed communication flows are approved.
 
 ## Segment Status
 
@@ -107,15 +111,15 @@ The Business IT-to-OT path is not active. `Business-FRW-03` remains physically c
 - One-to-one static NAT from `203.0.114.10` to the DMZ web server at `172.16.10.2`.
 - Perimeter firewall rules permitting ICMP, HTTP, and HTTPS to the public web server.
 - Default denial of other unsolicited inbound traffic through `Business FRW-01`.
-- A second firewall boundary, `Business-FRW-02`, between the public DMZ and Business IT.
+- A second firewall boundary, `Business FRW-02`, between the public DMZ and Business IT.
 
 ### Business IT
 
-- Collapsed-core routing on `Business-IT-CORE-SW-01`.
+- Collapsed-core routing on `Business IT-CORE-SW-01`.
 - Dedicated VLANs for servers, users, voice, printers, guests, and management.
 - VLAN 999 as the native trunk and parking-lot VLAN.
 - Explicit trunk allowlists and endpoint PortFast/BPDU Guard protection.
-- Routed `/30` transit between the core and `Business-FRW-02`.
+- Routed `/30` transit between the core and `Business FRW-02`.
 - Static server, printer, management, and voice-gateway addressing.
 - Relayed DHCP for user, voice, and guest VLANs.
 - Internal DNS records for infrastructure, applications, monitoring, printing, voice, and public services.
@@ -154,13 +158,13 @@ The implemented topology provides meaningful segmentation, but the Business IT s
 | --- | --- |
 | Customer inbound exposure | No static inbound translations are configured |
 | Public web exposure | Restricted to the published DMZ host and explicitly permitted protocols |
-| Public DMZ to Business IT | Unsolicited outside-to-inside access denied by `Business-FRW-02` defaults |
+| Public DMZ to Business IT | Unsolicited outside-to-inside access denied by `Business FRW-02` defaults |
 | Internal VLAN separation | Separate Layer 2 domains exist, but the core currently routes freely between them |
 | Guest isolation | Not yet enforced; guest clients can currently reach internal addresses |
 | Management access | Dedicated VLAN exists, but SSH/AAA and source restrictions remain pending |
 | Business IT Internet egress | Not yet operational; upstream return routes and PAT remain pending |
 | Unused switch ports | VLAN 999 exists, but the full shutdown and parking pass remains pending |
-| OT connectivity | Disabled at `Business-FRW-03` |
+| OT connectivity | Disabled at `Business FRW-03` |
 
 Credentials and pre-shared keys are intentionally excluded from the repository documentation. Values used in the simulation must not be reused in a real environment.
 
@@ -196,7 +200,7 @@ Credentials and pre-shared keys are intentionally excluded from the repository d
 6. Apply inter-VLAN ACLs for users, servers, voice, printers, guests, and management.
 7. Restrict device administration to SSH from the administrator workstation and approved management systems.
 8. Park and shut down every unused switch port.
-9. Decide whether `Business-IT-NET-CTRL-01` will actively manage supported devices or remain a documented placeholder.
+9. Decide whether `Business IT-NET-CTRL-01` will actively manage supported devices or remain a documented placeholder.
 10. Run an allowed-flow and denied-flow validation matrix, save all device configurations, and refresh the Business IT topology image.
 
 The detailed acceptance criteria and target policy outcomes are maintained in the [Business IT README](docs/business-it/README.md#remaining-work).
@@ -233,6 +237,7 @@ Each segment README is the authoritative source for device roles, addressing, po
 
 | Document | Scope |
 | --- | --- |
+| [Overall Topology](Hearthline.png) | Consolidated view of the currently implemented Hearthline segments |
 | [Customer Network README](docs/customer-network/README.md) | Customer LAN, DSL edge, routing, and PAT |
 | [Internet Segment README](docs/internet/README.md) | Simulated WANs, ISP routing, DNS, and public ISP services |
 | [Business IT DMZ README](docs/business-it-dmz/README.md) | Business edge, static NAT, perimeter firewall, public DMZ, and IT handoff |
@@ -245,6 +250,7 @@ The text and tables are authoritative when a topology image has not yet been ref
 ```text
 .
 |-- Hearthline.pkt
+|-- Hearthline.png
 |-- README.md
 |-- LICENSE
 `-- docs
