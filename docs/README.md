@@ -1,0 +1,80 @@
+# Hearthline Documentation
+
+The documentation follows the same hierarchy as the Svelte application. Each
+folder represents a documented application view and contains a local
+`README.md`, a physical `screenshot.png`, and a logical
+`logical-screenshot.png`.
+
+![Hearthline regional architecture](screenshot.png)
+
+![Hearthline regional logical architecture](logical-screenshot.png)
+
+## Current Coverage
+
+The documentation currently covers all 22 documented application views with
+matching physical and logical captures. It documents the rendered Svelte model,
+the bootstrap process contract, and target engineering requirements. It does
+not document passing network, control, process, or failover tests because those
+engines do not yet exist.
+
+```text
+docs
+|-- customer-network
+|   |-- customer-lan
+|   |-- customer-edge
+|   `-- public-web-path
+|-- central-office
+|   |-- it-dmz
+|   |-- business-it
+|   `-- operations-intelligence
+`-- factory
+    |-- ot-dmz
+    `-- process
+        |-- body-preparation
+        |-- forming
+        |-- controlled-drying
+        |-- industrial-dryer
+        |-- color-and-glaze
+        |-- kiln-one
+        |-- intermediate-inspection
+        |-- kiln-two
+        |-- final-inspection
+        `-- logistics
+```
+
+## Sites
+
+| Site | Scope |
+| --- | --- |
+| [Customer Network](customer-network/README.md) | Private LAN, customer edge, and public web access |
+| [Central Office](central-office/README.md) | Public services, enterprise IT, governance, security operations, and analytics |
+| [Factory](factory/README.md) | Factory OT DMZ and the segmented ceramics process |
+
+## Project-Wide Decisions
+
+- [Implementation direction](project-direction.md)
+- [Deployment conformance review](deployment-conformance.md)
+
+Network and process details belong at their lowest owning level. Parent pages
+describe scope, authority, and relationships without duplicating child
+inventories.
+
+## Status Language
+
+- **Implemented** describes behavior that can be exercised in the current
+  Svelte application or build pipeline.
+- **Bootstrap** describes representative data used to establish a view or
+  interface contract before authoritative generation exists.
+- **Planned** describes work for which no executable implementation currently
+  exists.
+- **Validation target** describes an expected result that the future Rust
+  engine must prove; it is not a passing test today.
+
+Paired devices express a redundancy requirement or logical role. They do not,
+by themselves, prove independent failure domains, synchronized state, or tested
+failover.
+
+Future documentation will be generated or cross-checked against canonical YAML,
+Rust diagnostics, control-source references, and reproducible scenario
+results. Screenshots and architecture text must be updated together whenever a
+rendered route changes.
