@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  policy:
+    name: Repository policy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node project/scripts/repository-policy.mjs
+      - run: node project/scripts/check-version.mjs
+
+  rust:
+    name: Rust
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy,rustfmt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages
+      - run: cargo check --manifest-path packages/Cargo.toml -p hearthline-model
+      - run: cargo check --manifest-path packages/Cargo.toml -p hearthline-engine
+      - run: cargo fmt --manifest-path packages/Cargo.toml --all --check
+      - run: cargo fmt --manifest-path packages/fuzz/Cargo.toml --all --check
+      - run: cargo clippy --manifest-path packages/Cargo.toml --workspace --all-targets --all-features -- -D warnings
+      - run: cargo clippy --manifest-path packages/fuzz/Cargo.toml --all-targets -- -D warnings
+      - run: cargo test --manifest-path packages/Cargo.toml --workspace --all-features
+      - run: cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- config-validate
+      - run: cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- config-generate
+      - run: git diff --exit-code -- packages/web/src/generated/appliance-configs.json
+
+  web:
+    name: Web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: packages/web/package-lock.json
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+
+  fuzz:
+    name: Fuzz
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - run: cargo install cargo-fuzz --locked
+      - run: cargo +nightly fuzz run identifiers --fuzz-dir packages/fuzz -- -runs=2000
+      - run: cargo +nightly fuzz run appliance_yaml --fuzz-dir packages/fuzz -- -runs=2000
+
+  benchmark:
+    name: Benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages
+      - run: cargo bench --manifest-path packages/Cargo.toml --workspace --all-features

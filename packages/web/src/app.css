@@ -1,0 +1,11 @@
+@import "./styles/base/shell.css";
+@import "./styles/base/process-map.css";
+@import "./styles/base/region-map.css";
+@import "./styles/sites/overview.css";
+@import "./styles/sites/factory.css";
+@import "./styles/environments/process-area.css";
+@import "./styles/sites/office.css";
+@import "./styles/environments/customer-path.css";
+@import "./styles/environments/customer-lan.css";
+@import "./styles/config/configuration.css";
+@import "./styles/config/responsive.css";

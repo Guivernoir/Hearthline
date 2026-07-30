@@ -1,0 +1,259 @@
+.lan-viewport {
+  touch-action: none;
+  cursor: grab;
+}
+
+.lan-viewport.is-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.customer-lan-world {
+  position: absolute;
+  overflow: hidden;
+  transform-origin: 0 0;
+  border: 1px solid #c9d0ca;
+  background: #f6f8f5;
+  box-shadow: 0 4px 18px rgb(32 42 35 / 7%);
+}
+
+.customer-focus-world {
+  position: absolute;
+  overflow: hidden;
+  transform-origin: 0 0;
+  border: 1px solid #c9d0ca;
+  background: #f6f8f5;
+  box-shadow: 0 4px 18px rgb(32 42 35 / 7%);
+}
+
+.office-focus-world {
+  position: absolute;
+  overflow: hidden;
+  transform-origin: 0 0;
+  border: 1px solid #c9d0ca;
+  background: #f6f8f5;
+  box-shadow: 0 4px 18px rgb(32 42 35 / 7%);
+}
+
+.office-focus-world.logical-view.grid-visible {
+  background-image:
+    linear-gradient(rgb(105 119 108 / 12%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(105 119 108 / 12%) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.process-area-world {
+  position: absolute;
+  overflow: hidden;
+  transform-origin: 0 0;
+  border: 1px solid #c9d0ca;
+  background: #f6f8f5;
+  box-shadow: 0 4px 18px rgb(32 42 35 / 7%);
+}
+
+.process-area-world.logical-view.grid-visible {
+  background-image:
+    linear-gradient(rgb(105 119 108 / 12%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(105 119 108 / 12%) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.process-area-drawing {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.process-area-physical-layer,
+.process-area-logical-layer {
+  display: none;
+}
+
+.process-area-world.physical-view .process-area-physical-layer,
+.process-area-world.logical-view .process-area-logical-layer {
+  display: block;
+}
+
+.area-facility-shell {
+  fill: #e5e8e3;
+  stroke: #849188;
+  stroke-width: 2;
+}
+
+.area-control-room {
+  fill: #e5ebec;
+  stroke: #86999c;
+}
+
+.area-compute-bay {
+  fill: #e3e8ed;
+  stroke: #8294a1;
+}
+
+.area-field-room {
+  fill: #e9e7df;
+  stroke: #999284;
+}
+
+.area-operator-bay {
+  fill: #e4ebef;
+  stroke: #8398a3;
+}
+
+.area-cabinet-row {
+  fill: #dce3df;
+  stroke: #819189;
+}
+
+.area-safety-bay {
+  fill: #efe1df;
+  stroke: #aa8178;
+}
+
+.area-cable-tray,
+.area-material-line,
+.area-floor-marking {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.area-cable-tray {
+  stroke: #74867e;
+  stroke-width: 8;
+  stroke-dasharray: 20 7 4 7;
+}
+
+.area-material-line {
+  stroke: #ae673d;
+  stroke-width: 5;
+}
+
+.area-floor-marking {
+  stroke: #aaa395;
+  stroke-width: 2;
+  stroke-dasharray: 16 10;
+}
+
+.area-logical-zone {
+  stroke-width: 1.5;
+}
+
+.area-network-zone {
+  fill: #e8eff0;
+  stroke: #829a9f;
+}
+
+.area-control-zone {
+  fill: #e5ece9;
+  stroke: #7e9a91;
+}
+
+.area-input-zone {
+  fill: #e8edf1;
+  stroke: #879eac;
+}
+
+.area-output-zone {
+  fill: #eee8df;
+  stroke: #a49782;
+}
+
+.area-safety-zone {
+  fill: #efe3e1;
+  stroke: #ad867f;
+}
+
+.area-zone-label,
+.area-detail-label {
+  fill: #59655e;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.area-detail-label {
+  fill: #7b6c60;
+  font-size: 8px;
+}
+
+.process-area-connections path {
+  fill: none;
+  stroke: #4d7379;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.process-area-connections .process-io-link {
+  stroke: #aa673d;
+}
+
+.process-area-connections .process-safety-link {
+  stroke: #765d91;
+  stroke-dasharray: 8 6;
+}
+
+.process-area-world.physical-view .process-area-connections path {
+  stroke: #667f7b;
+  stroke-width: 4;
+  stroke-dasharray: 9 5;
+}
+
+.process-area-world.physical-view .process-area-connections .process-io-link {
+  stroke: #aa673d;
+  stroke-dasharray: 3 5;
+}
+
+.process-area-world.physical-view .process-area-connections .process-safety-link {
+  stroke: #765d91;
+  stroke-dasharray: 8 6;
+}
+
+.cable-key.process-io {
+  border-color: #aa673d;
+  background: #aa673d;
+}
+
+.process-area-device {
+  width: 190px;
+}
+
+.process-equipment-facts {
+  display: grid;
+  margin: 13px 0 0;
+  padding: 0;
+  gap: 7px;
+  color: #4f5a54;
+  font-size: 10px;
+  list-style: none;
+}
+
+.process-equipment-facts li {
+  padding: 7px 8px;
+  border: 1px solid #dce2dd;
+  border-radius: 4px;
+  background: #f6f8f6;
+}
+
+.process-area-missing {
+  display: grid;
+  height: 100%;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  color: #3b443f;
+}
+
+.process-area-missing button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid #267168;
+  border-radius: 5px;
+  color: #fff;
+  background: #267168;
+  cursor: pointer;
+}
+

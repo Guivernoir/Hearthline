@@ -1,0 +1,29 @@
+[package]
+name = "hearthline-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+hearthline-config = { path = "../crates/hearthline-config" }
+hearthline-model = { path = "../crates/hearthline-model" }
+libfuzzer-sys = "0.4"
+
+[[bin]]
+name = "identifiers"
+path = "fuzz_targets/identifiers.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "appliance_yaml"
+path = "fuzz_targets/appliance_yaml.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]

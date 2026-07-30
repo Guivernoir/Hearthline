@@ -1,0 +1,9 @@
+packages/web/node_modules/
+packages/web/dist/
+packages/web/.svelte-kit/
+/target/
+packages/target/
+packages/fuzz/target/
+packages/fuzz/corpus/
+packages/fuzz/artifacts/
+*.log

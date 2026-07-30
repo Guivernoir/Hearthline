@@ -1,0 +1,459 @@
+.customer-lan-world.logical-view.grid-visible {
+  background-image:
+    linear-gradient(rgb(105 119 108 / 12%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(105 119 108 / 12%) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.lan-heading {
+  position: absolute;
+  top: 28px;
+  left: 38px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.lan-heading > span {
+  color: #286d64;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.lan-heading h1 {
+  margin: 5px 0 3px;
+  color: #252b27;
+  font-size: 20px;
+  font-weight: 720;
+  line-height: 1.2;
+}
+
+.lan-heading p {
+  margin: 0;
+  color: #69736d;
+  font-size: 11px;
+}
+
+.lan-drawing {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.lan-physical-layer,
+.lan-logical-layer {
+  display: none;
+}
+
+.physical-view .lan-physical-layer,
+.logical-view .lan-logical-layer {
+  display: block;
+}
+
+.house-shell {
+  fill: #edf1ec;
+  stroke: #9eaaa2;
+  stroke-width: 2;
+}
+
+.house-roof-line,
+.house-wall {
+  fill: none;
+  stroke: #b7c0b9;
+  stroke-width: 2;
+}
+
+.house-wall {
+  stroke-dasharray: 7 5;
+}
+
+.room-label,
+.premises-label {
+  fill: #6d7770;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.premises-label {
+  text-anchor: middle;
+}
+
+.physical-cables path,
+.logical-cables path {
+  fill: none;
+  stroke: #4d7379;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.physical-cables .dsl-cable,
+.logical-cables .dsl-cable {
+  stroke: #a05e35;
+  stroke-dasharray: 7 5;
+}
+
+.logical-zone {
+  stroke-width: 1.5;
+}
+
+.private-zone {
+  fill: #eef3f6;
+  stroke: #8fa9bc;
+}
+
+.provider-zone {
+  fill: #f4efeb;
+  stroke: #b99c89;
+}
+
+.zone-label {
+  fill: #596760;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+#lan-arrow path {
+  fill: #4d7379;
+}
+
+.port-label {
+  fill: #657069;
+  stroke: #f6f8f5;
+  stroke-width: 4px;
+  paint-order: stroke fill;
+  font-size: 8px;
+  font-weight: 750;
+}
+
+.nat-boundary path {
+  fill: none;
+  stroke: #b65034;
+  stroke-width: 2;
+  stroke-dasharray: 6 5;
+}
+
+.nat-boundary text {
+  fill: #9e492e;
+  font-size: 9px;
+  font-weight: 800;
+  text-anchor: middle;
+}
+
+.lan-device {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  width: 190px;
+  height: 105px;
+  padding: 13px 14px 11px;
+  overflow: hidden;
+  flex-direction: column;
+  border: 1px solid #cbd2cc;
+  border-radius: 7px;
+  color: #222824;
+  background: #fff;
+  box-shadow: 0 4px 14px rgb(26 35 29 / 9%);
+  text-align: left;
+  cursor: pointer;
+}
+
+.lan-device:hover,
+.lan-device.selected {
+  border-color: var(--node-accent);
+}
+
+.lan-device.selected {
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--node-accent) 20%, transparent),
+    0 5px 16px rgb(26 35 29 / 10%);
+}
+
+.lan-device-header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.lan-device-header small {
+  overflow: hidden;
+  color: #737c76;
+  font-size: 7px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.lan-device > strong {
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  font-weight: 720;
+  line-height: 1.15;
+}
+
+.lan-device > span:last-child {
+  margin-top: 4px;
+  overflow: hidden;
+  color: #69726c;
+  font-size: 9px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.physical-device-marker,
+.lan-device.physical-device-marker,
+.diagram-node.physical-device-marker {
+  display: flex;
+  padding: 0;
+  overflow: visible;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  text-align: center;
+}
+
+.physical-device-marker:hover,
+.physical-device-marker.selected,
+.lan-device.physical-device-marker:hover,
+.lan-device.physical-device-marker.selected,
+.diagram-node.physical-device-marker:hover,
+.diagram-node.physical-device-marker.selected {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.physical-marker-symbol {
+  display: grid;
+  width: 68px;
+  height: 68px;
+  flex: 0 0 68px;
+  place-items: center;
+  border: 2px solid color-mix(in srgb, var(--node-accent) 68%, #6f7a73);
+  border-radius: 50%;
+  color: var(--node-accent);
+  background: #f9fbf9;
+  box-shadow:
+    0 2px 5px rgb(26 35 29 / 13%),
+    0 8px 18px rgb(26 35 29 / 8%);
+}
+
+.physical-device-marker:hover .physical-marker-symbol,
+.physical-device-marker.selected .physical-marker-symbol {
+  border-color: var(--node-accent);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--node-accent) 18%, transparent),
+    0 6px 18px rgb(26 35 29 / 15%);
+}
+
+.physical-device-marker > strong.physical-marker-label,
+.lan-device.physical-device-marker > strong.physical-marker-label,
+.diagram-node.physical-device-marker > strong.physical-marker-label {
+  max-width: 198px;
+  margin-top: 7px;
+  padding: 2px 5px;
+  overflow: visible;
+  color: #28302b;
+  background: rgb(249 251 249 / 88%);
+  font-size: 13px;
+  font-weight: 760;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+  text-align: center;
+  white-space: normal;
+}
+
+.external-device {
+  background: #fffdfb;
+}
+
+.lan-key {
+  position: absolute;
+  right: 24px;
+  bottom: 22px;
+  z-index: 4;
+  display: flex;
+  min-height: 32px;
+  padding: 0 10px;
+  align-items: center;
+  gap: 15px;
+  border: 1px solid #c8d0c9;
+  border-radius: 5px;
+  color: #5b655e;
+  background: rgb(255 255 255 / 94%);
+  font-size: 9px;
+  font-weight: 650;
+}
+
+.lan-key span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cable-key {
+  display: inline-block;
+  width: 23px;
+  height: 0;
+  border-top: 2px solid;
+}
+
+.cable-key.copper {
+  border-color: #4d7379;
+}
+
+.cable-key.dsl {
+  border-color: #a05e35;
+  border-top-style: dashed;
+}
+
+.cable-key.redundant {
+  border-color: #4d7379;
+  border-top-width: 4px;
+  border-top-style: double;
+}
+
+.cable-key.data {
+  border-color: #426d9d;
+  border-top-style: dashed;
+}
+
+.cable-key.change {
+  border-color: #8b6749;
+}
+
+.zone-key {
+  display: inline-block;
+  width: 14px;
+  height: 10px;
+  border: 1px solid;
+}
+
+.zone-key.private {
+  border-color: #8fa9bc;
+  background: #eef3f6;
+}
+
+.zone-key.provider {
+  border-color: #b99c89;
+  background: #f4efeb;
+}
+
+.lan-inspector {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 15;
+  width: min(330px, calc(100% - 28px));
+  padding: 16px;
+  border: 1px solid #c6cec8;
+  border-radius: 7px;
+  background: #fff;
+  box-shadow: 0 12px 34px rgb(27 36 30 / 16%);
+}
+
+.lan-inspector-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lan-inspector-header > div {
+  min-width: 0;
+}
+
+.lan-inspector-header span,
+.lan-port-list > span {
+  color: #267168;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.lan-inspector-header h2 {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+  font-size: 17px;
+  font-weight: 720;
+  line-height: 1.2;
+}
+
+.lan-inspector-header button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: #59625c;
+  background: transparent;
+  cursor: pointer;
+}
+
+.lan-inspector-header button:hover {
+  border-color: #d6dcd7;
+  background: #f2f4f2;
+}
+
+.lan-inspector > p {
+  margin: 12px 0 14px;
+  color: #59635d;
+  font-size: 12px;
+}
+
+.lan-inspector dl {
+  margin: 0;
+  border-top: 1px solid #e0e5e1;
+  border-bottom: 1px solid #e0e5e1;
+}
+
+.lan-inspector dl > div {
+  padding: 9px 0;
+}
+
+.lan-inspector dl > div + div {
+  border-top: 1px solid #e7ebe8;
+}
+
+.lan-inspector dt {
+  color: #7a837d;
+  font-size: 8px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.lan-inspector dd {
+  margin: 3px 0 0;
+  overflow-wrap: anywhere;
+  color: #343b37;
+  font-size: 10px;
+  font-weight: 620;
+}
+
+.lan-port-list {
+  display: grid;
+  margin-top: 13px;
+  gap: 7px;
+}
+
+.lan-port-list > div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #4f5a54;
+  font-size: 10px;
+}

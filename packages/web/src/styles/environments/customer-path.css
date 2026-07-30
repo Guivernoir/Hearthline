@@ -1,0 +1,223 @@
+.customer-focus-world.logical-view.grid-visible {
+  background-image:
+    linear-gradient(rgb(105 119 108 / 12%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(105 119 108 / 12%) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.focus-drawing {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.focus-physical-layer,
+.focus-logical-layer {
+  display: none;
+}
+
+.physical-view .focus-physical-layer,
+.logical-view .focus-logical-layer {
+  display: block;
+}
+
+.edge-room {
+  fill: #edf1ec;
+  stroke: #a6b0a8;
+  stroke-width: 2;
+}
+
+.edge-cabinet {
+  fill: #e1e7e2;
+  stroke: #84928a;
+  stroke-width: 2;
+  stroke-dasharray: 8 6;
+}
+
+.edge-outside {
+  fill: #f1ede8;
+  stroke: #b7a89d;
+  stroke-width: 2;
+}
+
+.focus-cable,
+.focus-dsl,
+.focus-flow,
+.focus-service-link,
+.path-corridor,
+.path-corridor-secondary {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.focus-cable,
+.focus-flow,
+.focus-service-link {
+  stroke: #4d7379;
+  stroke-width: 3;
+}
+
+.focus-dsl {
+  stroke: #a05e35;
+  stroke-width: 3;
+  stroke-dasharray: 7 5;
+}
+
+.focus-zone,
+.path-zone {
+  stroke-width: 1.5;
+}
+
+.focus-private,
+.customer-zone {
+  fill: #eef3f6;
+  stroke: #8fa9bc;
+}
+
+.focus-provider {
+  fill: #f4efeb;
+  stroke: #b99c89;
+}
+
+.focus-zone-label {
+  fill: #5f6b64;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.focus-boundary {
+  fill: none;
+  stroke: #b65034;
+  stroke-width: 2;
+  stroke-dasharray: 7 5;
+}
+
+.focus-boundary-label {
+  fill: #a4492f;
+  font-size: 9px;
+  font-weight: 800;
+  text-anchor: middle;
+}
+
+#focus-arrow path {
+  fill: #4d7379;
+}
+
+.path-ground {
+  fill: #e7ece5;
+  stroke: #a7b2a9;
+  stroke-width: 2;
+}
+
+.path-site {
+  stroke-width: 2;
+}
+
+.path-customer-site {
+  fill: #e9eee9;
+  stroke: #7f9086;
+}
+
+.path-isp-site {
+  fill: #e4ecea;
+  stroke: #68827b;
+}
+
+.path-business-site {
+  fill: #f0e8e4;
+  stroke: #9b725f;
+}
+
+.path-corridor {
+  stroke: #627981;
+  stroke-width: 9;
+}
+
+.path-corridor-secondary {
+  stroke: #426d9d;
+  stroke-width: 4;
+  stroke-dasharray: 7 5;
+}
+
+.path-house {
+  fill: #e9eee9;
+  stroke: #64736a;
+  stroke-width: 3;
+}
+
+.path-isp-building {
+  fill: #e5ecea;
+  stroke: #58756f;
+  stroke-width: 3;
+}
+
+.path-office {
+  fill: #f0e9e5;
+  stroke: #95634e;
+  stroke-width: 3;
+}
+
+.path-demarc-cabinet {
+  fill: #dce3de;
+  stroke: #68786f;
+  stroke-width: 2;
+}
+
+.path-rack-row {
+  fill: #68736e;
+  stroke: #414b47;
+  stroke-width: 2;
+}
+
+.path-rack-slots {
+  fill: none;
+  stroke: #b9c3bc;
+  stroke-width: 3;
+}
+
+.path-business-boundary {
+  fill: none;
+  stroke: #a36b55;
+  stroke-width: 2;
+  stroke-dasharray: 8 5;
+}
+
+.path-office-window {
+  fill: none;
+  stroke: #82a1ad;
+  stroke-width: 10;
+}
+
+.path-detail-label {
+  fill: #69746e;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.isp-zone {
+  fill: #edf1ed;
+  stroke: #82958a;
+}
+
+.business-zone {
+  fill: #f4ece8;
+  stroke: #b28b78;
+}
+
+.focus-policy-label {
+  fill: #7b4e3d;
+  stroke: #f6f8f5;
+  stroke-width: 5px;
+  paint-order: stroke fill;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.focus-device {
+  width: 190px;
+}
+

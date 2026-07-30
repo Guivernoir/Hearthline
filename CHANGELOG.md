@@ -1,11 +1,33 @@
 # Changelog
 
 All notable changes to Hearthline are recorded here. Releases follow
-[Semantic Versioning](docs/versioning.md). Hearthline remains in initial
+[Semantic Versioning](project/docs/reference/versioning.md). Hearthline remains in initial
 development, so minor releases may include documented configuration or API
 migrations.
 
 ## Unreleased
+
+### Added
+
+- Continuous integration gates for the recursive 500-line file limit,
+  seven-entry folder limit, production/test separation, allocator-free runtime
+  boundary, standalone `no_std` compilation, Rust formatting, strict Clippy,
+  integration tests, canonical configuration and generated-catalog validation,
+  release-version consistency, Svelte diagnostics and builds, bounded fuzzing,
+  and release benchmarks.
+- External integration suites for model contracts, configuration parsing,
+  connectors, routing, switching, services, firewall state, NAT, industrial
+  control, media compatibility, and end-to-end event traversal.
+- Fuzz targets for identifiers and appliance YAML plus benchmarks for
+  longest-prefix routing and transparent-link service traversal.
+
+### Changed
+
+- Reorganized packages, project inputs, documentation, scripts, and standards
+  so every repository folder satisfies the enforced fan-out limit.
+- Converted deterministic model and engine crates to `no_std` fixed-capacity
+  storage and a borrowed 192-component simulator registry.
+- Isolated filesystem and YAML host adapters in `hearthline-config`.
 
 ### Planned
 

@@ -1,0 +1,388 @@
+.office-focus-drawing {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.office-physical-layer,
+.office-logical-layer {
+  display: none;
+}
+
+.physical-view .office-physical-layer,
+.logical-view .office-logical-layer {
+  display: block;
+}
+
+.office-room,
+.office-zone {
+  stroke-width: 1.5;
+}
+
+.office-room {
+  fill: #edf1ed;
+  stroke: #9daaa1;
+}
+
+.office-room.perimeter-room,
+.office-room.firewall-room,
+.office-room.north-boundary-room,
+.office-room.south-boundary-room {
+  fill: #f1e9e5;
+  stroke: #b08a79;
+}
+
+.office-room.provider-room {
+  fill: #edeaf1;
+  stroke: #9c91ac;
+}
+
+.office-room.service-room,
+.office-room.server-room,
+.office-room.access-room {
+  fill: #e8efec;
+  stroke: #7f9b91;
+}
+
+.office-room.internal-room,
+.office-room.operations-room,
+.office-room.workspace-room {
+  fill: #e9eef2;
+  stroke: #899fac;
+}
+
+.office-room.services-room,
+.office-room.exchange-room {
+  fill: #f0eee8;
+  stroke: #aea184;
+}
+
+.office-room.ot-handoff-room,
+.office-room.dmz-fabric-room,
+.office-room.monitoring-room {
+  fill: #e9edef;
+  stroke: #8b9da7;
+}
+
+.office-floor-shell {
+  fill: #d9dfda;
+  stroke: #748178;
+  stroke-width: 2;
+}
+
+.office-floor-room {
+  stroke: #87938b;
+  stroke-width: 1.5;
+}
+
+.office-floor-room.network-room,
+.office-floor-room.secure-corridor {
+  fill: #ebe4e1;
+  stroke: #a07565;
+}
+
+.office-floor-room.reception-room {
+  fill: #eef1eb;
+  stroke: #96a295;
+}
+
+.office-floor-room.server-room {
+  fill: #e3ebe7;
+  stroke: #749086;
+}
+
+.office-floor-room.open-office-room {
+  fill: #e8eef1;
+  stroke: #829aa8;
+}
+
+.office-floor-room.operations-room {
+  fill: #e8e7ee;
+  stroke: #8d88a2;
+}
+
+.office-floor-room.meeting-room {
+  fill: #efede7;
+  stroke: #a69d83;
+}
+
+.office-floor-room.operations-entry-room {
+  fill: #e8edf1;
+  stroke: #8298a5;
+}
+
+.office-floor-room.central-operations-room {
+  fill: #e8e7ee;
+  stroke: #8d88a2;
+}
+
+.office-floor-room.analytics-room {
+  fill: #e5ede8;
+  stroke: #7f978d;
+}
+
+.office-floor-room.conduit-room {
+  fill: #eee9f0;
+  stroke: #9b8da5;
+}
+
+.office-floor-room.factory-adjacent-room {
+  fill: #f1e8e4;
+  stroke: #ad816d;
+}
+
+.office-cable-duct {
+  fill: #c5ccc7;
+  stroke: #7b8780;
+  stroke-width: 1;
+}
+
+.office-exterior-wall {
+  fill: none;
+  stroke: #536159;
+  stroke-width: 4;
+}
+
+.office-floor-tile {
+  fill: none;
+  stroke: #c5ccc6;
+  stroke-width: 1;
+}
+
+.office-window {
+  fill: none;
+  stroke: #7ca0ad;
+  stroke-width: 9;
+}
+
+.office-window.secure-window {
+  stroke-width: 6;
+  stroke-dasharray: 16 5;
+}
+
+.office-door,
+.office-security-door {
+  fill: none;
+  stroke: #7e6558;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.office-security-door {
+  stroke: #9e3f2f;
+  stroke-width: 5;
+}
+
+.office-badge-reader,
+.facility-demarc-cabinet {
+  fill: #d8ddd9;
+  stroke: #65746b;
+  stroke-width: 2;
+}
+
+.office-rack,
+.office-server-rack {
+  fill: #68736e;
+  stroke: #414b47;
+  stroke-width: 2;
+}
+
+.office-rack-slot {
+  fill: none;
+  stroke: #b9c3bc;
+  stroke-width: 3;
+}
+
+.office-cable-tray {
+  fill: none;
+  stroke: #7e8982;
+  stroke-width: 2;
+  stroke-dasharray: 4 5;
+}
+
+.office-reception-desk,
+.office-lounge,
+.office-meeting-table,
+.office-service-counter,
+.office-noc-console {
+  fill: #c9d1cb;
+  stroke: #7f8b83;
+  stroke-width: 1.5;
+}
+
+.office-lounge {
+  fill: #c4d0ca;
+}
+
+.office-meeting-table,
+.office-service-counter {
+  fill: #d4cec1;
+  stroke: #92866f;
+}
+
+.office-display-wall {
+  fill: #7898a2;
+  stroke: #526f77;
+  stroke-width: 1.5;
+}
+
+.office-desk-row path {
+  fill: #ccd5d7;
+  stroke: #83949a;
+  stroke-width: 1.5;
+}
+
+.office-chair,
+.office-desk-row circle {
+  fill: #78857d;
+  stroke: #56625b;
+  stroke-width: 1;
+}
+
+.office-floor-label,
+.office-detail-label {
+  fill: #58645d;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.office-detail-label {
+  fill: #707a74;
+  font-size: 7px;
+}
+
+.office-zone-label {
+  fill: #5f6a64;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.office-link,
+.office-flow {
+  fill: none;
+  stroke: #4d7379;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.office-link.provider-link {
+  stroke: #a05e35;
+  stroke-dasharray: 7 5;
+}
+
+.office-link.secure-link {
+  stroke: #9e3f2f;
+}
+
+.office-link.data-link,
+.office-flow.data-link {
+  stroke: #426d9d;
+  stroke-dasharray: 8 5;
+}
+
+.office-flow.approved-change-flow {
+  stroke: #8b6749;
+}
+
+.office-link.dual-link {
+  stroke-width: 5;
+  stroke-dasharray: 11 4 2 4;
+}
+
+.office-link.monitor-link,
+.office-flow.monitor-flow {
+  stroke: #6a5c91;
+  stroke-dasharray: 6 5;
+}
+
+.office-zone {
+  fill: #edf1ed;
+  stroke: #94a197;
+}
+
+.office-zone.internet-zone,
+.office-zone.it-source-zone,
+.office-zone.perimeter-zone {
+  fill: #f2ebf3;
+  stroke: #a491ad;
+}
+
+.office-zone.transit-zone,
+.office-zone.ot-conduit-zone {
+  fill: #f3ece8;
+  stroke: #b48d7c;
+}
+
+.office-zone.dmz-zone,
+.office-zone.access-zone,
+.office-zone.server-vlan {
+  fill: #e9f0ed;
+  stroke: #7e9b91;
+}
+
+.office-zone.enterprise-zone,
+.office-zone.user-vlan,
+.office-zone.level-three-zone {
+  fill: #eaf0f4;
+  stroke: #8aa3b2;
+}
+
+.office-zone.service-vlan,
+.office-zone.exchange-zone {
+  fill: #f1efe7;
+  stroke: #aea183;
+}
+
+.office-zone.guest-vlan {
+  fill: #f3eae5;
+  stroke: #b48a76;
+}
+
+.office-zone.management-vlan,
+.office-zone.monitoring-zone {
+  fill: #eceaf3;
+  stroke: #9a91ad;
+}
+
+.office-zone.decision-zone {
+  fill: #ebeaf1;
+  stroke: #918ba4;
+}
+
+.office-zone.analytics-zone {
+  fill: #e8f0eb;
+  stroke: #7f9b90;
+}
+
+.office-zone.conduit-zone {
+  fill: #eeebf2;
+  stroke: #9a8eaa;
+}
+
+.office-zone.factory-zone {
+  fill: #f2e9e5;
+  stroke: #b18572;
+}
+
+.office-policy-label {
+  fill: #834f3c;
+  stroke: #f6f8f5;
+  stroke-width: 5px;
+  paint-order: stroke fill;
+  font-size: 9px;
+  font-weight: 800;
+  text-anchor: middle;
+}
+
+#office-arrow path {
+  fill: #4d7379;
+}
+
+.office-device {
+  width: 190px;
+}
+

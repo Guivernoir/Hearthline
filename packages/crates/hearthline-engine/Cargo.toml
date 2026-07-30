@@ -1,0 +1,23 @@
+[package]
+name = "hearthline-engine"
+description = "Deterministic appliance and process simulation engine for Hearthline"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+hearthline-model = { path = "../hearthline-model" }
+heapless.workspace = true
+serde.workspace = true
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "runtime"
+harness = false
+
+[lints]
+workspace = true

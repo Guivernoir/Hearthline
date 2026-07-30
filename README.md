@@ -3,7 +3,7 @@
 **Current development release:** `0.2.0`
 
 See the [changelog](CHANGELOG.md) and
-[versioning policy](docs/versioning.md).
+[versioning policy](project/docs/reference/versioning.md).
 
 Hearthline is an industrial architecture and simulation project intended to
 connect a public customer journey, enterprise services, governed IT/OT
@@ -15,9 +15,9 @@ generate frontend configuration data, and support validated local editing.
 Complete topology execution, IEC 61131-3 control execution, and plant
 simulation remain planned engineering layers.
 
-![Hearthline regional architecture](docs/screenshot.png)
+![Hearthline regional architecture](project/docs/screenshot.png)
 
-![Hearthline regional logical architecture](docs/logical-screenshot.png)
+![Hearthline regional logical architecture](project/docs/logical-screenshot.png)
 
 ## Project Goals
 
@@ -73,7 +73,7 @@ The following capabilities are implemented in the Svelte application:
 - A ten-stage ceramics process with individual controllers, HMIs, sensors,
   distributed I/O, actuators, and safety or permissive interfaces.
 - A bootstrap process view model loaded from
-  [`process-view.json`](web/src/generated/process-view.json).
+  [`process-view.json`](packages/web/src/generated/process-view.json).
 - Rust-generated appliance and connection metadata, full YAML inspection, and
   validated editing through a localhost-only Rust API.
 - A Rust workspace with shared model contracts, typed YAML configuration,
@@ -90,7 +90,7 @@ Current maturity is:
 | Process view-model contract | Bootstrap JSON, schema `0.2.0` |
 | Canonical appliance YAML | Provisional baseline; 160 schema `0.3.0` files, one per appliance |
 | Canonical connection YAML | Provisional baseline; 205 schema `0.2.0` files, one per modeled connection |
-| Rust component simulation | Initial implementation; reusable primitives and unit tests exist, but the project topology is not instantiated |
+| Rust component simulation | Initial allocator-free implementation; reusable primitives and external integration tests exist, but the project topology is not instantiated |
 | Rust YAML validation and frontend projection | Implemented for appliance behavior, port hardware and state, connection media, endpoint compatibility, capacity, exclusive point-to-point ports, file identity, and render bindings |
 | Local YAML editing | Implemented with revision checks, whole-project validation, atomic writes, and catalog regeneration |
 | Configured topology and end-to-end scenarios | Planned; validated connection records are not yet assembled into an executable project graph |
@@ -150,9 +150,9 @@ identity, control, or process decisions.
 
 | Site | Scope | Documentation |
 | --- | --- | --- |
-| Customer Network | Residential LAN, customer edge, and end-to-end public web access | [Customer Network](docs/customer-network/README.md) |
-| Central Office | Public IT DMZ, Business IT, governance, monitoring, analytics, and approved change workflows | [Central Office](docs/central-office/README.md) |
-| Factory | Factory-local OT DMZ, Level 3 handoff, and segmented ceramics process | [Factory](docs/factory/README.md) |
+| Customer Network | Residential LAN, customer edge, and end-to-end public web access | [Customer Network](project/docs/customer-network/README.md) |
+| Central Office | Public IT DMZ, Business IT, governance, monitoring, analytics, and approved change workflows | [Central Office](project/docs/central-office/README.md) |
+| Factory | Factory-local OT DMZ, Level 3 handoff, and segmented ceramics process | [Factory](project/docs/factory/README.md) |
 
 The Central Office is the principal governance and analysis site. The Factory
 retains local execution, enforcement, engineering authority, and safe process
@@ -195,45 +195,33 @@ network, logical vPLC workload, local HMI, distributed I/O, sensors, actuators,
 and safety or permissive interface. The target deployment assigns physical vPLC
 execution to a factory-local redundant control-compute cluster; no runtime is
 integrated yet. Detailed process documentation starts at the
-[Ceramics Process](docs/factory/process/README.md).
+[Ceramics Process](project/docs/factory/process/README.md).
 
 ## Repository Structure
 
 ```text
 .
-|-- config
-|   |-- appliances
-|   |   |-- customer
-|   |   |-- internet
-|   |   |-- central-office
-|   |   |-- factory
-|   |   `-- shared
-|   |-- connections
-|   |   |-- customer
-|   |   |-- internet
-|   |   |-- central-office
-|   |   |-- factory
-|   |   `-- shared
-|   `-- ot
-|       `-- process
-|-- crates
-|   |-- hearthline-model
-|   |-- hearthline-engine
-|   |-- hearthline-api
-|   `-- hearthline-cli
-|-- docs
-|   |-- customer-network
-|   |-- central-office
-|   |-- factory
-|   |-- project-direction.md
-|   `-- versioning.md
-|-- web
-|   |-- src
-|   |-- package.json
-|   `-- README.md
+|-- .github
+|   `-- workflows
+|-- packages
+|   |-- crates
+|   |   |-- hearthline-model
+|   |   |-- hearthline-engine
+|   |   |-- hearthline-config
+|   |   |-- hearthline-api
+|   |   `-- hearthline-cli
+|   |-- fuzz
+|   |-- web
+|   |-- Cargo.toml
+|   `-- Cargo.lock
+|-- project
+|   |-- config
+|   |-- docs
+|   |-- scripts
+|   |-- standards
+|   `-- VERSION
 |-- CHANGELOG.md
 |-- LICENSE
-|-- VERSION
 `-- README.md
 ```
 
@@ -280,7 +268,7 @@ switching, routing, NAT, firewall, service, OT, and controller scenarios.
 ## Running the Application
 
 ```bash
-cd web
+cd packages/web
 npm install
 npm run dev
 ```
@@ -288,34 +276,41 @@ npm run dev
 Validated editing requires the local Rust API from the repository root:
 
 ```bash
-cargo run -p hearthline-api
+cargo run --manifest-path packages/Cargo.toml -p hearthline-api
 ```
 
 Quality checks:
 
 ```bash
-node scripts/check-version.mjs
-cd web
+node project/scripts/repository-policy.mjs
+node project/scripts/check-version.mjs
+cd packages/web
 npm run check
 npm run build
-cd ..
-cargo fmt --all -- --check
-cargo test --workspace
-cargo clippy --workspace --all-targets -- -D warnings
-cargo run -p hearthline-cli -- config-validate
-cargo run -p hearthline-cli -- config-generate
+cd ../..
+cargo fmt --manifest-path packages/Cargo.toml --all --check
+cargo clippy --manifest-path packages/Cargo.toml --workspace --all-targets --all-features -- -D warnings
+cargo test --manifest-path packages/Cargo.toml --workspace --all-features
+cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- config-validate
+cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- config-generate
+cargo bench --manifest-path packages/Cargo.toml --workspace --all-features
 ```
+
+CI additionally runs the two bounded `cargo-fuzz` targets with nightly Rust.
+The enforced repository constraints are documented in
+[CI policy](project/standards/CI_POLICY.md).
 
 ## Documentation
 
-- [Documentation index](docs/README.md)
-- [Implementation direction](docs/project-direction.md)
-- [Deployment conformance review](docs/deployment-conformance.md)
-- [Rust simulation engine](docs/simulation-engine.md)
-- [Svelte application](web/README.md)
-- [Configuration model](config/README.md)
+- [Documentation index](project/docs/README.md)
+- [Implementation direction](project/docs/reference/project-direction.md)
+- [Deployment conformance review](project/docs/reference/deployment-conformance.md)
+- [Rust simulation engine](project/docs/reference/simulation-engine.md)
+- [Svelte application](project/docs/reference/svelte-application.md)
+- [Configuration model](project/config/README.md)
+- [Continuous integration policy](project/standards/CI_POLICY.md)
 - [Changelog](CHANGELOG.md)
-- [Versioning and releases](docs/versioning.md)
+- [Versioning and releases](project/docs/reference/versioning.md)
 
 ## License
 

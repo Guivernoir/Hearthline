@@ -1,0 +1,479 @@
+.map-viewport {
+  touch-action: none;
+  cursor: grab;
+}
+
+.map-viewport.is-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.region-world {
+  position: absolute;
+  overflow: hidden;
+  transform-origin: 0 0;
+  border: 1px solid #c9d0ca;
+  background: #e5e9e2;
+  box-shadow: 0 4px 18px rgb(32 42 35 / 7%);
+}
+
+.region-world.grid-visible {
+  background-image:
+    linear-gradient(rgb(105 119 108 / 12%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(105 119 108 / 12%) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.map-heading {
+  position: absolute;
+  top: 30px;
+  left: 38px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.map-heading > span,
+.location-heading > span {
+  color: #286d64;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.map-heading h1,
+.location-heading h1 {
+  margin: 5px 0 3px;
+  color: #252b27;
+  font-size: 20px;
+  font-weight: 720;
+  line-height: 1.2;
+}
+
+.map-heading p,
+.location-heading p {
+  margin: 0;
+  color: #69736d;
+  font-size: 11px;
+}
+
+.map-drawing {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.region-border {
+  fill: #f3f5f0;
+  stroke: #aab5ac;
+  stroke-width: 2;
+}
+
+.map-parcels path {
+  fill: #e9ede6;
+  stroke: #d3d9d3;
+  stroke-width: 1;
+}
+
+.map-parcels path:nth-child(2) {
+  fill: #e5ebe7;
+}
+
+.map-parcels path:nth-child(3) {
+  fill: #ebe9e3;
+}
+
+.road {
+  fill: none;
+  stroke: #cbd2cc;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.road-major {
+  stroke: #bcc5be;
+  stroke-width: 10;
+}
+
+.rail {
+  fill: none;
+  stroke: #8b948e;
+  stroke-width: 2.5;
+  stroke-dasharray: 3 7;
+  stroke-linecap: round;
+}
+
+.logical-map-layer {
+  display: none;
+}
+
+.logical-view .logical-map-layer {
+  display: block;
+}
+
+.logical-view .physical-map-layer {
+  opacity: 0.2;
+}
+
+.logical-link {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.logical-link.public-link {
+  stroke: #416e91;
+  stroke-dasharray: 7 5;
+}
+
+.logical-link.ot-link {
+  stroke: #b65034;
+}
+
+.logical-map-layer marker .ot-arrow {
+  fill: #b65034;
+}
+
+.logical-map-layer marker .public-arrow {
+  fill: #416e91;
+}
+
+.logical-map-layer text {
+  fill: #5c6760;
+  stroke: #f3f5f0;
+  stroke-width: 5px;
+  paint-order: stroke fill;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.district-label {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+
+.district-label span {
+  color: #7c857e;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.district-label strong {
+  margin-top: 3px;
+  color: #58615b;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.customer-district {
+  top: 594px;
+  left: 132px;
+}
+
+.office-district {
+  top: 180px;
+  left: 558px;
+}
+
+.factory-district {
+  top: 668px;
+  left: 1080px;
+}
+
+.internet-hub {
+  position: absolute;
+  top: 350px;
+  left: 442px;
+  z-index: 2;
+  display: flex;
+  width: 98px;
+  align-items: center;
+  flex-direction: column;
+  gap: 5px;
+  color: #356787;
+  pointer-events: none;
+}
+
+.internet-hub > span {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 2px solid #6d91ab;
+  border-radius: 50%;
+  background: #f8fafb;
+}
+
+.internet-hub strong {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.place-marker {
+  position: absolute;
+  z-index: 4;
+  display: flex;
+  min-width: 220px;
+  padding: 0;
+  align-items: center;
+  border: 0;
+  color: #222824;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.place-pin {
+  position: relative;
+  display: grid;
+  width: 58px;
+  height: 58px;
+  flex: 0 0 58px;
+  place-items: center;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--place-accent);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--place-accent) 65%, #858e88),
+    0 5px 12px rgb(24 34 28 / 18%);
+}
+
+.place-pin::after {
+  position: absolute;
+  right: -1px;
+  bottom: -7px;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  margin: auto;
+  border-right: 3px solid #fff;
+  border-bottom: 3px solid #fff;
+  background: var(--place-accent);
+  content: "";
+  transform: rotate(45deg);
+}
+
+.place-label {
+  display: flex;
+  min-width: 0;
+  margin-left: 12px;
+  padding: 8px 10px;
+  flex-direction: column;
+  border: 1px solid #c9d0ca;
+  border-radius: 5px;
+  background: rgb(255 255 255 / 94%);
+  box-shadow: 0 3px 10px rgb(30 39 33 / 10%);
+}
+
+.place-label strong {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 720;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.place-label small {
+  margin-top: 3px;
+  color: #6d766f;
+  font-size: 10px;
+  font-weight: 550;
+}
+
+.place-marker:hover .place-label,
+.place-marker.selected .place-label {
+  border-color: var(--place-accent);
+}
+
+.place-marker.selected .place-pin {
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--place-accent) 24%, transparent),
+    0 6px 16px rgb(24 34 28 / 22%);
+}
+
+.map-key {
+  position: absolute;
+  right: 24px;
+  bottom: 22px;
+  z-index: 4;
+  display: flex;
+  height: 32px;
+  padding: 0 10px;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #c8d0c9;
+  border-radius: 5px;
+  color: #5b655e;
+  background: rgb(255 255 255 / 92%);
+  font-size: 9px;
+  font-weight: 650;
+  pointer-events: none;
+}
+
+.map-key span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.key-line {
+  display: inline-block;
+  width: 24px;
+  height: 0;
+  border-top: 2px solid;
+}
+
+.key-line.public {
+  border-color: #416e91;
+  border-top-style: dashed;
+}
+
+.key-line.controlled {
+  border-color: #b65034;
+}
+
+.key-line.road-key {
+  border-color: #bcc5be;
+  border-top-width: 4px;
+}
+
+.key-line.rail-key {
+  border-color: #7c827e;
+  border-top-style: dotted;
+}
+
+.place-inspector {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 15;
+  width: min(330px, calc(100% - 28px));
+  padding: 16px;
+  border: 1px solid #c6cec8;
+  border-radius: 7px;
+  background: #fff;
+  box-shadow: 0 12px 34px rgb(27 36 30 / 16%);
+}
+
+.place-inspector-header {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 32px;
+  align-items: center;
+  gap: 10px;
+}
+
+.place-inspector-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 5px;
+  color: var(--place-accent);
+  background: color-mix(in srgb, var(--place-accent) 11%, white);
+}
+
+.place-inspector-header > div {
+  min-width: 0;
+}
+
+.place-inspector-header > div > span {
+  display: block;
+  overflow: hidden;
+  color: #737d76;
+  font-size: 9px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.place-inspector-header h2 {
+  margin: 3px 0 0;
+  overflow: hidden;
+  font-size: 17px;
+  font-weight: 720;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.place-inspector-header button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: #59625c;
+  background: transparent;
+  cursor: pointer;
+}
+
+.place-inspector-header button:hover {
+  border-color: #d6dcd7;
+  background: #f2f4f2;
+}
+
+.place-inspector > p {
+  margin: 14px 0;
+  color: #59635d;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.environment-list {
+  display: grid;
+  border-top: 1px solid #e0e5e1;
+}
+
+.environment-list > span {
+  padding: 11px 0 6px;
+  color: #7a837d;
+  font-size: 9px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.environment-list > div {
+  display: flex;
+  min-height: 31px;
+  align-items: center;
+  gap: 8px;
+  color: #46615b;
+  font-size: 11px;
+}
+
+.environment-list strong {
+  color: #343b37;
+  font-weight: 620;
+}
+
+.enter-place {
+  display: flex;
+  width: 100%;
+  height: 36px;
+  margin-top: 13px;
+  padding: 0 12px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid #1f695f;
+  border-radius: 5px;
+  color: #fff;
+  background: #276f66;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.enter-place:hover {
+  background: #1e6058;
+}
+

@@ -1,0 +1,482 @@
+
+.appliance-summary {
+  display: grid;
+  margin-top: 14px;
+  padding-top: 13px;
+  gap: 10px;
+  border-top: 1px solid #e0e5e1;
+}
+
+.appliance-summary-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.appliance-summary-heading > span {
+  color: #267168;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.appliance-summary-heading > strong,
+.config-lifecycle {
+  padding: 3px 6px;
+  border: 1px solid #c8d7cf;
+  border-radius: 4px;
+  color: #31594d;
+  background: #f1f6f3;
+  font-size: 8px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.appliance-summary > p {
+  margin: 0;
+  color: #59635d;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.appliance-summary dl {
+  display: grid;
+  margin: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid #e0e5e1;
+}
+
+.appliance-summary dl > div {
+  min-width: 0;
+  padding: 7px;
+}
+
+.appliance-summary dl > div + div {
+  border-left: 1px solid #e0e5e1;
+}
+
+.appliance-summary dt {
+  color: #7a837d;
+  font-size: 7px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.appliance-summary dd {
+  margin: 3px 0 0;
+  overflow-wrap: anywhere;
+  color: #343b37;
+  font-size: 9px;
+  font-weight: 650;
+}
+
+.appliance-open,
+.appliance-member-list button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #b9c9c0;
+  border-radius: 5px;
+  color: #245e52;
+  background: #f4f8f5;
+  cursor: pointer;
+}
+
+.appliance-open {
+  width: 100%;
+  min-height: 34px;
+  gap: 7px;
+  font-size: 10px;
+  font-weight: 720;
+}
+
+.appliance-open:hover,
+.appliance-member-list button:hover {
+  border-color: #267168;
+  background: #eaf2ee;
+}
+
+.appliance-member-list {
+  display: grid;
+  gap: 6px;
+}
+
+.appliance-member-list > div {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 8px;
+  border: 1px solid #e0e5e1;
+}
+
+.appliance-member-list > div > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.appliance-member-list strong,
+.appliance-member-list small {
+  overflow-wrap: anywhere;
+}
+
+.appliance-member-list strong {
+  color: #343b37;
+  font-size: 9px;
+}
+
+.appliance-member-list small {
+  color: #737d77;
+  font-size: 8px;
+}
+
+.appliance-member-list button {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  padding: 0;
+}
+
+.config-workspace {
+  min-height: 0;
+  overflow: auto;
+  background: #f3f5f3;
+}
+
+.config-heading {
+  display: flex;
+  max-width: 1260px;
+  margin: 0 auto;
+  padding: 30px 34px 24px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  border-bottom: 1px solid #d5dcd7;
+}
+
+.config-heading > div {
+  min-width: 0;
+}
+
+.config-heading > div > span,
+.config-document > div > span,
+.config-metadata section > span {
+  color: #267168;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.config-heading h1 {
+  margin: 5px 0 0;
+  overflow-wrap: anywhere;
+  color: #242b27;
+  font-size: 27px;
+  line-height: 1.15;
+}
+
+.config-heading p {
+  max-width: 760px;
+  margin: 9px 0 0;
+  color: #5a655f;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.config-lifecycle {
+  flex: 0 0 auto;
+}
+
+.config-lifecycle.down {
+  color: #8a3528;
+  border-color: #d7afa7;
+  background: #f8ece9;
+}
+
+.config-layout {
+  display: grid;
+  width: min(1260px, 100%);
+  min-height: 0;
+  margin: 0 auto;
+  padding: 24px 34px 34px;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 24px;
+}
+
+.config-metadata {
+  min-width: 0;
+  align-self: start;
+  border: 1px solid #ced6d0;
+  background: #fff;
+}
+
+.config-metadata dl {
+  margin: 0;
+}
+
+.config-metadata dl > div,
+.config-metadata section {
+  padding: 12px 14px;
+}
+
+.config-metadata dl > div + div,
+.config-metadata section {
+  border-top: 1px solid #e2e7e3;
+}
+
+.config-metadata dt {
+  color: #7a837d;
+  font-size: 8px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.config-metadata dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+  color: #343b37;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.config-metadata section {
+  display: grid;
+  gap: 5px;
+}
+
+.config-metadata section > strong {
+  color: #343b37;
+  font-size: 18px;
+}
+
+.config-metadata section > small {
+  overflow-wrap: anywhere;
+  color: #5e6962;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.config-connection-list button,
+.config-endpoints button {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  padding: 8px;
+  align-items: flex-start;
+  gap: 8px;
+  border: 1px solid #dbe2dd;
+  border-radius: 4px;
+  color: #3f4a44;
+  background: #f9faf9;
+  text-align: left;
+  cursor: pointer;
+}
+
+.config-connection-list button:hover,
+.config-endpoints button:hover {
+  border-color: #8db0a5;
+  background: #edf4f0;
+}
+
+.config-connection-list button > svg,
+.config-endpoints button > svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: #267168;
+}
+
+.config-connection-list button > span,
+.config-endpoints button > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.config-connection-list b,
+.config-endpoints b {
+  overflow-wrap: anywhere;
+  font-size: 9px;
+  line-height: 1.3;
+}
+
+.config-connection-list button small,
+.config-endpoints button small {
+  overflow-wrap: anywhere;
+  color: #6a756e;
+  font-size: 8px;
+  line-height: 1.35;
+}
+
+.config-port-list > div {
+  display: grid;
+  gap: 3px;
+  padding: 8px 0;
+}
+
+.config-port-list > div + div {
+  border-top: 1px solid #e2e7e3;
+}
+
+.config-port-list header {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 14px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+}
+
+.config-port-list header > svg {
+  color: #267168;
+}
+
+.config-port-list b {
+  overflow-wrap: anywhere;
+  color: #343b37;
+  font-size: 9px;
+}
+
+.config-port-list i {
+  padding: 2px 5px;
+  border: 1px solid #9abdb0;
+  border-radius: 3px;
+  color: #205d50;
+  background: #edf5f1;
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.config-port-list i.down {
+  color: #8a3528;
+  border-color: #d7afa7;
+  background: #f8ece9;
+}
+
+.config-document {
+  min-width: 0;
+  border: 1px solid #c5cec8;
+  background: #fff;
+}
+
+.config-document > .config-document-toolbar {
+  display: flex;
+  min-height: 42px;
+  padding: 0 14px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 1px solid #d9dfdb;
+}
+
+.config-document-actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.config-document-actions > strong {
+  color: #747e78;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.config-document-actions button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #cbd4ce;
+  border-radius: 4px;
+  color: #53615a;
+  background: #fff;
+  cursor: pointer;
+}
+
+.config-document-actions button:hover:not(:disabled) {
+  color: #205d50;
+  border-color: #80a89c;
+  background: #edf4f0;
+}
+
+.config-document-actions button.primary-action {
+  color: #fff;
+  border-color: #267168;
+  background: #267168;
+}
+
+.config-document-actions button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.config-document pre {
+  max-height: calc(100vh - 246px);
+  min-height: 420px;
+  margin: 0;
+  padding: 18px;
+  overflow: auto;
+  color: #dce9e1;
+  background: #202824;
+  font-size: 11px;
+  line-height: 1.55;
+  tab-size: 2;
+}
+
+.config-document textarea {
+  display: block;
+  width: 100%;
+  min-height: calc(100vh - 246px);
+  margin: 0;
+  padding: 18px;
+  resize: vertical;
+  border: 0;
+  border-radius: 0;
+  outline: none;
+  color: #dce9e1;
+  background: #202824;
+  font: 11px/1.55 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  tab-size: 2;
+}
+
+.config-document textarea:focus {
+  box-shadow: inset 0 0 0 2px #4d8a79;
+}
+
+.config-save-error {
+  padding: 10px 14px;
+  border-bottom: 1px solid #dfb2a8;
+  color: #7f3024;
+  background: #f9e9e5;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.config-document code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+.config-missing {
+  display: grid;
+  min-height: 420px;
+  place-content: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.config-missing button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid #b9c9c0;
+  border-radius: 5px;
+  color: #245e52;
+  background: #fff;
+  cursor: pointer;
+}
+
