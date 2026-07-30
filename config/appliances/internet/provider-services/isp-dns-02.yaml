@@ -1,0 +1,35 @@
+schema_version: "0.3.0"
+id: "isp-dns-02"
+label: "ISP-DNS-02"
+kind: "dns-server"
+site: "Provider Network"
+environment: "Internet"
+zone: "Provider Services"
+role: "Public authoritative DNS member"
+summary: "Publishes the modeled business web-service record through a redundant authoritative role."
+lifecycle: "design"
+tags: []
+render:
+  - view: "customer/public-web-path"
+    node: "isp-dns"
+    mode: "any"
+interfaces:
+  - id: "service"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses:
+      - "198.51.100.50/24"
+    vlans: []
+behavior:
+  family: "service-host"
+  accepted_services:
+    - "dns-udp"
+    - "dns-tcp"
+  respond_to_icmp: true

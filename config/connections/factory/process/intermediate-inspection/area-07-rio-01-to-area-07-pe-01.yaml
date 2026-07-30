@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "area-07-rio-01-to-area-07-pe-01"
+label: "Intermediate Inspection field channel to AREA-07-PE-01"
+lifecycle: "design"
+transport: "field-io"
+medium:
+  type: "field-wiring"
+  signal: "Inspection trigger sensor"
+  length_m: 30.0
+endpoints:
+  a:
+    appliance: "area-07-rio-01"
+    interface: "field-io-02"
+  b:
+    appliance: "area-07-pe-01"
+    interface: "field-io"
+properties:
+  capacity_mbps: 10
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "ot"
+  - "ot-area-07"
+  - "field-io"

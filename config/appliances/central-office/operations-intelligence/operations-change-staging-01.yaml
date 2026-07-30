@@ -1,0 +1,34 @@
+schema_version: "0.3.0"
+id: "operations-change-staging-01"
+label: "Change Approval & Staging-01"
+kind: "change-staging-service"
+site: "Central Office"
+environment: "Operations Intelligence"
+zone: "Governed Change"
+role: "Review, signing, scanning, and staging service"
+summary: "Produces auditable approved change packages for factory-authorized execution."
+lifecycle: "design"
+tags: []
+render:
+  - view: "office/operations-intelligence"
+    node: "change-staging"
+    mode: "any"
+interfaces:
+  - id: "enterprise"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+behavior:
+  family: "service-host"
+  accepted_services:
+    - "sftp"
+    - "https"
+  respond_to_icmp: true

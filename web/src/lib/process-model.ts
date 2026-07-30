@@ -77,7 +77,7 @@ export interface ProcessEquipment {
     kind: string;
     role: string;
     icon: ProcessIconKey;
-    configRef: string;
+    configRefs: string[];
     facts: string[];
   };
 }
@@ -92,7 +92,6 @@ export interface ProcessArea {
   icon: ProcessIconKey;
   tags: string[];
   detail: string;
-  configRef: string;
   position: ProcessPosition;
   equipment: ProcessEquipment[];
 }

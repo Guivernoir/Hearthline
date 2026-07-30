@@ -14,7 +14,9 @@
     ShieldCheck,
     X,
   } from "@lucide/svelte";
+  import ApplianceConfigSummary from "./ApplianceConfigSummary.svelte";
   import PhysicalDeviceMarker from "./PhysicalDeviceMarker.svelte";
+  import { findAppliancesForNode } from "./appliance-config";
   import { processIconByKey } from "./process-icons";
   import {
     findProcessArea,
@@ -35,12 +37,12 @@
     kind: string;
     role: string;
     icon: ProcessEquipment["icon"];
-    configRef: string;
     facts: string[];
   }
 
   export let routeKey: string;
   export let onBack: () => void = () => {};
+  export let onOpenAppliance: (id: string) => void = () => {};
   export let viewMode: ViewMode = "logical";
 
   const WORLD_WIDTH = 1280;
@@ -98,6 +100,13 @@
   $: selectedPresentation = selectedEquipment
     ? equipmentPresentation(selectedEquipment)
     : null;
+  $: selectedAppliances = selectedEquipment
+    ? findAppliancesForNode(
+        `factory/process/${routeKey}`,
+        selectedEquipment.id,
+        viewMode,
+      )
+    : [];
   $: worldPixelWidth = WORLD_WIDTH * zoom;
   $: worldPixelHeight = WORLD_HEIGHT * zoom;
   $: worldOffsetX = Math.max(0, (viewportWidth - worldPixelWidth) / 2);
@@ -175,7 +184,6 @@
       kind: item.kind,
       role: item.role,
       icon: item.icon,
-      configRef: item.configRef,
       facts: item.facts,
     };
   }
@@ -482,8 +490,8 @@
             <dd>{area?.zone}</dd>
           </div>
           <div>
-            <dt>Config source</dt>
-            <dd>{selectedPresentation.configRef}</dd>
+            <dt>Configuration</dt>
+            <dd>{selectedAppliances.length} parsed appliance {selectedAppliances.length === 1 ? "file" : "files"}</dd>
           </div>
         </dl>
         <ul class="process-equipment-facts">
@@ -491,6 +499,10 @@
             <li>{fact}</li>
           {/each}
         </ul>
+        <ApplianceConfigSummary
+          appliances={selectedAppliances}
+          onOpen={onOpenAppliance}
+        />
       </aside>
     {/if}
   </main>

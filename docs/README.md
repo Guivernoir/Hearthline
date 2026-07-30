@@ -13,9 +13,17 @@ folder represents a documented application view and contains a local
 
 The documentation currently covers all 22 documented application views with
 matching physical and logical captures. It documents the rendered Svelte model,
-the bootstrap process contract, and target engineering requirements. It does
-not document passing network, control, process, or failover tests because those
-engines do not yet exist.
+the parsed appliance and connection YAML baseline, the bootstrap process
+contract, and target engineering requirements. Captures were revalidated
+against release `0.2.0` on 2026-07-29. It does not document passing network,
+control, process, or failover tests because those complete configured engines
+and scenarios do not yet exist.
+
+The documented architecture is also a provisional working model. Screenshots
+record the current application faithfully, but they do not freeze topology,
+equipment selection, placement, addressing, or policy as final design
+decisions. Those details remain planned refinement after the behavioral
+contracts can test them.
 
 ```text
 docs
@@ -54,6 +62,10 @@ docs
 
 - [Implementation direction](project-direction.md)
 - [Deployment conformance review](deployment-conformance.md)
+- [Rust simulation engine](simulation-engine.md)
+- [Configuration model](../config/README.md)
+- [Changelog](../CHANGELOG.md)
+- [Versioning and releases](versioning.md)
 
 Network and process details belong at their lowest owning level. Parent pages
 describe scope, authority, and relationships without duplicating child
@@ -65,6 +77,9 @@ inventories.
   Svelte application or build pipeline.
 - **Bootstrap** describes representative data used to establish a view or
   interface contract before authoritative generation exists.
+- **Provisional baseline** describes structurally valid configuration or
+  architecture placeholders that are intentionally unfinished and expected to
+  change as executable requirements mature.
 - **Planned** describes work for which no executable implementation currently
   exists.
 - **Validation target** describes an expected result that the future Rust

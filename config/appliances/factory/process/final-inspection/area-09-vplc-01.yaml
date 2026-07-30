@@ -1,0 +1,47 @@
+schema_version: "0.3.0"
+id: "area-09-vplc-01"
+label: "AREA-09-vPLC-01"
+kind: "virtual-plc"
+site: "Factory"
+environment: "Final Inspection"
+zone: "OT-AREA-09"
+role: "Final quality-gate controller"
+summary: "Result aggregation. Release decision workflow."
+lifecycle: "design"
+tags:
+  - "ot-area-09"
+  - "controller"
+render:
+  - view: "factory/process/final-inspection"
+    node: "area-09-vplc-01"
+    mode: "logical"
+interfaces:
+  - id: "cell-network"
+    hardware: "virtual-nic"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+  - id: "cell-network-standby"
+    hardware: "virtual-nic"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+behavior:
+  family: "virtual-controller"
+  scan_interval_ms: 100
+  program_ref: "logic/ot/process/final-inspection/area-09-vplc-01.st"
+  io_binding: "config/ot/process/bindings/area-09-vplc-01.yaml"

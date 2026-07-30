@@ -1,0 +1,35 @@
+schema_version: "0.3.0"
+id: "business-it-phone-01"
+label: "Business IT-PHONE-01"
+kind: "ip-phone"
+site: "Central Office"
+environment: "Business IT"
+zone: "IT Voice"
+role: "Registered enterprise voice endpoint"
+summary: "Uses the dedicated voice VLAN and registers with the enterprise voice gateway."
+lifecycle: "design"
+tags: []
+render:
+  - view: "office/business-it"
+    node: "phone"
+    mode: "any"
+interfaces:
+  - id: "fast-ethernet-0"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans:
+      - 40
+behavior:
+  family: "voice"
+  accepted_services:
+    - "voice-signaling"
+  extension: "2001"
+  call_controller: "business-it-voice-gw-01"

@@ -52,6 +52,13 @@ YAML represents production-shaped desired state. It is not deployable
 vendor-specific configuration until a renderer, target schema, secret
 injection, and output tests exist for that platform.
 
+At the current stage, both YAML content and rendered architecture are
+provisional placeholders. Their purpose is to establish stable contracts,
+representative boundaries, and enough topology to develop the simulation
+engine. Detailed configuration and architecture completion is deliberately
+deferred while communication, network behavior, control integration, and
+scenario execution are built.
+
 ## Site Authority
 
 The Central Office is the primary governance and analysis site. Operations
@@ -96,7 +103,7 @@ The Svelte application may filter, select, highlight paths, and inspect
 scenario results. It must not become a second routing, policy, PLC, or process
 engine.
 
-## Current Bootstrap Contract
+## Current Frontend Contracts
 
 The initial process view model is
 [`web/src/generated/process-view.json`](../web/src/generated/process-view.json).
@@ -108,17 +115,82 @@ It defines:
 - Future canonical configuration references.
 - A versioned schema marker.
 
-This bootstrap establishes the frontend consumer contract. It is not evidence
-that YAML generation or Rust validation exists. Inventory, connectivity,
-control-source references, I/O bindings, simulation state, and scenario
-outcomes will move to Rust-generated data.
+This bootstrap establishes the process presentation contract. It is not
+evidence that area connectivity, control-source references, I/O bindings,
+simulation state, or scenario outcomes have been validated.
+
+The appliance configuration catalog is
+[`web/src/generated/appliance-configs.json`](../web/src/generated/appliance-configs.json).
+Rust generates it from 160 parsed per-appliance and 205 per-connection YAML
+files. It provides stable IDs, typed kind and behavior-family metadata,
+resolved connection endpoints, lifecycle state, source revisions, full source
+text, and environment-scoped render bindings. Svelte uses this derivative
+catalog for appliance and connection inspection. A localhost Rust API accepts
+revision-checked edits and regenerates the catalog only after whole-project
+validation succeeds.
+
+## Current Rust Foundation
+
+The initial Rust workspace now contains:
+
+- `hearthline-model` for stable identifiers, appliance kinds, network data, and
+  process events.
+- `hearthline-engine` for deterministic appliance behavior, process-component
+  behavior, typed appliance and connection parsing, configuration validation,
+  frontend projection, event scheduling, trace output, and drop reasons.
+- `hearthline-api` for localhost-only validated and atomic configuration
+  editing.
+- `hearthline-cli` for behavior-catalog inspection, rendered-role coverage,
+  configuration validation and generation, and a small forwarding
+  demonstration.
+
+The engine has unit-tested switching, static routing, PAT, static NAT,
+stateful-policy, connector, DNS, service, web-gateway, controller-scan,
+remote-I/O, field-device, and safety primitives. It is not yet constructed
+from YAML and does not yet execute the complete rendered topology. The YAML
+pipeline now cross-validates connection endpoints, appliance port hardware,
+port state and settings, physical-media compatibility and capacity, and
+point-to-point port ownership; simulator construction and end-to-end flow
+evaluation remain pending.
 
 ## YAML Scope
 
-The canonical model will cover:
+Appliance schema `0.3.0` currently covers:
+
+- One stable file and ID per appliance.
+- Appliance kind, typed behavior family, placement, role, summary, lifecycle,
+  and tags.
+- Physical or logical render bindings.
+- Ports with Rust-defined hardware capabilities, administrative and initial
+  operational state, speed, duplex, MTU, logical mode, addresses, and VLAN
+  lists.
+- Family-specific baselines for links, switching, routing, NAT, firewalls,
+  application gateways, service endpoints, wireless, monitoring, control
+  compute, vPLCs, HMIs, remote I/O, field devices, and safety interfaces.
+
+Connection schema `0.2.0` covers:
+
+- One stable file and ID per connection.
+- Two appliance/interface endpoints.
+- Ethernet, wireless LAN, wide-area, field-I/O, virtual, mirror, and encrypted
+  IP transports, plus an available analog-telephone transport type.
+- Copper, fiber, radio, carrier, virtual, field-wiring, and telephone media.
+- Capacity, fixed latency, deterministic loss, direction, connection
+  operational state, lifecycle, and tags.
+- Endpoint existence, appliance and port capability, medium compatibility,
+  endpoint speed, medium capacity, duplicate-pair detection, and exclusive
+  point-to-point physical ports.
+
+Port hardware and physical media behavior are Rust types. Appliance YAML
+configures a port; connection YAML selects a supported bearer and describes a
+specific attachment. Rust combines both sides to determine initial link state,
+effective MTU, negotiated duplex, serialization delay, and propagation delay.
+
+The canonical model still needs complete typed coverage and cross-reference
+validation for:
 
 - Sites, zones, conduits, devices, and roles.
-- Physical interfaces, links, VLANs, trunks, and routed interfaces.
+- Cross-connection VLAN, trunk, and routed-interface consistency.
 - IPv4 and future IPv6 addressing.
 - Routing and NAT intent.
 - Services, service groups, and stateful policy.
@@ -152,17 +224,18 @@ qualified engineering and validation.
 
 ## Rust Scope
 
-The first engine milestones are:
+The engine milestones are:
 
-1. Parse and validate YAML schemas.
-2. Reject duplicate addresses, invalid prefixes, undefined references, VLAN
+1. Maintain stable component, event, effect, and trace contracts.
+2. Parse and validate YAML schemas.
+3. Reject duplicate addresses, invalid prefixes, undefined references, VLAN
    mismatches, and missing interfaces.
-3. Build a directed graph of interfaces, links, zones, and policy boundaries.
-4. Evaluate routing, NAT, and stateful policy for declared flows.
-5. Explain the selected path or exact denial reason.
-6. Parse supported control sources and resolve symbols, tasks, tags, and I/O.
-7. Emit stable JSON for the Svelte application.
-8. Execute positive, negative, process, and fault scenarios in CI.
+4. Build the complete graph of interfaces, links, zones, and policy boundaries.
+5. Evaluate complete declared flows using the existing component primitives.
+6. Explain the selected path or exact denial reason.
+7. Parse supported control sources and resolve symbols, tasks, tags, and I/O.
+8. Emit stable JSON for the Svelte application.
+9. Execute positive, negative, process, and fault scenarios in CI.
 
 The reference deployment keeps physical vPLC hosts in factory-local Level 3
 control compute. Area-specific network separation continues from each cell to
@@ -178,11 +251,15 @@ packet emulator or substitute for qualified hardware testing.
 ```text
 .
 |-- config
-|   |-- inventory.yaml
-|   |-- topology.yaml
-|   |-- devices
-|   |-- policies
-|   `-- scenarios
+|   |-- appliances
+|   |   |-- customer
+|   |   |-- internet
+|   |   |-- central-office
+|   |   |-- factory
+|   |   `-- shared
+|   |-- connections
+|   `-- ot
+|       `-- process
 |-- logic
 |   |-- structured-text
 |   `-- ladder
@@ -190,6 +267,7 @@ packet emulator or substitute for qualified hardware testing.
 |   |-- hearthline-model
 |   |-- hearthline-engine
 |   |-- hearthline-plc-parser
+|   |-- hearthline-api
 |   `-- hearthline-cli
 |-- web
 |   `-- Svelte static application
@@ -203,19 +281,31 @@ packet emulator or substitute for qualified hardware testing.
 
 ## Delivery Sequence
 
-The initial navigable Svelte and documentation baseline is complete. The next
-engineering milestone is the canonical YAML schema; later steps remain
-unimplemented unless stated otherwise in the repository-level README.
+The navigable Svelte and documentation baseline, initial Rust behavior
+foundation, typed appliance and connection repositories, frontend projection,
+and local validated editor are complete. The next engineering milestone is a
+formal device-to-device communication contract executed through configured
+ports and typed media. Complete topology construction and deeper network
+cross-validation follow that contract; later steps remain unimplemented unless
+stated otherwise in the repository-level README.
 
 1. Maintain the navigable Svelte architecture and synchronized documentation.
-2. Define stable YAML identifiers, schemas, and reference rules.
-3. Translate remaining frontend inventory into canonical YAML.
-4. Implement Rust structural and reference validation.
-5. Add routing, NAT, stateful-policy, and conduit evaluation.
-6. Generate versioned JSON view models.
-7. Add positive and negative network scenarios.
-8. Select supported control-language editions and interchange formats.
-9. Implement control parsing and I/O cross-reference validation.
-10. Integrate virtual PLC execution with the Rust plant model.
-11. Add process state, accelerated time, material tracking, and fault injection.
-12. Add vendor-specific rendering only as a separate tested capability.
+2. Carry typed messages between configured device ports through the Rust media
+   and connector layer with deterministic traces.
+3. Validate the Customer LAN and Customer Edge as the first executable path.
+4. Extend structural validation with address, VLAN, route, policy, and HA
+   reference rules.
+5. Translate remaining site and environment presentation data into canonical
+   inputs.
+6. Construct simulator components and connectors from parsed configuration.
+7. Assemble routing, NAT, stateful-policy, and conduit primitives into complete
+   configured topologies.
+8. Extend versioned JSON generation to topology and scenario data.
+9. Add positive and negative network scenarios.
+10. Replace provisional configuration and architecture content with
+    scenario-derived, cross-validated engineering definitions.
+11. Select supported control-language editions and interchange formats.
+12. Implement control parsing and I/O cross-reference validation.
+13. Integrate virtual PLC execution with the Rust plant model.
+14. Add process state, accelerated time, material tracking, and fault injection.
+15. Add vendor-specific rendering only as a separate tested capability.

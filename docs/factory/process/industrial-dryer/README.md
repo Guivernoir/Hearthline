@@ -28,5 +28,5 @@ does not currently execute control logic, I/O, or process behavior.
 ## Planned Work
 
 Simulation will cover profile state, product movement, airflow loss,
-over-temperature conditions, and safe discharge. Canonical YAML and control
-bindings remain pending.
+over-temperature conditions, and safe discharge. Per-appliance YAML is
+implemented; resolved control bindings and process behavior remain pending.

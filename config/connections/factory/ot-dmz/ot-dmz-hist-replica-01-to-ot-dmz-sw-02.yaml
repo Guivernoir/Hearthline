@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "ot-dmz-hist-replica-01-to-ot-dmz-sw-02"
+label: "ot-dmz-hist-replica-01 attachment to OT DMZ switch 02"
+lifecycle: "design"
+transport: "ethernet"
+medium:
+  type: "copper"
+  wiring: "straight-through"
+  category: "cat6a"
+  length_m: 10.0
+endpoints:
+  a:
+    appliance: "ot-dmz-hist-replica-01"
+    interface: "service-standby"
+  b:
+    appliance: "ot-dmz-sw-02"
+    interface: "hist-replica-01"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "ot-dmz"
+  - "service"

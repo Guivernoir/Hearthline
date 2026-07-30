@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "customer-rtr-01-to-cpe-01"
+label: "Customer router to provider CPE"
+lifecycle: "design"
+transport: "ethernet"
+medium:
+  type: "copper"
+  wiring: "straight-through"
+  category: "cat6a"
+  length_m: 10.0
+endpoints:
+  a:
+    appliance: "customer-rtr-01"
+    interface: "outside"
+  b:
+    appliance: "customer-inet-cpe-01"
+    interface: "customer"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "customer"
+  - "demarcation"

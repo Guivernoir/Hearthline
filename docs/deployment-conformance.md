@@ -1,8 +1,8 @@
 # Deployment Conformance Review
 
-**Review date:** 2026-07-26  
-**Scope:** Current Svelte architecture, documentation, and bootstrap process
-model
+**Review date:** 2026-07-29
+**Scope:** Current Svelte architecture, documentation, bootstrap process model,
+typed appliance and connection YAML, and initial Rust component engine
 
 ## Conclusion
 
@@ -14,10 +14,18 @@ access, brokered data exchange, independent policy boundaries, segmented
 process areas, and corrected vPLC model are consistent with common real-world
 deployment patterns.
 
-The project does not yet prove production conformance because canonical YAML,
-product selection, detailed policy, failure-domain engineering, environmental
-qualification, safety analysis, Rust validation, virtual PLC execution, and
-site acceptance tests remain incomplete.
+The project does not yet prove production conformance because the implemented
+appliance YAML is an initial structural baseline rather than a complete
+deployable configuration. Product selection, detailed policy, failure-domain
+engineering, environmental qualification, safety analysis, complete Rust
+topology validation, virtual PLC execution, and site acceptance tests remain
+incomplete.
+
+The current architecture and configuration values are deliberately
+provisional placeholders. Their consistency with common deployment patterns is
+useful for simulation development, but it does not make the represented
+topology, addressing, equipment, policy, redundancy, or physical layout a
+finished design.
 
 ## Review Basis
 
@@ -53,7 +61,7 @@ they do not select a Hearthline vendor or prove interoperability.
 | Safety and burner management | Correct boundary | Safety/status interfaces are separate from ordinary process control; no certification claim is made |
 | Availability | Partially specified | HA roles and local autonomy are represented; RTO, RPO, quorum, failover, spares, and recovery tests remain pending |
 | Physical environment | Requirement recorded | Dust, heat, vibration, electromagnetic conditions, enclosure, cooling, power, and UPS engineering remain site-specific |
-| Implementation evidence | Not complete | YAML schemas, Rust evaluation, controller execution, and scenario results are not yet implemented end to end |
+| Implementation evidence | Not complete | Rust parses and cross-validates 160 appliance and 205 connection YAML files, including port hardware/state and physical-media compatibility, and implements initial component, port, media, and connector primitives; simulator construction, complete topology evaluation, controller execution, and scenario results are not implemented end to end |
 
 ## vPLC Placement Decision
 
@@ -113,11 +121,14 @@ Before implementation, the selected platform must demonstrate:
    requirements.
 8. Complete environmental and electrical engineering for the factory.
 9. Perform process hazard analysis and independent safety engineering.
-10. Validate YAML and references in Rust.
-11. Execute positive, negative, failover, isolation, and recovery scenarios.
-12. Validate the selected virtual PLC runtime with representative control and
+10. Extend the implemented YAML validation to complete topology, address, VLAN,
+    route, NAT, policy, and control-source references.
+11. Replace provisional configuration and architecture placeholders with
+    reviewed definitions supported by requirements and executable scenarios.
+12. Execute positive, negative, failover, isolation, and recovery scenarios.
+13. Validate the selected virtual PLC runtime with representative control and
     I/O timing.
-13. Test the final design in an appropriate emulator, integration lab, and
+14. Test the final design in an appropriate emulator, integration lab, and
     staged site acceptance process.
 
 ## Claims Boundary

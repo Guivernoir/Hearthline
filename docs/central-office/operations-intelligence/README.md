@@ -11,9 +11,10 @@ factory change workflows.
 ## Implementation Status
 
 The governance, monitoring, analytics, identity, change, and conduit roles are
-implemented as architecture views. Hearthline does not yet provide an identity
-system, SOC or NOC tooling, analytics pipeline, package-signing workflow, or
-inter-site transport.
+implemented as architecture views with parsed appliance identity and behavior
+baselines. Hearthline does not yet provide an identity system, SOC or NOC
+tooling, analytics pipeline, package-signing workflow, or executable inter-site
+transport.
 
 ## Responsibilities
 

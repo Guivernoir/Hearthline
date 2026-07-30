@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "customer-sw-01-to-rtr-01"
+label: "Customer LAN router uplink"
+lifecycle: "design"
+transport: "ethernet"
+medium:
+  type: "copper"
+  wiring: "straight-through"
+  category: "cat6a"
+  length_m: 10.0
+endpoints:
+  a:
+    appliance: "customer-sw-01"
+    interface: "gigabit-ethernet-0-1"
+  b:
+    appliance: "customer-rtr-01"
+    interface: "inside"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "customer"
+  - "lan"

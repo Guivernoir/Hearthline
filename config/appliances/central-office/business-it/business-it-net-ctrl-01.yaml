@@ -1,0 +1,61 @@
+schema_version: "0.3.0"
+id: "business-it-net-ctrl-01"
+label: "Business IT-NET-CTRL-01"
+kind: "network-controller"
+site: "Central Office"
+environment: "Business IT"
+zone: "IT Management"
+role: "Central network-management controller"
+summary: "Provides AAA integration, configuration backup, and approved network automation."
+lifecycle: "design"
+tags: []
+render:
+  - view: "office/business-it"
+    node: "network-controller"
+    mode: "any"
+interfaces:
+  - id: "management"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "down"
+      initial_operational: "down"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses:
+      - "10.10.70.20/24"
+    vlans:
+      - 70
+  - id: "management-a"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans: []
+  - id: "management-b"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans: []
+behavior:
+  family: "service-host"
+  accepted_services:
+    - "https"
+    - "ssh"
+    - "snmp"
+  respond_to_icmp: true

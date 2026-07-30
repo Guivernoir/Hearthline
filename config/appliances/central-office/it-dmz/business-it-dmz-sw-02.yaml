@@ -1,0 +1,95 @@
+schema_version: "0.3.0"
+id: "business-it-dmz-sw-02"
+label: "Business IT-DMZ-SW-02"
+kind: "layer-2-switch"
+site: "Central Office"
+environment: "Business IT DMZ"
+zone: "Public DMZ"
+role: "Public DMZ switching member"
+summary: "Provides redundant Layer 2 attachment for the public gateway and both firewall boundaries."
+lifecycle: "design"
+tags: []
+render:
+  - view: "office/it-dmz"
+    node: "dmz-switch"
+    mode: "any"
+interfaces:
+  - id: "dmz"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "down"
+      initial_operational: "down"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans:
+      - 10
+  - id: "perimeter-firewall"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans: []
+  - id: "internal-firewall"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans: []
+  - id: "peer-link"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans: []
+  - id: "web-gw-01"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans: []
+  - id: "web-gw-02"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans: []
+behavior:
+  family: "ethernet-switch"
+  vlans:
+    - 10
+  management_vlan: null
+  spanning_tree: true

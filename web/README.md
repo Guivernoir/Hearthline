@@ -2,8 +2,13 @@
 
 This directory contains the static Svelte architecture application for
 Hearthline. The current implementation establishes map-first navigation,
-location and environment drill-downs, and the factory process canvas before
-YAML and Rust integration.
+location and environment drill-downs, the factory process canvas, and
+Rust-generated inspection and validated local editing of canonical appliance
+and connection YAML.
+
+The current development release is `0.2.0`. Project release compatibility is
+defined in the [versioning policy](../docs/versioning.md), while frontend data
+schemas retain their own independent versions.
 
 ## Current Status
 
@@ -11,7 +16,16 @@ The application is an interactive architecture viewer, not yet an executable
 network or plant simulator. Navigation, physical and logical canvases,
 inspection, and responsive controls are implemented. Most topology records
 remain frontend bootstrap data, and no route, firewall, PLC, or process result
-is currently calculated by the browser or a backend engine.
+is currently supplied to the browser. Rust supplies validated appliance
+identity, placement, behavior-family summaries, connection endpoints, and
+complete YAML source documents. It does not yet supply an executed topology or
+scenario result.
+
+The rendered architecture and underlying YAML content are provisional
+placeholders, not finished network or plant definitions. The viewer accurately
+shows the current working model, while topology, placement, equipment, policy,
+and configuration details remain subject to revision as executable behavior
+and scenarios are implemented.
 
 ## Current Capabilities
 
@@ -59,6 +73,16 @@ is currently calculated by the browser or a backend engine.
 - Native horizontal and vertical scrolling.
 - Optional major and minor canvas grid.
 - Clickable architecture nodes with a compact inspector.
+- Rust-derived appliance summaries for individual and grouped HA nodes.
+- Dedicated appliance and connection routes showing complete validated YAML
+  without parsing YAML in the browser.
+- Appliance inspection of port hardware, administrative and initial
+  operational state, configured speed, duplex, MTU, and supported media.
+- Connection inspection of endpoint port state plus Rust-derived effective
+  MTU, negotiated duplex, propagation delay, and medium-specific physical
+  facts.
+- Local YAML editing through a Rust API with revision checks, whole-project
+  validation, and atomic catalog regeneration.
 - Click-to-center minimap on desktop and tablet layouts.
 - Responsive map, toolbar, inspector, location, and detailed network layouts.
 - Distinct trust-path, control-network, and material-flow representations.
@@ -67,8 +91,10 @@ Regional, location, Customer Network, Central Office, and most Factory data is
 still temporary view data declared in `src/lib/*.svelte`. OT process inventory
 is now read from `src/generated/process-view.json`, a versioned bootstrap
 derivative with source references for each area and component. It is not yet
-canonical or Rust-generated. The Rust pipeline will replace it with JSON
-generated from validated YAML and IEC 61131-3 cross-references.
+canonical or Rust-generated. Configuration is independently read from
+`src/generated/appliance-configs.json`, which Rust generates from 160
+appliance and 205 connection YAML files. The process model will later be replaced with JSON
+generated from validated area topology and IEC 61131-3 cross-references.
 
 ## Commands
 
@@ -78,10 +104,21 @@ npm run dev
 npm run check
 npm run build
 npm run preview
+npm run version:check
 ```
 
 The development server listens on all interfaces and normally starts at
 `http://localhost:5173`.
+
+The viewer remains usable without the API. Validated editing additionally
+requires this repository-root command:
+
+```bash
+cargo run -p hearthline-api
+```
+
+Vite proxies `/api` to `127.0.0.1:3001`. The editor disables write controls
+when that service is unavailable.
 
 ## Canvas Controls
 
@@ -109,21 +146,26 @@ not implement network routing, firewall, identity, PLC, process, or simulation
 decisions. Those results will arrive as validated data from the Rust engine and
 virtual PLC integration.
 
-The process inventory has been extracted behind the first JSON view-model
-contract. Remaining place, environment, node, and connection arrays will follow
-after the shared schemas are defined. Svelte may retain presentation
-coordinates and interaction state, but it must not parse YAML or IEC 61131-3
-source, evaluate connectivity, or simulate the process.
+The process inventory and configuration catalog are behind separate versioned
+JSON contracts. Remaining place, environment, and node arrays will follow as
+their canonical schemas mature. Svelte may retain presentation coordinates
+and interaction state, but it does not parse YAML or IEC 61131-3 source,
+evaluate connectivity, or simulate the process. YAML updates are submitted to
+Rust as opaque text and only accepted after server-side parsing and validation.
 
 ## Planned Integration
 
-1. Replace remaining Svelte topology arrays with generated view models.
-2. Consume Rust validation diagnostics and explained connectivity results.
-3. Display scenario state, process state, alarms, and fault outcomes without
+1. Display formal Rust-generated device-to-device communication traces carried
+   through the configured media layer.
+2. Replace remaining Svelte topology arrays with generated view models.
+3. Consume Rust validation diagnostics and explained connectivity results.
+4. Display scenario state, process state, alarms, and fault outcomes without
    calculating them in Svelte.
-4. Add provenance links from rendered assets to canonical YAML and control
-   sources.
-5. Keep bootstrap compatibility explicit until all authoritative inputs exist.
+5. Replace provisional architecture and configuration placeholders with
+   cross-validated definitions derived from executable requirements.
+6. Extend implemented appliance and connection provenance to policy and
+   control sources.
+7. Keep bootstrap compatibility explicit until all authoritative inputs exist.
 
 ## Navigation Model
 

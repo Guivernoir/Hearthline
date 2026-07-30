@@ -28,5 +28,5 @@ does not currently execute control logic, I/O, or process behavior.
 ## Planned Work
 
 Simulation will model machine cycles, pressure, part presence, discharge, jams,
-guards, and emergency-stop state. Canonical component YAML and control
-bindings remain pending.
+guards, and emergency-stop state. Per-appliance YAML is implemented; resolved
+control and I/O bindings remain pending.

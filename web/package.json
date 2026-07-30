@@ -1,13 +1,14 @@
 {
   "name": "hearthline-architecture",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "check": "svelte-check --tsconfig ./tsconfig.json",
-    "preview": "vite preview --host 0.0.0.0"
+    "preview": "vite preview --host 0.0.0.0",
+    "version:check": "node ../scripts/check-version.mjs"
   },
   "dependencies": {
     "@lucide/svelte": "1.27.0",

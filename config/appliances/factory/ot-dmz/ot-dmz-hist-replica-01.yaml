@@ -1,0 +1,47 @@
+schema_version: "0.3.0"
+id: "ot-dmz-hist-replica-01"
+label: "OT-DMZ-HIST-REPLICA-01"
+kind: "historian-replica"
+site: "Factory"
+environment: "Factory OT DMZ"
+zone: "Exchange Subzone"
+role: "Business-facing selected-data historian replica"
+summary: "Keeps IT consumers from querying the primary OT historian."
+lifecycle: "design"
+tags: []
+render:
+  - view: "factory/ot-dmz"
+    node: "historian-replica"
+    mode: "any"
+interfaces:
+  - id: "service"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans:
+      - 352
+  - id: "service-standby"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans: []
+behavior:
+  family: "service-host"
+  accepted_services:
+    - "historian-replication"
+    - "https"
+  respond_to_icmp: true

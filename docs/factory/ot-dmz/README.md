@@ -12,7 +12,9 @@ enterprise workflows and factory-local Level 3 operations.
 The OT DMZ subzones, policy boundaries, service roles, and Level 3 handoff are
 implemented as physical and logical diagrams. Firewall HA, session recording,
 replication, transfer inspection, passive monitoring, identity checks, and
-failover are requirements only and have not been implemented or tested.
+failover remain requirements rather than tested behavior. Parsed YAML now
+provides separate member identities, default-deny firewall baselines, DMZ VLAN
+baselines, service roles, and explicitly non-inline passive sensors.
 
 ## Architecture
 
@@ -87,7 +89,8 @@ The target trust model is:
 
 ## Conduit Register
 
-The canonical YAML model will record every allowed flow with:
+The future conduit and policy extension to the current YAML model must record
+every allowed flow with:
 
 - Source and destination zone or asset.
 - Protocol and service.
@@ -146,5 +149,5 @@ non-urgent changes remain staged until the authorized path returns.
 - Failover does not weaken policy or create an unmonitored bypass.
 
 These criteria are currently review checks for the architecture. They become
-test acceptance criteria only when canonical configuration, service behavior,
-and executable failover scenarios exist.
+test acceptance criteria only when complete policy configuration, service
+behavior, and executable failover scenarios exist.

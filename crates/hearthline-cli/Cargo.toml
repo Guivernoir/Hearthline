@@ -1,0 +1,16 @@
+[package]
+name = "hearthline-cli"
+description = "Command-line entry point for Hearthline simulation and validation"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+hearthline-engine = { path = "../hearthline-engine" }
+hearthline-model = { path = "../hearthline-model" }
+serde_json.workspace = true
+
+[lints]
+workspace = true

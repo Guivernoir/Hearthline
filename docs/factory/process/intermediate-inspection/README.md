@@ -29,4 +29,5 @@ does not currently execute control logic, I/O, or process behavior.
 
 Simulation will model inspection triggers, representative classifications,
 traceability, conveyor state, routing decisions, and guard conditions.
-Canonical YAML and I/O bindings remain pending.
+Per-appliance YAML is implemented; resolved I/O bindings and inspection
+behavior remain pending.

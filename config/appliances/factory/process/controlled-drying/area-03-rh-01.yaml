@@ -1,0 +1,36 @@
+schema_version: "0.3.0"
+id: "area-03-rh-01"
+label: "AREA-03-RH-01"
+kind: "field-sensor"
+site: "Factory"
+environment: "Controlled Drying"
+zone: "OT-AREA-03"
+role: "Relative-humidity transmitter"
+summary: "Continuous humidity input."
+lifecycle: "design"
+tags:
+  - "ot-area-03"
+  - "sensor"
+render:
+  - view: "factory/process/controlled-drying"
+    node: "area-03-rh-01"
+    mode: "any"
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10
+      duplex: "half"
+      mtu: 256
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "field-sensor"
+  signal_tag: "area-03-rh-01"
+  unit: "percent-rh"
+  minimum: 0
+  maximum: 100

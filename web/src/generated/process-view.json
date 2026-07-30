@@ -120,7 +120,6 @@
         "I/O"
       ],
       "detail": "Storage, mixing, pumps, valves, instruments, and body-mass delivery.",
-      "configRef": "config/ot/process/areas/ot-area-01.yaml",
       "position": {
         "x": 60,
         "y": 430,
@@ -137,7 +136,7 @@
           "accent": "#3567a6",
           "slot": "switch",
           "upstream": null,
-          "configRef": "config/ot/process/components/area-01-sw-01.yaml",
+          "configRef": "config/appliances/factory/process/body-preparation/area-01-sw-01.yaml",
           "facts": [
             "Cell uplink",
             "Managed industrial Ethernet"
@@ -153,7 +152,7 @@
           "accent": "#267168",
           "slot": "controller",
           "upstream": "area-01-sw-01",
-          "configRef": "config/ot/process/components/area-01-vplc-01.yaml",
+          "configRef": "config/appliances/factory/process/body-preparation/area-01-vplc-01.yaml",
           "facts": [
             "Mixing and transfer sequence",
             "Simulated I/O binding pending"
@@ -164,12 +163,15 @@
             "kind": "redundant industrial control compute",
             "role": "Hosts AREA-01-vPLC-01 as an isolated real-time workload",
             "icon": "server",
-            "configRef": "config/ot/platform/vplc-host-cluster.yaml",
             "facts": [
               "Factory-local Level 3 compute cluster",
               "Dedicated OT-AREA-01 network presented to the runtime",
               "Reserved CPU and network resources",
               "Host or management loss must not bypass cell isolation"
+            ],
+            "configRefs": [
+              "config/appliances/factory/platform/ot-vplc-host-01.yaml",
+              "config/appliances/factory/platform/ot-vplc-host-02.yaml"
             ]
           }
         },
@@ -182,7 +184,7 @@
           "accent": "#426d9d",
           "slot": "hmi",
           "upstream": "area-01-vplc-01",
-          "configRef": "config/ot/process/components/area-01-hmi-01.yaml",
+          "configRef": "config/appliances/factory/process/body-preparation/area-01-hmi-01.yaml",
           "facts": [
             "Recipe selection",
             "Alarm acknowledgement"
@@ -200,7 +202,7 @@
           "slot": "remote-io",
           "linkKind": "ethernet",
           "upstream": "area-01-vplc-01",
-          "configRef": "config/ot/process/components/area-01-rio-01.yaml",
+          "configRef": "config/appliances/factory/process/body-preparation/area-01-rio-01.yaml",
           "facts": [
             "Cell-local sensor and actuator termination",
             "Cell network extends to the assigned vPLC runtime",
@@ -217,7 +219,7 @@
           "accent": "#51704c",
           "slot": "sensor-a",
           "upstream": "area-01-rio-01",
-          "configRef": "config/ot/process/components/area-01-lt-01.yaml",
+          "configRef": "config/appliances/factory/process/body-preparation/area-01-lt-01.yaml",
           "facts": [
             "Analog level input",
             "Low and high limits"
@@ -233,7 +235,7 @@
           "accent": "#51704c",
           "slot": "sensor-b",
           "upstream": "area-01-rio-01",
-          "configRef": "config/ot/process/components/area-01-ft-01.yaml",
+          "configRef": "config/appliances/factory/process/body-preparation/area-01-ft-01.yaml",
           "facts": [
             "Body-mass flow feedback"
           ],
@@ -248,7 +250,7 @@
           "accent": "#b65034",
           "slot": "actuator-a",
           "upstream": "area-01-rio-01",
-          "configRef": "config/ot/process/components/area-01-pmp-01.yaml",
+          "configRef": "config/appliances/factory/process/body-preparation/area-01-pmp-01.yaml",
           "facts": [
             "Start and stop output",
             "Run feedback"
@@ -264,7 +266,7 @@
           "accent": "#b65034",
           "slot": "actuator-b",
           "upstream": "area-01-rio-01",
-          "configRef": "config/ot/process/components/area-01-xv-01.yaml",
+          "configRef": "config/appliances/factory/process/body-preparation/area-01-xv-01.yaml",
           "facts": [
             "Open and close output",
             "Position feedback"
@@ -280,7 +282,7 @@
           "accent": "#9e3f2f",
           "slot": "safety",
           "upstream": "area-01-vplc-01",
-          "configRef": "config/ot/process/components/area-01-intlk-01.yaml",
+          "configRef": "config/appliances/factory/process/body-preparation/area-01-intlk-01.yaml",
           "facts": [
             "Stops transfer on invalid permissive"
           ],
@@ -303,7 +305,6 @@
         "I/O"
       ],
       "detail": "Forming machines, local feed, transfer equipment, and machine interlocks.",
-      "configRef": "config/ot/process/areas/ot-area-02.yaml",
       "position": {
         "x": 370,
         "y": 430,
@@ -320,7 +321,7 @@
           "accent": "#3567a6",
           "slot": "switch",
           "upstream": null,
-          "configRef": "config/ot/process/components/area-02-sw-01.yaml",
+          "configRef": "config/appliances/factory/process/forming/area-02-sw-01.yaml",
           "facts": [
             "Cell uplink",
             "Machine VLAN attachment"
@@ -336,7 +337,7 @@
           "accent": "#267168",
           "slot": "controller",
           "upstream": "area-02-sw-01",
-          "configRef": "config/ot/process/components/area-02-vplc-01.yaml",
+          "configRef": "config/appliances/factory/process/forming/area-02-vplc-01.yaml",
           "facts": [
             "Machine sequence",
             "Transfer coordination"
@@ -347,12 +348,15 @@
             "kind": "redundant industrial control compute",
             "role": "Hosts AREA-02-vPLC-01 as an isolated real-time workload",
             "icon": "server",
-            "configRef": "config/ot/platform/vplc-host-cluster.yaml",
             "facts": [
               "Factory-local Level 3 compute cluster",
               "Dedicated OT-AREA-02 network presented to the runtime",
               "Reserved CPU and network resources",
               "Host or management loss must not bypass cell isolation"
+            ],
+            "configRefs": [
+              "config/appliances/factory/platform/ot-vplc-host-01.yaml",
+              "config/appliances/factory/platform/ot-vplc-host-02.yaml"
             ]
           }
         },
@@ -365,7 +369,7 @@
           "accent": "#426d9d",
           "slot": "hmi",
           "upstream": "area-02-vplc-01",
-          "configRef": "config/ot/process/components/area-02-hmi-01.yaml",
+          "configRef": "config/appliances/factory/process/forming/area-02-hmi-01.yaml",
           "facts": [
             "Format selection",
             "Machine status"
@@ -383,7 +387,7 @@
           "slot": "remote-io",
           "linkKind": "ethernet",
           "upstream": "area-02-vplc-01",
-          "configRef": "config/ot/process/components/area-02-rio-01.yaml",
+          "configRef": "config/appliances/factory/process/forming/area-02-rio-01.yaml",
           "facts": [
             "Cell-local sensor and actuator termination",
             "Cell network extends to the assigned vPLC runtime",
@@ -400,7 +404,7 @@
           "accent": "#51704c",
           "slot": "sensor-a",
           "upstream": "area-02-rio-01",
-          "configRef": "config/ot/process/components/area-02-pe-01.yaml",
+          "configRef": "config/appliances/factory/process/forming/area-02-pe-01.yaml",
           "facts": [
             "Discrete part detection"
           ],
@@ -415,7 +419,7 @@
           "accent": "#51704c",
           "slot": "sensor-b",
           "upstream": "area-02-rio-01",
-          "configRef": "config/ot/process/components/area-02-pt-01.yaml",
+          "configRef": "config/appliances/factory/process/forming/area-02-pt-01.yaml",
           "facts": [
             "Pressure profile feedback"
           ],
@@ -430,7 +434,7 @@
           "accent": "#b65034",
           "slot": "actuator-a",
           "upstream": "area-02-rio-01",
-          "configRef": "config/ot/process/components/area-02-press-01.yaml",
+          "configRef": "config/appliances/factory/process/forming/area-02-press-01.yaml",
           "facts": [
             "Cycle command",
             "Ready feedback"
@@ -446,7 +450,7 @@
           "accent": "#b65034",
           "slot": "actuator-b",
           "upstream": "area-02-rio-01",
-          "configRef": "config/ot/process/components/area-02-cv-01.yaml",
+          "configRef": "config/appliances/factory/process/forming/area-02-cv-01.yaml",
           "facts": [
             "Speed command",
             "Jam feedback"
@@ -462,7 +466,7 @@
           "accent": "#9e3f2f",
           "slot": "safety",
           "upstream": "area-02-vplc-01",
-          "configRef": "config/ot/process/components/area-02-safe-01.yaml",
+          "configRef": "config/appliances/factory/process/forming/area-02-safe-01.yaml",
           "facts": [
             "Safety state is modeled separately"
           ],
@@ -485,7 +489,6 @@
         "I/O"
       ],
       "detail": "Residence time, temperature, humidity, airflow, and material moisture history.",
-      "configRef": "config/ot/process/areas/ot-area-03.yaml",
       "position": {
         "x": 680,
         "y": 430,
@@ -502,7 +505,7 @@
           "accent": "#3567a6",
           "slot": "switch",
           "upstream": null,
-          "configRef": "config/ot/process/components/area-03-sw-01.yaml",
+          "configRef": "config/appliances/factory/process/controlled-drying/area-03-sw-01.yaml",
           "facts": [
             "Environmental control uplink"
           ],
@@ -517,7 +520,7 @@
           "accent": "#267168",
           "slot": "controller",
           "upstream": "area-03-sw-01",
-          "configRef": "config/ot/process/components/area-03-vplc-01.yaml",
+          "configRef": "config/appliances/factory/process/controlled-drying/area-03-vplc-01.yaml",
           "facts": [
             "Accelerated residence clock",
             "Environmental profile"
@@ -528,12 +531,15 @@
             "kind": "redundant industrial control compute",
             "role": "Hosts AREA-03-vPLC-01 as an isolated real-time workload",
             "icon": "server",
-            "configRef": "config/ot/platform/vplc-host-cluster.yaml",
             "facts": [
               "Factory-local Level 3 compute cluster",
               "Dedicated OT-AREA-03 network presented to the runtime",
               "Reserved CPU and network resources",
               "Host or management loss must not bypass cell isolation"
+            ],
+            "configRefs": [
+              "config/appliances/factory/platform/ot-vplc-host-01.yaml",
+              "config/appliances/factory/platform/ot-vplc-host-02.yaml"
             ]
           }
         },
@@ -546,7 +552,7 @@
           "accent": "#426d9d",
           "slot": "hmi",
           "upstream": "area-03-vplc-01",
-          "configRef": "config/ot/process/components/area-03-hmi-01.yaml",
+          "configRef": "config/appliances/factory/process/controlled-drying/area-03-hmi-01.yaml",
           "facts": [
             "Queue and profile visibility"
           ],
@@ -563,7 +569,7 @@
           "slot": "remote-io",
           "linkKind": "ethernet",
           "upstream": "area-03-vplc-01",
-          "configRef": "config/ot/process/components/area-03-rio-01.yaml",
+          "configRef": "config/appliances/factory/process/controlled-drying/area-03-rio-01.yaml",
           "facts": [
             "Cell-local sensor and actuator termination",
             "Cell network extends to the assigned vPLC runtime",
@@ -580,7 +586,7 @@
           "accent": "#51704c",
           "slot": "sensor-a",
           "upstream": "area-03-rio-01",
-          "configRef": "config/ot/process/components/area-03-tt-01.yaml",
+          "configRef": "config/appliances/factory/process/controlled-drying/area-03-tt-01.yaml",
           "facts": [
             "Continuous temperature input"
           ],
@@ -595,7 +601,7 @@
           "accent": "#51704c",
           "slot": "sensor-b",
           "upstream": "area-03-rio-01",
-          "configRef": "config/ot/process/components/area-03-rh-01.yaml",
+          "configRef": "config/appliances/factory/process/controlled-drying/area-03-rh-01.yaml",
           "facts": [
             "Continuous humidity input"
           ],
@@ -610,7 +616,7 @@
           "accent": "#b65034",
           "slot": "actuator-a",
           "upstream": "area-03-rio-01",
-          "configRef": "config/ot/process/components/area-03-fan-01.yaml",
+          "configRef": "config/appliances/factory/process/controlled-drying/area-03-fan-01.yaml",
           "facts": [
             "Speed demand",
             "Run feedback"
@@ -626,7 +632,7 @@
           "accent": "#b65034",
           "slot": "actuator-b",
           "upstream": "area-03-rio-01",
-          "configRef": "config/ot/process/components/area-03-dmpr-01.yaml",
+          "configRef": "config/appliances/factory/process/controlled-drying/area-03-dmpr-01.yaml",
           "facts": [
             "Position demand and feedback"
           ],
@@ -641,7 +647,7 @@
           "accent": "#9e3f2f",
           "slot": "safety",
           "upstream": "area-03-vplc-01",
-          "configRef": "config/ot/process/components/area-03-intlk-01.yaml",
+          "configRef": "config/appliances/factory/process/controlled-drying/area-03-intlk-01.yaml",
           "facts": [
             "Preserves product and equipment limits"
           ],
@@ -664,7 +670,6 @@
         "I/O"
       ],
       "detail": "Loading, temperature and airflow profile, interlocks, and discharge.",
-      "configRef": "config/ot/process/areas/ot-area-04.yaml",
       "position": {
         "x": 990,
         "y": 430,
@@ -681,7 +686,7 @@
           "accent": "#3567a6",
           "slot": "switch",
           "upstream": null,
-          "configRef": "config/ot/process/components/area-04-sw-01.yaml",
+          "configRef": "config/appliances/factory/process/industrial-dryer/area-04-sw-01.yaml",
           "facts": [
             "Dryer package uplink"
           ],
@@ -696,7 +701,7 @@
           "accent": "#267168",
           "slot": "controller",
           "upstream": "area-04-sw-01",
-          "configRef": "config/ot/process/components/area-04-vplc-01.yaml",
+          "configRef": "config/appliances/factory/process/industrial-dryer/area-04-vplc-01.yaml",
           "facts": [
             "Thermal profile",
             "Load and discharge sequence"
@@ -707,12 +712,15 @@
             "kind": "redundant industrial control compute",
             "role": "Hosts AREA-04-vPLC-01 as an isolated real-time workload",
             "icon": "server",
-            "configRef": "config/ot/platform/vplc-host-cluster.yaml",
             "facts": [
               "Factory-local Level 3 compute cluster",
               "Dedicated OT-AREA-04 network presented to the runtime",
               "Reserved CPU and network resources",
               "Host or management loss must not bypass cell isolation"
+            ],
+            "configRefs": [
+              "config/appliances/factory/platform/ot-vplc-host-01.yaml",
+              "config/appliances/factory/platform/ot-vplc-host-02.yaml"
             ]
           }
         },
@@ -725,7 +733,7 @@
           "accent": "#426d9d",
           "slot": "hmi",
           "upstream": "area-04-vplc-01",
-          "configRef": "config/ot/process/components/area-04-hmi-01.yaml",
+          "configRef": "config/appliances/factory/process/industrial-dryer/area-04-hmi-01.yaml",
           "facts": [
             "Profile and alarm display"
           ],
@@ -742,7 +750,7 @@
           "slot": "remote-io",
           "linkKind": "ethernet",
           "upstream": "area-04-vplc-01",
-          "configRef": "config/ot/process/components/area-04-rio-01.yaml",
+          "configRef": "config/appliances/factory/process/industrial-dryer/area-04-rio-01.yaml",
           "facts": [
             "Cell-local sensor and actuator termination",
             "Cell network extends to the assigned vPLC runtime",
@@ -759,7 +767,7 @@
           "accent": "#51704c",
           "slot": "sensor-a",
           "upstream": "area-04-rio-01",
-          "configRef": "config/ot/process/components/area-04-tt-01.yaml",
+          "configRef": "config/appliances/factory/process/industrial-dryer/area-04-tt-01.yaml",
           "facts": [
             "Zone temperature feedback"
           ],
@@ -774,7 +782,7 @@
           "accent": "#51704c",
           "slot": "sensor-b",
           "upstream": "area-04-rio-01",
-          "configRef": "config/ot/process/components/area-04-af-01.yaml",
+          "configRef": "config/appliances/factory/process/industrial-dryer/area-04-af-01.yaml",
           "facts": [
             "Airflow permissive"
           ],
@@ -789,7 +797,7 @@
           "accent": "#b65034",
           "slot": "actuator-a",
           "upstream": "area-04-rio-01",
-          "configRef": "config/ot/process/components/area-04-fan-01.yaml",
+          "configRef": "config/appliances/factory/process/industrial-dryer/area-04-fan-01.yaml",
           "facts": [
             "Variable-speed demand"
           ],
@@ -804,7 +812,7 @@
           "accent": "#b65034",
           "slot": "actuator-b",
           "upstream": "area-04-rio-01",
-          "configRef": "config/ot/process/components/area-04-cv-01.yaml",
+          "configRef": "config/appliances/factory/process/industrial-dryer/area-04-cv-01.yaml",
           "facts": [
             "Residence-speed control"
           ],
@@ -819,7 +827,7 @@
           "accent": "#9e3f2f",
           "slot": "safety",
           "upstream": "area-04-vplc-01",
-          "configRef": "config/ot/process/components/area-04-safe-01.yaml",
+          "configRef": "config/appliances/factory/process/industrial-dryer/area-04-safe-01.yaml",
           "facts": [
             "Independent trip interface represented"
           ],
@@ -842,7 +850,6 @@
         "I/O"
       ],
       "detail": "Tanks, pumps, recipes, application equipment, and controlled cleaning cycles.",
-      "configRef": "config/ot/process/areas/ot-area-05.yaml",
       "position": {
         "x": 1300,
         "y": 430,
@@ -859,7 +866,7 @@
           "accent": "#3567a6",
           "slot": "switch",
           "upstream": null,
-          "configRef": "config/ot/process/components/area-05-sw-01.yaml",
+          "configRef": "config/appliances/factory/process/color-and-glaze/area-05-sw-01.yaml",
           "facts": [
             "Application-cell uplink"
           ],
@@ -874,7 +881,7 @@
           "accent": "#267168",
           "slot": "controller",
           "upstream": "area-05-sw-01",
-          "configRef": "config/ot/process/components/area-05-vplc-01.yaml",
+          "configRef": "config/appliances/factory/process/color-and-glaze/area-05-vplc-01.yaml",
           "facts": [
             "Recipe sequencing",
             "Cleaning cycle"
@@ -885,12 +892,15 @@
             "kind": "redundant industrial control compute",
             "role": "Hosts AREA-05-vPLC-01 as an isolated real-time workload",
             "icon": "server",
-            "configRef": "config/ot/platform/vplc-host-cluster.yaml",
             "facts": [
               "Factory-local Level 3 compute cluster",
               "Dedicated OT-AREA-05 network presented to the runtime",
               "Reserved CPU and network resources",
               "Host or management loss must not bypass cell isolation"
+            ],
+            "configRefs": [
+              "config/appliances/factory/platform/ot-vplc-host-01.yaml",
+              "config/appliances/factory/platform/ot-vplc-host-02.yaml"
             ]
           }
         },
@@ -903,7 +913,7 @@
           "accent": "#426d9d",
           "slot": "hmi",
           "upstream": "area-05-vplc-01",
-          "configRef": "config/ot/process/components/area-05-hmi-01.yaml",
+          "configRef": "config/appliances/factory/process/color-and-glaze/area-05-hmi-01.yaml",
           "facts": [
             "Recipe selection",
             "Material status"
@@ -921,7 +931,7 @@
           "slot": "remote-io",
           "linkKind": "ethernet",
           "upstream": "area-05-vplc-01",
-          "configRef": "config/ot/process/components/area-05-rio-01.yaml",
+          "configRef": "config/appliances/factory/process/color-and-glaze/area-05-rio-01.yaml",
           "facts": [
             "Cell-local sensor and actuator termination",
             "Cell network extends to the assigned vPLC runtime",
@@ -938,7 +948,7 @@
           "accent": "#51704c",
           "slot": "sensor-a",
           "upstream": "area-05-rio-01",
-          "configRef": "config/ot/process/components/area-05-lt-01.yaml",
+          "configRef": "config/appliances/factory/process/color-and-glaze/area-05-lt-01.yaml",
           "facts": [
             "Tank inventory input"
           ],
@@ -953,7 +963,7 @@
           "accent": "#51704c",
           "slot": "sensor-b",
           "upstream": "area-05-rio-01",
-          "configRef": "config/ot/process/components/area-05-ft-01.yaml",
+          "configRef": "config/appliances/factory/process/color-and-glaze/area-05-ft-01.yaml",
           "facts": [
             "Application-rate feedback"
           ],
@@ -968,7 +978,7 @@
           "accent": "#b65034",
           "slot": "actuator-a",
           "upstream": "area-05-rio-01",
-          "configRef": "config/ot/process/components/area-05-pmp-01.yaml",
+          "configRef": "config/appliances/factory/process/color-and-glaze/area-05-pmp-01.yaml",
           "facts": [
             "Run demand and feedback"
           ],
@@ -983,7 +993,7 @@
           "accent": "#b65034",
           "slot": "actuator-b",
           "upstream": "area-05-rio-01",
-          "configRef": "config/ot/process/components/area-05-gun-01.yaml",
+          "configRef": "config/appliances/factory/process/color-and-glaze/area-05-gun-01.yaml",
           "facts": [
             "Application enable",
             "Flush state"
@@ -999,7 +1009,7 @@
           "accent": "#9e3f2f",
           "slot": "safety",
           "upstream": "area-05-vplc-01",
-          "configRef": "config/ot/process/components/area-05-intlk-01.yaml",
+          "configRef": "config/appliances/factory/process/color-and-glaze/area-05-intlk-01.yaml",
           "facts": [
             "Prevents unsafe application"
           ],
@@ -1022,7 +1032,6 @@
         "I/O"
       ],
       "detail": "Firing profile, temperature zones, airflow, combustion interfaces, and unloading.",
-      "configRef": "config/ot/process/areas/ot-area-06.yaml",
       "position": {
         "x": 1300,
         "y": 760,
@@ -1039,7 +1048,7 @@
           "accent": "#3567a6",
           "slot": "switch",
           "upstream": null,
-          "configRef": "config/ot/process/components/area-06-sw-01.yaml",
+          "configRef": "config/appliances/factory/process/kiln-one/area-06-sw-01.yaml",
           "facts": [
             "Kiln package uplink"
           ],
@@ -1054,7 +1063,7 @@
           "accent": "#267168",
           "slot": "controller",
           "upstream": "area-06-sw-01",
-          "configRef": "config/ot/process/components/area-06-vplc-01.yaml",
+          "configRef": "config/appliances/factory/process/kiln-one/area-06-vplc-01.yaml",
           "facts": [
             "Profile execution",
             "Zone coordination"
@@ -1065,12 +1074,15 @@
             "kind": "redundant industrial control compute",
             "role": "Hosts AREA-06-vPLC-01 as an isolated real-time workload",
             "icon": "server",
-            "configRef": "config/ot/platform/vplc-host-cluster.yaml",
             "facts": [
               "Factory-local Level 3 compute cluster",
               "Dedicated OT-AREA-06 network presented to the runtime",
               "Reserved CPU and network resources",
               "Host or management loss must not bypass cell isolation"
+            ],
+            "configRefs": [
+              "config/appliances/factory/platform/ot-vplc-host-01.yaml",
+              "config/appliances/factory/platform/ot-vplc-host-02.yaml"
             ]
           }
         },
@@ -1083,7 +1095,7 @@
           "accent": "#426d9d",
           "slot": "hmi",
           "upstream": "area-06-vplc-01",
-          "configRef": "config/ot/process/components/area-06-hmi-01.yaml",
+          "configRef": "config/appliances/factory/process/kiln-one/area-06-hmi-01.yaml",
           "facts": [
             "Firing profile and alarm display"
           ],
@@ -1100,7 +1112,7 @@
           "slot": "remote-io",
           "linkKind": "ethernet",
           "upstream": "area-06-vplc-01",
-          "configRef": "config/ot/process/components/area-06-rio-01.yaml",
+          "configRef": "config/appliances/factory/process/kiln-one/area-06-rio-01.yaml",
           "facts": [
             "Cell-local sensor and actuator termination",
             "Cell network extends to the assigned vPLC runtime",
@@ -1117,7 +1129,7 @@
           "accent": "#51704c",
           "slot": "sensor-a",
           "upstream": "area-06-rio-01",
-          "configRef": "config/ot/process/components/area-06-tt-01.yaml",
+          "configRef": "config/appliances/factory/process/kiln-one/area-06-tt-01.yaml",
           "facts": [
             "Representative thermal zone"
           ],
@@ -1132,7 +1144,7 @@
           "accent": "#51704c",
           "slot": "sensor-b",
           "upstream": "area-06-rio-01",
-          "configRef": "config/ot/process/components/area-06-pt-01.yaml",
+          "configRef": "config/appliances/factory/process/kiln-one/area-06-pt-01.yaml",
           "facts": [
             "Draft and pressure feedback"
           ],
@@ -1147,7 +1159,7 @@
           "accent": "#b65034",
           "slot": "actuator-a",
           "upstream": "area-06-rio-01",
-          "configRef": "config/ot/process/components/area-06-bnr-01.yaml",
+          "configRef": "config/appliances/factory/process/kiln-one/area-06-bnr-01.yaml",
           "facts": [
             "Demand only; BMS owns safety"
           ],
@@ -1162,7 +1174,7 @@
           "accent": "#b65034",
           "slot": "actuator-b",
           "upstream": "area-06-rio-01",
-          "configRef": "config/ot/process/components/area-06-fan-01.yaml",
+          "configRef": "config/appliances/factory/process/kiln-one/area-06-fan-01.yaml",
           "facts": [
             "Airflow demand and feedback"
           ],
@@ -1177,7 +1189,7 @@
           "accent": "#9e3f2f",
           "slot": "safety",
           "upstream": "area-06-vplc-01",
-          "configRef": "config/ot/process/components/area-06-bms-01.yaml",
+          "configRef": "config/appliances/factory/process/kiln-one/area-06-bms-01.yaml",
           "facts": [
             "Safety logic remains independent"
           ],
@@ -1200,7 +1212,6 @@
         "Trace"
       ],
       "detail": "Intermediate inspection, defect classification, routing, and traceability before the second firing.",
-      "configRef": "config/ot/process/areas/ot-area-07.yaml",
       "position": {
         "x": 990,
         "y": 760,
@@ -1217,7 +1228,7 @@
           "accent": "#3567a6",
           "slot": "switch",
           "upstream": null,
-          "configRef": "config/ot/process/components/area-07-sw-01.yaml",
+          "configRef": "config/appliances/factory/process/intermediate-inspection/area-07-sw-01.yaml",
           "facts": [
             "Vision and control uplink"
           ],
@@ -1232,7 +1243,7 @@
           "accent": "#267168",
           "slot": "controller",
           "upstream": "area-07-sw-01",
-          "configRef": "config/ot/process/components/area-07-vplc-01.yaml",
+          "configRef": "config/appliances/factory/process/intermediate-inspection/area-07-vplc-01.yaml",
           "facts": [
             "Result handling",
             "Route selection"
@@ -1243,12 +1254,15 @@
             "kind": "redundant industrial control compute",
             "role": "Hosts AREA-07-vPLC-01 as an isolated real-time workload",
             "icon": "server",
-            "configRef": "config/ot/platform/vplc-host-cluster.yaml",
             "facts": [
               "Factory-local Level 3 compute cluster",
               "Dedicated OT-AREA-07 network presented to the runtime",
               "Reserved CPU and network resources",
               "Host or management loss must not bypass cell isolation"
+            ],
+            "configRefs": [
+              "config/appliances/factory/platform/ot-vplc-host-01.yaml",
+              "config/appliances/factory/platform/ot-vplc-host-02.yaml"
             ]
           }
         },
@@ -1261,7 +1275,7 @@
           "accent": "#426d9d",
           "slot": "hmi",
           "upstream": "area-07-vplc-01",
-          "configRef": "config/ot/process/components/area-07-hmi-01.yaml",
+          "configRef": "config/appliances/factory/process/intermediate-inspection/area-07-hmi-01.yaml",
           "facts": [
             "Defect review",
             "Manual disposition"
@@ -1279,7 +1293,7 @@
           "slot": "remote-io",
           "linkKind": "ethernet",
           "upstream": "area-07-vplc-01",
-          "configRef": "config/ot/process/components/area-07-rio-01.yaml",
+          "configRef": "config/appliances/factory/process/intermediate-inspection/area-07-rio-01.yaml",
           "facts": [
             "Cell-local sensor and actuator termination",
             "Cell network extends to the assigned vPLC runtime",
@@ -1296,7 +1310,7 @@
           "accent": "#51704c",
           "slot": "sensor-a",
           "upstream": "area-07-rio-01",
-          "configRef": "config/ot/process/components/area-07-vis-01.yaml",
+          "configRef": "config/appliances/factory/process/intermediate-inspection/area-07-vis-01.yaml",
           "facts": [
             "Image result interface"
           ],
@@ -1311,7 +1325,7 @@
           "accent": "#51704c",
           "slot": "sensor-b",
           "upstream": "area-07-rio-01",
-          "configRef": "config/ot/process/components/area-07-pe-01.yaml",
+          "configRef": "config/appliances/factory/process/intermediate-inspection/area-07-pe-01.yaml",
           "facts": [
             "Part trigger and presence"
           ],
@@ -1326,7 +1340,7 @@
           "accent": "#b65034",
           "slot": "actuator-a",
           "upstream": "area-07-rio-01",
-          "configRef": "config/ot/process/components/area-07-div-01.yaml",
+          "configRef": "config/appliances/factory/process/intermediate-inspection/area-07-div-01.yaml",
           "facts": [
             "Accept or rework route"
           ],
@@ -1341,7 +1355,7 @@
           "accent": "#b65034",
           "slot": "actuator-b",
           "upstream": "area-07-rio-01",
-          "configRef": "config/ot/process/components/area-07-cv-01.yaml",
+          "configRef": "config/appliances/factory/process/intermediate-inspection/area-07-cv-01.yaml",
           "facts": [
             "Indexed inspection transfer"
           ],
@@ -1356,7 +1370,7 @@
           "accent": "#9e3f2f",
           "slot": "safety",
           "upstream": "area-07-vplc-01",
-          "configRef": "config/ot/process/components/area-07-intlk-01.yaml",
+          "configRef": "config/appliances/factory/process/intermediate-inspection/area-07-intlk-01.yaml",
           "facts": [
             "Guard and jam permissive"
           ],
@@ -1379,7 +1393,6 @@
         "I/O"
       ],
       "detail": "Second firing profile, combustion interfaces, interlocks, and unloading.",
-      "configRef": "config/ot/process/areas/ot-area-08.yaml",
       "position": {
         "x": 680,
         "y": 760,
@@ -1396,7 +1409,7 @@
           "accent": "#3567a6",
           "slot": "switch",
           "upstream": null,
-          "configRef": "config/ot/process/components/area-08-sw-01.yaml",
+          "configRef": "config/appliances/factory/process/kiln-two/area-08-sw-01.yaml",
           "facts": [
             "Kiln package uplink"
           ],
@@ -1411,7 +1424,7 @@
           "accent": "#267168",
           "slot": "controller",
           "upstream": "area-08-sw-01",
-          "configRef": "config/ot/process/components/area-08-vplc-01.yaml",
+          "configRef": "config/appliances/factory/process/kiln-two/area-08-vplc-01.yaml",
           "facts": [
             "Second firing profile",
             "Zone coordination"
@@ -1422,12 +1435,15 @@
             "kind": "redundant industrial control compute",
             "role": "Hosts AREA-08-vPLC-01 as an isolated real-time workload",
             "icon": "server",
-            "configRef": "config/ot/platform/vplc-host-cluster.yaml",
             "facts": [
               "Factory-local Level 3 compute cluster",
               "Dedicated OT-AREA-08 network presented to the runtime",
               "Reserved CPU and network resources",
               "Host or management loss must not bypass cell isolation"
+            ],
+            "configRefs": [
+              "config/appliances/factory/platform/ot-vplc-host-01.yaml",
+              "config/appliances/factory/platform/ot-vplc-host-02.yaml"
             ]
           }
         },
@@ -1440,7 +1456,7 @@
           "accent": "#426d9d",
           "slot": "hmi",
           "upstream": "area-08-vplc-01",
-          "configRef": "config/ot/process/components/area-08-hmi-01.yaml",
+          "configRef": "config/appliances/factory/process/kiln-two/area-08-hmi-01.yaml",
           "facts": [
             "Profile and alarm display"
           ],
@@ -1457,7 +1473,7 @@
           "slot": "remote-io",
           "linkKind": "ethernet",
           "upstream": "area-08-vplc-01",
-          "configRef": "config/ot/process/components/area-08-rio-01.yaml",
+          "configRef": "config/appliances/factory/process/kiln-two/area-08-rio-01.yaml",
           "facts": [
             "Cell-local sensor and actuator termination",
             "Cell network extends to the assigned vPLC runtime",
@@ -1474,7 +1490,7 @@
           "accent": "#51704c",
           "slot": "sensor-a",
           "upstream": "area-08-rio-01",
-          "configRef": "config/ot/process/components/area-08-tt-01.yaml",
+          "configRef": "config/appliances/factory/process/kiln-two/area-08-tt-01.yaml",
           "facts": [
             "Representative thermal zone"
           ],
@@ -1489,7 +1505,7 @@
           "accent": "#51704c",
           "slot": "sensor-b",
           "upstream": "area-08-rio-01",
-          "configRef": "config/ot/process/components/area-08-pt-01.yaml",
+          "configRef": "config/appliances/factory/process/kiln-two/area-08-pt-01.yaml",
           "facts": [
             "Draft and pressure feedback"
           ],
@@ -1504,7 +1520,7 @@
           "accent": "#b65034",
           "slot": "actuator-a",
           "upstream": "area-08-rio-01",
-          "configRef": "config/ot/process/components/area-08-bnr-01.yaml",
+          "configRef": "config/appliances/factory/process/kiln-two/area-08-bnr-01.yaml",
           "facts": [
             "Demand only; BMS owns safety"
           ],
@@ -1519,7 +1535,7 @@
           "accent": "#b65034",
           "slot": "actuator-b",
           "upstream": "area-08-rio-01",
-          "configRef": "config/ot/process/components/area-08-fan-01.yaml",
+          "configRef": "config/appliances/factory/process/kiln-two/area-08-fan-01.yaml",
           "facts": [
             "Airflow demand and feedback"
           ],
@@ -1534,7 +1550,7 @@
           "accent": "#9e3f2f",
           "slot": "safety",
           "upstream": "area-08-vplc-01",
-          "configRef": "config/ot/process/components/area-08-bms-01.yaml",
+          "configRef": "config/appliances/factory/process/kiln-two/area-08-bms-01.yaml",
           "facts": [
             "Safety logic remains independent"
           ],
@@ -1557,7 +1573,6 @@
         "Trace"
       ],
       "detail": "Post-Kiln-2 visual, dimensional, and traceability checks before release to logistics.",
-      "configRef": "config/ot/process/areas/ot-area-09.yaml",
       "position": {
         "x": 370,
         "y": 760,
@@ -1574,7 +1589,7 @@
           "accent": "#3567a6",
           "slot": "switch",
           "upstream": null,
-          "configRef": "config/ot/process/components/area-09-sw-01.yaml",
+          "configRef": "config/appliances/factory/process/final-inspection/area-09-sw-01.yaml",
           "facts": [
             "Quality-cell uplink"
           ],
@@ -1589,7 +1604,7 @@
           "accent": "#267168",
           "slot": "controller",
           "upstream": "area-09-sw-01",
-          "configRef": "config/ot/process/components/area-09-vplc-01.yaml",
+          "configRef": "config/appliances/factory/process/final-inspection/area-09-vplc-01.yaml",
           "facts": [
             "Result aggregation",
             "Release decision workflow"
@@ -1600,12 +1615,15 @@
             "kind": "redundant industrial control compute",
             "role": "Hosts AREA-09-vPLC-01 as an isolated real-time workload",
             "icon": "server",
-            "configRef": "config/ot/platform/vplc-host-cluster.yaml",
             "facts": [
               "Factory-local Level 3 compute cluster",
               "Dedicated OT-AREA-09 network presented to the runtime",
               "Reserved CPU and network resources",
               "Host or management loss must not bypass cell isolation"
+            ],
+            "configRefs": [
+              "config/appliances/factory/platform/ot-vplc-host-01.yaml",
+              "config/appliances/factory/platform/ot-vplc-host-02.yaml"
             ]
           }
         },
@@ -1618,7 +1636,7 @@
           "accent": "#426d9d",
           "slot": "hmi",
           "upstream": "area-09-vplc-01",
-          "configRef": "config/ot/process/components/area-09-hmi-01.yaml",
+          "configRef": "config/appliances/factory/process/final-inspection/area-09-hmi-01.yaml",
           "facts": [
             "Quality review",
             "Disposition recording"
@@ -1636,7 +1654,7 @@
           "slot": "remote-io",
           "linkKind": "ethernet",
           "upstream": "area-09-vplc-01",
-          "configRef": "config/ot/process/components/area-09-rio-01.yaml",
+          "configRef": "config/appliances/factory/process/final-inspection/area-09-rio-01.yaml",
           "facts": [
             "Cell-local sensor and actuator termination",
             "Cell network extends to the assigned vPLC runtime",
@@ -1653,7 +1671,7 @@
           "accent": "#51704c",
           "slot": "sensor-a",
           "upstream": "area-09-rio-01",
-          "configRef": "config/ot/process/components/area-09-vis-01.yaml",
+          "configRef": "config/appliances/factory/process/final-inspection/area-09-vis-01.yaml",
           "facts": [
             "Surface defect classification"
           ],
@@ -1668,7 +1686,7 @@
           "accent": "#51704c",
           "slot": "sensor-b",
           "upstream": "area-09-rio-01",
-          "configRef": "config/ot/process/components/area-09-dim-01.yaml",
+          "configRef": "config/appliances/factory/process/final-inspection/area-09-dim-01.yaml",
           "facts": [
             "Representative dimensional result"
           ],
@@ -1683,7 +1701,7 @@
           "accent": "#b65034",
           "slot": "actuator-a",
           "upstream": "area-09-rio-01",
-          "configRef": "config/ot/process/components/area-09-rej-01.yaml",
+          "configRef": "config/appliances/factory/process/final-inspection/area-09-rej-01.yaml",
           "facts": [
             "Reject routing command"
           ],
@@ -1698,7 +1716,7 @@
           "accent": "#b65034",
           "slot": "actuator-b",
           "upstream": "area-09-rio-01",
-          "configRef": "config/ot/process/components/area-09-cv-01.yaml",
+          "configRef": "config/appliances/factory/process/final-inspection/area-09-cv-01.yaml",
           "facts": [
             "Approved product transfer"
           ],
@@ -1713,7 +1731,7 @@
           "accent": "#9e3f2f",
           "slot": "safety",
           "upstream": "area-09-vplc-01",
-          "configRef": "config/ot/process/components/area-09-intlk-01.yaml",
+          "configRef": "config/appliances/factory/process/final-inspection/area-09-intlk-01.yaml",
           "facts": [
             "Stops motion on invalid permissive"
           ],
@@ -1736,7 +1754,6 @@
         "Report"
       ],
       "detail": "Packing, palletizing, material tracking, warehouse handoff, and production reporting.",
-      "configRef": "config/ot/process/areas/ot-area-10.yaml",
       "position": {
         "x": 60,
         "y": 760,
@@ -1753,7 +1770,7 @@
           "accent": "#3567a6",
           "slot": "switch",
           "upstream": null,
-          "configRef": "config/ot/process/components/area-10-sw-01.yaml",
+          "configRef": "config/appliances/factory/process/logistics/area-10-sw-01.yaml",
           "facts": [
             "Packing and warehouse uplink"
           ],
@@ -1768,7 +1785,7 @@
           "accent": "#267168",
           "slot": "controller",
           "upstream": "area-10-sw-01",
-          "configRef": "config/ot/process/components/area-10-vplc-01.yaml",
+          "configRef": "config/appliances/factory/process/logistics/area-10-vplc-01.yaml",
           "facts": [
             "Packing sequence",
             "Warehouse handoff"
@@ -1779,12 +1796,15 @@
             "kind": "redundant industrial control compute",
             "role": "Hosts AREA-10-vPLC-01 as an isolated real-time workload",
             "icon": "server",
-            "configRef": "config/ot/platform/vplc-host-cluster.yaml",
             "facts": [
               "Factory-local Level 3 compute cluster",
               "Dedicated OT-AREA-10 network presented to the runtime",
               "Reserved CPU and network resources",
               "Host or management loss must not bypass cell isolation"
+            ],
+            "configRefs": [
+              "config/appliances/factory/platform/ot-vplc-host-01.yaml",
+              "config/appliances/factory/platform/ot-vplc-host-02.yaml"
             ]
           }
         },
@@ -1797,7 +1817,7 @@
           "accent": "#426d9d",
           "slot": "hmi",
           "upstream": "area-10-vplc-01",
-          "configRef": "config/ot/process/components/area-10-hmi-01.yaml",
+          "configRef": "config/appliances/factory/process/logistics/area-10-hmi-01.yaml",
           "facts": [
             "Order and line status"
           ],
@@ -1814,7 +1834,7 @@
           "slot": "remote-io",
           "linkKind": "ethernet",
           "upstream": "area-10-vplc-01",
-          "configRef": "config/ot/process/components/area-10-rio-01.yaml",
+          "configRef": "config/appliances/factory/process/logistics/area-10-rio-01.yaml",
           "facts": [
             "Cell-local sensor and actuator termination",
             "Cell network extends to the assigned vPLC runtime",
@@ -1831,7 +1851,7 @@
           "accent": "#51704c",
           "slot": "sensor-a",
           "upstream": "area-10-rio-01",
-          "configRef": "config/ot/process/components/area-10-scan-01.yaml",
+          "configRef": "config/appliances/factory/process/logistics/area-10-scan-01.yaml",
           "facts": [
             "Product identity input"
           ],
@@ -1846,7 +1866,7 @@
           "accent": "#51704c",
           "slot": "sensor-b",
           "upstream": "area-10-rio-01",
-          "configRef": "config/ot/process/components/area-10-pe-01.yaml",
+          "configRef": "config/appliances/factory/process/logistics/area-10-pe-01.yaml",
           "facts": [
             "Pallet position input"
           ],
@@ -1861,7 +1881,7 @@
           "accent": "#b65034",
           "slot": "actuator-a",
           "upstream": "area-10-rio-01",
-          "configRef": "config/ot/process/components/area-10-pack-01.yaml",
+          "configRef": "config/appliances/factory/process/logistics/area-10-pack-01.yaml",
           "facts": [
             "Pack cycle command"
           ],
@@ -1876,7 +1896,7 @@
           "accent": "#b65034",
           "slot": "actuator-b",
           "upstream": "area-10-rio-01",
-          "configRef": "config/ot/process/components/area-10-pal-01.yaml",
+          "configRef": "config/appliances/factory/process/logistics/area-10-pal-01.yaml",
           "facts": [
             "Palletize and release command"
           ],
@@ -1891,7 +1911,7 @@
           "accent": "#9e3f2f",
           "slot": "safety",
           "upstream": "area-10-vplc-01",
-          "configRef": "config/ot/process/components/area-10-safe-01.yaml",
+          "configRef": "config/appliances/factory/process/logistics/area-10-safe-01.yaml",
           "facts": [
             "Guard and emergency-stop state"
           ],

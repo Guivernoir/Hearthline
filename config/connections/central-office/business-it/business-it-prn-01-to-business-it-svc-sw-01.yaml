@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "business-it-prn-01-to-business-it-svc-sw-01"
+label: "Printer access link"
+lifecycle: "design"
+transport: "ethernet"
+medium:
+  type: "copper"
+  wiring: "straight-through"
+  category: "cat6a"
+  length_m: 10.0
+endpoints:
+  a:
+    appliance: "business-it-prn-01"
+    interface: "fast-ethernet-0"
+  b:
+    appliance: "business-it-svc-sw-01"
+    interface: "printer-01"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "business-it"
+  - "access"

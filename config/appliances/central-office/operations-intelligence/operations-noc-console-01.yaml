@@ -1,0 +1,32 @@
+schema_version: "0.3.0"
+id: "operations-noc-console-01"
+label: "Central NOC Console-01"
+kind: "operations-console"
+site: "Central Office"
+environment: "Operations Intelligence"
+zone: "Network operations console"
+role: "Network operations console"
+summary: "Managed operations endpoint used for governed monitoring and coordination workflows."
+lifecycle: "design"
+tags: []
+render:
+  - view: "office/operations-intelligence"
+    node: "central-noc"
+    mode: "any"
+interfaces:
+  - id: "enterprise"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+behavior:
+  family: "endpoint"
+  accepted_services: []
+  respond_to_icmp: true

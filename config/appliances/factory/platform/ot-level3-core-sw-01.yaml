@@ -1,0 +1,263 @@
+schema_version: "0.3.0"
+id: "ot-level3-core-sw-01"
+label: "OT-L3-CORE-SW-01"
+kind: "layer-3-switch"
+site: "Factory"
+environment: "OT Operations"
+zone: "Level 3 Core"
+role: "Redundant OT aggregation and cell policy handoff member"
+summary: "Aggregates factory-local services, vPLC hosts, and process-cell uplinks behind the OT-side firewall."
+lifecycle: "design"
+tags:
+  - "ot"
+  - "level-3"
+  - "redundant-member"
+render:
+  - view: "factory/process"
+    node: "ot-operations"
+    mode: "any"
+interfaces:
+  - id: "firewall"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+  - id: "peer-link"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans:
+      - 301
+      - 302
+      - 303
+      - 304
+      - 305
+      - 306
+      - 307
+      - 308
+      - 309
+      - 310
+      - 399
+  - id: "operations-services"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+  - id: "vplc-host-01"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans:
+      - 301
+      - 302
+      - 303
+      - 304
+      - 305
+      - 306
+      - 307
+      - 308
+      - 309
+      - 310
+  - id: "vplc-host-02"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans:
+      - 301
+      - 302
+      - 303
+      - 304
+      - 305
+      - 306
+      - 307
+      - 308
+      - 309
+      - 310
+  - id: "area-01"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans:
+      - 101
+      - 301
+  - id: "area-02"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans:
+      - 102
+      - 302
+  - id: "area-03"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans:
+      - 103
+      - 303
+  - id: "area-04"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans:
+      - 104
+      - 304
+  - id: "area-05"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans:
+      - 105
+      - 305
+  - id: "area-06"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans:
+      - 106
+      - 306
+  - id: "area-07"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans:
+      - 107
+      - 307
+  - id: "area-08"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans:
+      - 108
+      - 308
+  - id: "area-09"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans:
+      - 109
+      - 309
+  - id: "area-10"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans:
+      - 110
+      - 310
+behavior:
+  family: "router"
+  routes:
+    - destination: "10.20.0.0/16"
+      next_hop: null
+      interface: "operations-services"
+    - destination: "10.30.0.0/16"
+      next_hop: null
+      interface: "area-01"
+    - destination: "0.0.0.0/0"
+      next_hop: null
+      interface: "firewall"
+  forwarding: true

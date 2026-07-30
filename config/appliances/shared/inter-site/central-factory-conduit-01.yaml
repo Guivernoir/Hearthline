@@ -1,0 +1,97 @@
+schema_version: "0.3.0"
+id: "central-factory-conduit-01"
+label: "Encrypted Factory Conduit-01"
+kind: "encrypted-conduit"
+site: "Central Office to Factory"
+environment: "Inter-site WAN"
+zone: "Governed Conduit"
+role: "Authenticated inter-site transport"
+summary: "Carries only named data and administrative workflows; factory operation remains local when unavailable."
+lifecycle: "design"
+tags: []
+render:
+  - view: "office/operations-intelligence"
+    node: "factory-conduit"
+    mode: "any"
+  - view: "factory/ot-dmz"
+    node: "business-it-handoff"
+    mode: "any"
+  - view: "factory/process"
+    node: "site-conduit"
+    mode: "any"
+interfaces:
+  - id: "central-office"
+    hardware: "carrier-demarc"
+    state:
+      administrative: "down"
+      initial_operational: "down"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "transparent"
+    addresses: []
+    vlans: []
+  - id: "factory"
+    hardware: "carrier-demarc"
+    state:
+      administrative: "down"
+      initial_operational: "down"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "transparent"
+    addresses: []
+    vlans: []
+  - id: "central-office-1"
+    hardware: "carrier-demarc"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "transparent"
+    addresses: []
+    vlans: []
+  - id: "factory-1"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "transparent"
+    addresses: []
+    vlans: []
+  - id: "central-office-2"
+    hardware: "carrier-demarc"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "transparent"
+    addresses: []
+    vlans: []
+  - id: "factory-2"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "transparent"
+    addresses: []
+    vlans: []
+behavior:
+  family: "transparent-link"
+  operational: true

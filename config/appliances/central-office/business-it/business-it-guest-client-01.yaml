@@ -1,0 +1,33 @@
+schema_version: "0.3.0"
+id: "business-it-guest-client-01"
+label: "Business IT-GUEST-CLIENT-01"
+kind: "workstation"
+site: "Central Office"
+environment: "Business IT"
+zone: "IT Guest"
+role: "Representative unmanaged guest client"
+summary: "Exercises the isolated guest egress path without access to internal services."
+lifecycle: "design"
+tags: []
+render:
+  - view: "office/business-it"
+    node: "guest-access"
+    mode: "any"
+interfaces:
+  - id: "wireless-0"
+    hardware: "wireless-radio"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 300
+      duplex: "auto"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans:
+      - 60
+behavior:
+  family: "endpoint"
+  accepted_services: []
+  respond_to_icmp: true

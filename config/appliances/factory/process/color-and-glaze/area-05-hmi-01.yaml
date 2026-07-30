@@ -1,0 +1,38 @@
+schema_version: "0.3.0"
+id: "area-05-hmi-01"
+label: "AREA-05-HMI-01"
+kind: "hmi"
+site: "Factory"
+environment: "Color and Glaze"
+zone: "OT-AREA-05"
+role: "Color and glaze operator HMI"
+summary: "Recipe selection. Material status."
+lifecycle: "design"
+tags:
+  - "ot-area-05"
+  - "operator interface"
+render:
+  - view: "factory/process/color-and-glaze"
+    node: "area-05-hmi-01"
+    mode: "any"
+interfaces:
+  - id: "cell-network"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans:
+      - 105
+behavior:
+  family: "operator-interface"
+  controller: "area-05-vplc-01"
+  permissions:
+    - "observe"
+    - "acknowledge-alarms"
+    - "authorized-command"

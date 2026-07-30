@@ -1,0 +1,55 @@
+schema_version: "0.3.0"
+id: "business-frw-01a"
+label: "Business FRW-01A"
+kind: "firewall"
+site: "Central Office"
+environment: "Central Office Security"
+zone: "Public DMZ Perimeter"
+role: "High-availability stateful policy enforcement member"
+summary: "Enforces default-deny policy between enterprise edge transit and the public DMZ."
+lifecycle: "design"
+tags: []
+render:
+  - view: "customer/public-web-path"
+    node: "business-firewall"
+    mode: "any"
+  - view: "office/it-dmz"
+    node: "perimeter-firewall"
+    mode: "any"
+interfaces:
+  - id: "outside"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses:
+      - "10.255.0.2/30"
+    vlans: []
+  - id: "dmz"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses:
+      - "172.16.10.1/24"
+    vlans: []
+behavior:
+  family: "stateful-firewall"
+  stateful: true
+  default_action: "deny"
+  rules:
+    - name: "permit-established-and-named-conduits"
+      action: "permit"
+      source: "approved-sources"
+      destination: "named-destinations"
+      service: "approved-services"

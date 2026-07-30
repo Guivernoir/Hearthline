@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "area-09-rio-01-to-area-09-cv-01"
+label: "Final Inspection field channel to AREA-09-CV-01"
+lifecycle: "design"
+transport: "field-io"
+medium:
+  type: "field-wiring"
+  signal: "Release conveyor"
+  length_m: 30.0
+endpoints:
+  a:
+    appliance: "area-09-rio-01"
+    interface: "field-io-04"
+  b:
+    appliance: "area-09-cv-01"
+    interface: "field-io"
+properties:
+  capacity_mbps: 10
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "ot"
+  - "ot-area-09"
+  - "field-io"

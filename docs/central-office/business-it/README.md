@@ -10,9 +10,10 @@ management systems, voice, printers, and isolated guest access.
 ## Implementation Status
 
 The enterprise zones, representative assets, and intended access relationships
-are rendered in Svelte. VLAN gateways, routing, service discovery, identity,
-policy, voice, wireless, monitoring, and HA behavior are not currently
-configured or simulated.
+are rendered in Svelte. Parsed appliance YAML now records VLAN baselines,
+representative interfaces, services, voice, wireless, and default-deny
+boundaries. These records are not yet assembled into the full topology, and
+identity, detailed policy, monitoring, and HA behavior are not simulated.
 
 ## Architecture
 
@@ -75,9 +76,9 @@ The core gateway convention uses `.1` in each routed VLAN.
 ## Service Intent
 
 The internal service layer includes DNS, DHCP, time, identity dependencies,
-application services, managed file transfer, monitoring, and voice. Canonical
-YAML will define each service endpoint and consumer rather than granting broad
-VLAN-to-VLAN access.
+application services, managed file transfer, monitoring, and voice. The current
+YAML uses one logical internal service cluster. Later expansion must define each
+service endpoint and consumer rather than granting broad VLAN-to-VLAN access.
 
 ## Planned Validation Scenarios
 

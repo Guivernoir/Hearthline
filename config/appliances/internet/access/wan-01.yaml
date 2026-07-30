@@ -1,0 +1,72 @@
+schema_version: "0.3.0"
+id: "wan-01"
+label: "WAN-01"
+kind: "wan-circuit"
+site: "Provider Network"
+environment: "Customer Edge"
+zone: "Access Network"
+role: "Customer-facing provider access circuit"
+summary: "Models the availability and latency of the customer access service."
+lifecycle: "design"
+tags: []
+render:
+  - view: "customer/customer-edge"
+    node: "wan-01"
+    mode: "any"
+  - view: "customer/public-web-path"
+    node: "wan-01"
+    mode: "any"
+interfaces:
+  - id: "customer"
+    hardware: "carrier-demarc"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "transparent"
+    addresses: []
+    vlans: []
+  - id: "provider"
+    hardware: "carrier-demarc"
+    state:
+      administrative: "down"
+      initial_operational: "down"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "transparent"
+    addresses: []
+    vlans: []
+  - id: "provider-01"
+    hardware: "carrier-demarc"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "transparent"
+    addresses: []
+    vlans: []
+  - id: "provider-02"
+    hardware: "carrier-demarc"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "transparent"
+    addresses: []
+    vlans: []
+behavior:
+  family: "impaired-link"
+  operational: true
+  delay_ms: 12
+  loss_every: null

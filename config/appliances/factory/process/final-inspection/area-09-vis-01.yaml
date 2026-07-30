@@ -1,0 +1,36 @@
+schema_version: "0.3.0"
+id: "area-09-vis-01"
+label: "AREA-09-VIS-01"
+kind: "field-sensor"
+site: "Factory"
+environment: "Final Inspection"
+zone: "OT-AREA-09"
+role: "Final surface-inspection camera"
+summary: "Surface defect classification."
+lifecycle: "design"
+tags:
+  - "ot-area-09"
+  - "sensor"
+render:
+  - view: "factory/process/final-inspection"
+    node: "area-09-vis-01"
+    mode: "any"
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10
+      duplex: "half"
+      mtu: 256
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "field-sensor"
+  signal_tag: "area-09-vis-01"
+  unit: "state"
+  minimum: 0
+  maximum: 1

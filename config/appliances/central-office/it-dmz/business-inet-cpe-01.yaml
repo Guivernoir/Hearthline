@@ -1,0 +1,43 @@
+schema_version: "0.3.0"
+id: "business-inet-cpe-01"
+label: "Business INET-CPE-01"
+kind: "transparent-cpe"
+site: "Central Office"
+environment: "Business IT DMZ"
+zone: "WAN Demarcation"
+role: "Provider-managed business access CPE"
+summary: "Terminates one provider access circuit and transparently presents it to the enterprise edge."
+lifecycle: "design"
+tags: []
+render:
+  - view: "office/it-dmz"
+    node: "business-modem"
+    mode: "any"
+interfaces:
+  - id: "provider"
+    hardware: "carrier-demarc"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "transparent"
+    addresses: []
+    vlans: []
+  - id: "customer"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "transparent"
+    addresses: []
+    vlans: []
+behavior:
+  family: "transparent-link"
+  operational: true

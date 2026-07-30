@@ -1,0 +1,65 @@
+schema_version: "0.3.0"
+id: "business-web-gw-01"
+label: "Business WEB-GW-01"
+kind: "reverse-proxy-waf"
+site: "Central Office"
+environment: "Business IT DMZ"
+zone: "Published Service"
+role: "Public reverse proxy, TLS termination, and WAF member"
+summary: "Terminates the public HTTPS service and proxies only named internal application dependencies."
+lifecycle: "design"
+tags: []
+render:
+  - view: "customer/public-web-path"
+    node: "business-web"
+    mode: "any"
+  - view: "office/it-dmz"
+    node: "public-web"
+    mode: "any"
+interfaces:
+  - id: "dmz"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "down"
+      initial_operational: "down"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses:
+      - "172.16.10.2/24"
+    vlans:
+      - 10
+  - id: "dmz-a"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans: []
+  - id: "dmz-b"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans: []
+behavior:
+  family: "application-gateway"
+  listeners:
+    - protocol: "https"
+      port: 443
+  upstreams:
+    - "internal-application-vip"
+  max_request_bytes: 1048576

@@ -1,0 +1,76 @@
+schema_version: "0.3.0"
+id: "area-04-sw-01"
+label: "AREA-04-SW-01"
+kind: "layer-2-switch"
+site: "Factory"
+environment: "Industrial Dryer"
+zone: "OT-AREA-04"
+role: "Dryer-cell access switch"
+summary: "Dryer package uplink."
+lifecycle: "design"
+tags:
+  - "ot-area-04"
+  - "network"
+render:
+  - view: "factory/process/industrial-dryer"
+    node: "area-04-sw-01"
+    mode: "any"
+interfaces:
+  - id: "cell-uplink"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans:
+      - 104
+      - 304
+  - id: "cell-access"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans:
+      - 104
+  - id: "cell-uplink-standby"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans: []
+  - id: "remote-io-access"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans: []
+behavior:
+  family: "ethernet-switch"
+  vlans:
+    - 104
+    - 304
+  management_vlan: 304
+  spanning_tree: true

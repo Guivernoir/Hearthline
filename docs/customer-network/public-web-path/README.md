@@ -11,8 +11,9 @@ Hearthline's published business web service.
 
 The end-to-end physical and logical service path is implemented as an
 architecture view. DNS, routing, static NAT, stateful policy, TLS termination,
-and WAF behavior are design intent only; they are not currently executed or
-tested by Hearthline.
+and WAF behavior describe the intended path. Individual Rust primitives now
+exist for most of these decisions, and individual appliance YAML is parsed.
+The complete path is not assembled, executed, or tested end to end.
 
 ## Service Path
 
@@ -32,8 +33,9 @@ Customer RTR-01
 
 The current view uses `ISP-DNS-01/02` to represent the public DNS path for
 `www.business.example`, whose authoritative test record maps to `192.0.2.10`.
-This single icon is a presentation simplification. Canonical configuration must
-model recursive resolution and authoritative hosting as separate service roles.
+This single icon is a presentation simplification. The current YAML preserves
+that simplified authoritative role; recursive resolution and authoritative
+hosting must be separated before DNS behavior can be considered complete.
 
 ## Addressing Intent
 

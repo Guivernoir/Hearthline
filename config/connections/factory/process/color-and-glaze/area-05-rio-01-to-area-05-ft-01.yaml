@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "area-05-rio-01-to-area-05-ft-01"
+label: "Color and Glaze field channel to AREA-05-FT-01"
+lifecycle: "design"
+transport: "field-io"
+medium:
+  type: "field-wiring"
+  signal: "Application flow transmitter"
+  length_m: 30.0
+endpoints:
+  a:
+    appliance: "area-05-rio-01"
+    interface: "field-io-02"
+  b:
+    appliance: "area-05-ft-01"
+    interface: "field-io"
+properties:
+  capacity_mbps: 10
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "ot"
+  - "ot-area-05"
+  - "field-io"

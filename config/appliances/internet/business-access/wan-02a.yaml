@@ -1,0 +1,48 @@
+schema_version: "0.3.0"
+id: "wan-02a"
+label: "WAN-02A"
+kind: "wan-circuit"
+site: "Provider Network"
+environment: "Business IT DMZ"
+zone: "Business Access"
+role: "Diverse business-facing provider circuit"
+summary: "Represents one member of the redundant business Internet access path."
+lifecycle: "design"
+tags: []
+render:
+  - view: "customer/public-web-path"
+    node: "wan-02"
+    mode: "any"
+  - view: "office/it-dmz"
+    node: "wan-02"
+    mode: "any"
+interfaces:
+  - id: "provider"
+    hardware: "carrier-demarc"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "transparent"
+    addresses: []
+    vlans: []
+  - id: "business"
+    hardware: "carrier-demarc"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "transparent"
+    addresses: []
+    vlans: []
+behavior:
+  family: "impaired-link"
+  operational: true
+  delay_ms: 12
+  loss_every: null

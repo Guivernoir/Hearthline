@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "customer-pc-01-to-sw-01"
+label: "Customer PC-01 access link"
+lifecycle: "design"
+transport: "ethernet"
+medium:
+  type: "copper"
+  wiring: "straight-through"
+  category: "cat6a"
+  length_m: 10.0
+endpoints:
+  a:
+    appliance: "customer-pc-01"
+    interface: "fast-ethernet-0"
+  b:
+    appliance: "customer-sw-01"
+    interface: "fast-ethernet-0-1"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "customer"
+  - "access"

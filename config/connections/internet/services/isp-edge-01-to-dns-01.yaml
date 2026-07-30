@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "isp-edge-01-to-dns-01"
+label: "Provider edge 01 to DNS 01"
+lifecycle: "design"
+transport: "ethernet"
+medium:
+  type: "copper"
+  wiring: "straight-through"
+  category: "cat6a"
+  length_m: 10.0
+endpoints:
+  a:
+    appliance: "isp-edge-rtr-01"
+    interface: "provider-services"
+  b:
+    appliance: "isp-dns-01"
+    interface: "service"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "internet"
+  - "dns"

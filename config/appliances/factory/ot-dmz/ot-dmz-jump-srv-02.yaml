@@ -1,0 +1,47 @@
+schema_version: "0.3.0"
+id: "ot-dmz-jump-srv-02"
+label: "OT-DMZ-JUMP-SRV-02"
+kind: "jump-host"
+site: "Factory"
+environment: "Factory OT DMZ"
+zone: "Access Subzone"
+role: "Controlled administrative session termination member"
+summary: "Terminates one authenticated session before a separately authorized connection into Level 3."
+lifecycle: "design"
+tags: []
+render:
+  - view: "factory/ot-dmz"
+    node: "jump-service"
+    mode: "any"
+interfaces:
+  - id: "access"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans:
+      - 351
+  - id: "access-standby"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans: []
+behavior:
+  family: "service-host"
+  accepted_services:
+    - "rdp"
+    - "ssh"
+  respond_to_icmp: true

@@ -11,8 +11,10 @@ to the provider and internal Business IT.
 
 The DMZ architecture, addressing intent, and policy boundaries are represented
 in Svelte. The paired assets indicate an availability target, not implemented
-HA. No current component performs NAT, firewall enforcement, TLS termination,
-WAF inspection, or failover.
+HA. Rust now contains initial NAT, firewall, service, and abstract web-gateway
+primitives and parses each rendered appliance's YAML. The DMZ instances are not
+yet connected into a complete simulation; TLS processing, synchronized HA
+state, and failover are not implemented or tested.
 
 ## Architecture
 
@@ -74,6 +76,7 @@ The target design assigns `Business EDGE-RTR-01/02` a static translation from
 | Web server to an explicitly approved internal dependency | Allowed only by named rule |
 | DMZ source to network-management interfaces | Denied |
 
-Planned YAML will define interfaces, services, translations, and stateful
-rules. The future Rust evaluator will report each route, NAT stage, policy
-boundary, and final result.
+The current appliance YAML defines baseline interfaces, services, translation,
+and default-deny behavior. Planned schema expansion and topology construction
+must replace generic policy placeholders with named references before the Rust
+evaluator can report each route, NAT stage, policy boundary, and final result.

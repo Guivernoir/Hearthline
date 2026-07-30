@@ -11,8 +11,9 @@ analysis site.
 
 The campus overview and all three environment routes are implemented in Svelte.
 The rendered roles and trust boundaries describe the target architecture;
-configuration, identity integration, policy enforcement, monitoring, and
-analytics behavior remain future work.
+per-appliance YAML now supplies validated identities and behavior baselines.
+Identity integration, complete policy enforcement, monitoring behavior,
+analytics behavior, and configured topology execution remain future work.
 
 ## Environments
 
@@ -33,6 +34,6 @@ The physical view separates perimeter services, enterprise office space, and
 the operations center. The logical view preserves their distinct trust and
 information-flow boundaries.
 
-Planned implementation will move the site inventory and conduits into canonical
-YAML and expose Rust-validated network, policy, and availability scenarios in
-the same views.
+Planned implementation will move the remaining site and conduit relationships
+into canonical inputs, construct the configured topology, and expose
+Rust-validated network, policy, and availability scenarios in the same views.

@@ -1,0 +1,47 @@
+schema_version: "0.3.0"
+id: "ot-dmz-xfer-srv-01"
+label: "OT-DMZ-XFER-SRV-01"
+kind: "file-transfer-gateway"
+site: "Factory"
+environment: "Factory OT DMZ"
+zone: "Exchange Subzone"
+role: "Managed file-transfer and update-staging service"
+summary: "Stages, scans, approves, and audits explicitly directed file transfers."
+lifecycle: "design"
+tags: []
+render:
+  - view: "factory/ot-dmz"
+    node: "transfer-service"
+    mode: "any"
+interfaces:
+  - id: "service"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans:
+      - 352
+  - id: "service-standby"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans: []
+behavior:
+  family: "service-host"
+  accepted_services:
+    - "sftp"
+    - "https"
+  respond_to_icmp: true

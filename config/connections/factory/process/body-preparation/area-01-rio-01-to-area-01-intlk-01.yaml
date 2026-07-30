@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "area-01-rio-01-to-area-01-intlk-01"
+label: "Body Preparation field channel to AREA-01-INTLK-01"
+lifecycle: "design"
+transport: "field-io"
+medium:
+  type: "field-wiring"
+  signal: "Transfer permissive and spill interlock"
+  length_m: 30.0
+endpoints:
+  a:
+    appliance: "area-01-rio-01"
+    interface: "field-io-05"
+  b:
+    appliance: "area-01-intlk-01"
+    interface: "field-io"
+properties:
+  capacity_mbps: 10
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "ot"
+  - "ot-area-01"
+  - "field-io"

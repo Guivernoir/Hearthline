@@ -28,4 +28,5 @@ does not currently execute control logic, I/O, or process behavior.
 
 Simulation will model surface and dimensional results, quality disposition,
 reject routing, release to Logistics, traceability, and jam or guard
-conditions. Canonical YAML and I/O bindings remain pending.
+conditions. Per-appliance YAML is implemented; resolved I/O bindings and
+inspection behavior remain pending.

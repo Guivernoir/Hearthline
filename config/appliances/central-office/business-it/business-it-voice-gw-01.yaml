@@ -1,0 +1,60 @@
+schema_version: "0.3.0"
+id: "business-it-voice-gw-01"
+label: "Business IT-VOICE-GW-01"
+kind: "voice-gateway"
+site: "Central Office"
+environment: "Business IT"
+zone: "IT Servers"
+role: "Enterprise voice call-control gateway"
+summary: "Registers modeled voice endpoints and provides call-control service."
+lifecycle: "design"
+tags: []
+render:
+  - view: "office/business-it"
+    node: "voice-gateway"
+    mode: "any"
+interfaces:
+  - id: "service"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "down"
+      initial_operational: "down"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses:
+      - "10.10.20.50/24"
+    vlans:
+      - 20
+  - id: "service-a"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans: []
+  - id: "service-b"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans: []
+behavior:
+  family: "voice"
+  accepted_services:
+    - "voice-signaling"
+  extension: null
+  call_controller: "local"

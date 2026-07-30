@@ -1,0 +1,36 @@
+schema_version: "0.3.0"
+id: "area-02-pe-01"
+label: "AREA-02-PE-01"
+kind: "field-sensor"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Part-present photoelectric sensor"
+summary: "Discrete part detection."
+lifecycle: "design"
+tags:
+  - "ot-area-02"
+  - "sensor"
+render:
+  - view: "factory/process/forming"
+    node: "area-02-pe-01"
+    mode: "any"
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10
+      duplex: "half"
+      mtu: 256
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "field-sensor"
+  signal_tag: "area-02-pe-01"
+  unit: "state"
+  minimum: 0
+  maximum: 1

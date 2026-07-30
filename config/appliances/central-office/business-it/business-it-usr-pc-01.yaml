@@ -1,0 +1,33 @@
+schema_version: "0.3.0"
+id: "business-it-usr-pc-01"
+label: "Business IT-USR-PC-01"
+kind: "workstation"
+site: "Central Office"
+environment: "Business IT"
+zone: "IT Users"
+role: "Managed employee workstation"
+summary: "Representative managed user endpoint on the employee access network."
+lifecycle: "design"
+tags: []
+render:
+  - view: "office/business-it"
+    node: "user-pcs"
+    mode: "any"
+interfaces:
+  - id: "ethernet-0"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans:
+      - 30
+behavior:
+  family: "endpoint"
+  accepted_services: []
+  respond_to_icmp: true

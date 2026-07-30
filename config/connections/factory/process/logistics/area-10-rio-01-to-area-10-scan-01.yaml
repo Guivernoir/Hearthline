@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "area-10-rio-01-to-area-10-scan-01"
+label: "Logistics field channel to AREA-10-SCAN-01"
+lifecycle: "design"
+transport: "field-io"
+medium:
+  type: "field-wiring"
+  signal: "Product traceability scanner"
+  length_m: 30.0
+endpoints:
+  a:
+    appliance: "area-10-rio-01"
+    interface: "field-io"
+  b:
+    appliance: "area-10-scan-01"
+    interface: "field-io"
+properties:
+  capacity_mbps: 10
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "ot"
+  - "ot-area-10"
+  - "field-io"

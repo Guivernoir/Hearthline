@@ -1,0 +1,39 @@
+schema_version: "0.3.0"
+id: "operations-identity-policy-01"
+label: "Operations Identity & Policy-01"
+kind: "identity-policy-service"
+site: "Central Office"
+environment: "Operations Intelligence"
+zone: "Enterprise Governance"
+role: "Identity, authorization, posture, and policy decision service"
+summary: "Evaluates named administrative requests using identity, MFA, posture, and work context."
+lifecycle: "design"
+tags: []
+render:
+  - view: "office/operations-intelligence"
+    node: "identity-policy"
+    mode: "any"
+interfaces:
+  - id: "service"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+behavior:
+  family: "policy-service"
+  accepted_services:
+    - "https"
+    - "radius"
+    - "identity"
+  decision_inputs:
+    - "identity"
+    - "mfa"
+    - "device-posture"
+    - "work-order"

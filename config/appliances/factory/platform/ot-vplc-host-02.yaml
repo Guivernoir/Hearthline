@@ -1,0 +1,229 @@
+schema_version: "0.3.0"
+id: "ot-vplc-host-02"
+label: "OT-vPLC-HOST-02"
+kind: "virtualization-host"
+site: "Factory"
+environment: "OT Operations"
+zone: "Level 3 Control Compute"
+role: "Redundant industrial control-compute host"
+summary: "Hosts isolated area vPLC runtimes with reserved compute and dedicated cell-network presentation."
+lifecycle: "design"
+tags: []
+render:
+  - view: "factory/process"
+    node: "vplc-platform"
+    mode: "any"
+  - view: "factory/process/body-preparation"
+    node: "area-01-vplc-01"
+    mode: "physical"
+  - view: "factory/process/forming"
+    node: "area-02-vplc-01"
+    mode: "physical"
+  - view: "factory/process/controlled-drying"
+    node: "area-03-vplc-01"
+    mode: "physical"
+  - view: "factory/process/industrial-dryer"
+    node: "area-04-vplc-01"
+    mode: "physical"
+  - view: "factory/process/color-and-glaze"
+    node: "area-05-vplc-01"
+    mode: "physical"
+  - view: "factory/process/kiln-one"
+    node: "area-06-vplc-01"
+    mode: "physical"
+  - view: "factory/process/intermediate-inspection"
+    node: "area-07-vplc-01"
+    mode: "physical"
+  - view: "factory/process/kiln-two"
+    node: "area-08-vplc-01"
+    mode: "physical"
+  - view: "factory/process/final-inspection"
+    node: "area-09-vplc-01"
+    mode: "physical"
+  - view: "factory/process/logistics"
+    node: "area-10-vplc-01"
+    mode: "physical"
+interfaces:
+  - id: "management"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "down"
+      initial_operational: "down"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+  - id: "cell-networks"
+    hardware: "virtual-nic"
+    state:
+      administrative: "down"
+      initial_operational: "down"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+  - id: "cell-trunk-1"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans: []
+  - id: "cell-trunk-2"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans: []
+  - id: "area-01-runtime"
+    hardware: "virtual-nic"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+  - id: "area-02-runtime"
+    hardware: "virtual-nic"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+  - id: "area-03-runtime"
+    hardware: "virtual-nic"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+  - id: "area-04-runtime"
+    hardware: "virtual-nic"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+  - id: "area-05-runtime"
+    hardware: "virtual-nic"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+  - id: "area-06-runtime"
+    hardware: "virtual-nic"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+  - id: "area-07-runtime"
+    hardware: "virtual-nic"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+  - id: "area-08-runtime"
+    hardware: "virtual-nic"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+  - id: "area-09-runtime"
+    hardware: "virtual-nic"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+  - id: "area-10-runtime"
+    hardware: "virtual-nic"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+behavior:
+  family: "compute-host"
+  accepted_services:
+    - "management"
+  workloads:
+    - "ot-area-01-vplc-runtime"
+    - "ot-area-02-vplc-runtime"
+    - "ot-area-03-vplc-runtime"
+    - "ot-area-04-vplc-runtime"
+    - "ot-area-05-vplc-runtime"
+    - "ot-area-06-vplc-runtime"
+    - "ot-area-07-vplc-runtime"
+    - "ot-area-08-vplc-runtime"
+    - "ot-area-09-vplc-runtime"
+    - "ot-area-10-vplc-runtime"

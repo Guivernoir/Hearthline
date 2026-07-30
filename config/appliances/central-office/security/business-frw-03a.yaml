@@ -1,0 +1,56 @@
+schema_version: "0.3.0"
+id: "business-frw-03a"
+label: "Business FRW-03A"
+kind: "firewall"
+site: "Central Office"
+environment: "Central Office Security"
+zone: "OT Northbound Security"
+role: "High-availability stateful policy enforcement member"
+summary: "Enforces named, authenticated conduits between Central Office governance services and the Factory OT DMZ."
+lifecycle: "design"
+tags: []
+render:
+  - view: "office/business-it"
+    node: "frw-03"
+    mode: "any"
+  - view: "office/operations-intelligence"
+    node: "factory-conduit"
+    mode: "any"
+  - view: "factory/ot-dmz"
+    node: "north-firewall"
+    mode: "any"
+interfaces:
+  - id: "business-it"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+  - id: "factory-conduit"
+    hardware: "carrier-demarc"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+behavior:
+  family: "stateful-firewall"
+  stateful: true
+  default_action: "deny"
+  rules:
+    - name: "permit-established-and-named-conduits"
+      action: "permit"
+      source: "approved-sources"
+      destination: "named-destinations"
+      service: "approved-services"

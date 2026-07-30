@@ -1,0 +1,48 @@
+schema_version: "0.3.0"
+id: "ot-dmz-mon-01"
+label: "OT-DMZ-MON-01"
+kind: "monitoring-collector"
+site: "Factory"
+environment: "Factory OT DMZ"
+zone: "Monitoring Subzone"
+role: "Security telemetry collector"
+summary: "Collects approved telemetry without becoming an inline process dependency."
+lifecycle: "design"
+tags: []
+render:
+  - view: "factory/ot-dmz"
+    node: "monitoring"
+    mode: "any"
+interfaces:
+  - id: "service"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans:
+      - 353
+  - id: "service-standby"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans: []
+behavior:
+  family: "service-host"
+  accepted_services:
+    - "syslog"
+    - "snmp"
+    - "https"
+  respond_to_icmp: true

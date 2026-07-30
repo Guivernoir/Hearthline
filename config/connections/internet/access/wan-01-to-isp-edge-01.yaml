@@ -1,0 +1,24 @@
+schema_version: "0.2.0"
+id: "wan-01-to-isp-edge-01"
+label: "Customer access to provider edge 01"
+lifecycle: "design"
+transport: "wide-area"
+medium:
+  type: "carrier"
+  service: "Provider access aggregation"
+endpoints:
+  a:
+    appliance: "wan-01"
+    interface: "provider-01"
+  b:
+    appliance: "isp-edge-rtr-01"
+    interface: "customer-access"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 12
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "internet"
+  - "provider-edge"

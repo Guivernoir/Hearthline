@@ -1,0 +1,24 @@
+schema_version: "0.2.0"
+id: "business-frw-03a-to-central-conduit-1"
+label: "Central firewall A to encrypted conduit"
+lifecycle: "design"
+transport: "encrypted-ip"
+medium:
+  type: "carrier"
+  service: "Authenticated inter-site underlay"
+endpoints:
+  a:
+    appliance: "business-frw-03a"
+    interface: "factory-conduit"
+  b:
+    appliance: "central-factory-conduit-01"
+    interface: "central-office-1"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 12
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "inter-site"
+  - "encrypted"

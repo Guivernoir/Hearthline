@@ -1,0 +1,38 @@
+schema_version: "0.3.0"
+id: "area-09-hmi-01"
+label: "AREA-09-HMI-01"
+kind: "hmi"
+site: "Factory"
+environment: "Final Inspection"
+zone: "OT-AREA-09"
+role: "Final-inspection operator HMI"
+summary: "Quality review. Disposition recording."
+lifecycle: "design"
+tags:
+  - "ot-area-09"
+  - "operator interface"
+render:
+  - view: "factory/process/final-inspection"
+    node: "area-09-hmi-01"
+    mode: "any"
+interfaces:
+  - id: "cell-network"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans:
+      - 109
+behavior:
+  family: "operator-interface"
+  controller: "area-09-vplc-01"
+  permissions:
+    - "observe"
+    - "acknowledge-alarms"
+    - "authorized-command"

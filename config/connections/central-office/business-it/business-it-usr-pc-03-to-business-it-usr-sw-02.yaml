@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "business-it-usr-pc-03-to-business-it-usr-sw-02"
+label: "User PC-03 access link"
+lifecycle: "design"
+transport: "ethernet"
+medium:
+  type: "copper"
+  wiring: "straight-through"
+  category: "cat6a"
+  length_m: 10.0
+endpoints:
+  a:
+    appliance: "business-it-usr-pc-03"
+    interface: "ethernet-0"
+  b:
+    appliance: "business-it-usr-sw-02"
+    interface: "user-pc-03"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "business-it"
+  - "access"

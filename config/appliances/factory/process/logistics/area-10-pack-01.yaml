@@ -1,0 +1,35 @@
+schema_version: "0.3.0"
+id: "area-10-pack-01"
+label: "AREA-10-PACK-01"
+kind: "field-actuator"
+site: "Factory"
+environment: "Logistics"
+zone: "OT-AREA-10"
+role: "Packing-machine interface"
+summary: "Pack cycle command."
+lifecycle: "design"
+tags:
+  - "ot-area-10"
+  - "actuator"
+render:
+  - view: "factory/process/logistics"
+    node: "area-10-pack-01"
+    mode: "any"
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10
+      duplex: "half"
+      mtu: 256
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "field-actuator"
+  command_tag: "area-10-pack-01-command"
+  safe_state: "stopped"
+  feedback_tag: "area-10-pack-01-feedback"

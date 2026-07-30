@@ -2,23 +2,31 @@
   import { onMount } from "svelte";
   import CustomerEnvironmentView from "./lib/CustomerEnvironmentView.svelte";
   import CustomerLanView from "./lib/CustomerLanView.svelte";
+  import ApplianceConfigView from "./lib/ApplianceConfigView.svelte";
+  import ConnectionConfigView from "./lib/ConnectionConfigView.svelte";
   import FactoryOverview from "./lib/FactoryOverview.svelte";
   import LocationOverview from "./lib/LocationOverview.svelte";
   import OfficeEnvironmentView from "./lib/OfficeEnvironmentView.svelte";
   import ProcessAreaView from "./lib/ProcessAreaView.svelte";
   import ProcessCanvas from "./lib/ProcessCanvas.svelte";
   import RegionMap from "./lib/RegionMap.svelte";
+  import { findAppliance, findConnection } from "./lib/appliance-config";
   import { findProcessArea } from "./lib/process-model";
   import type {
     EnvironmentRoute,
+    ApplianceConfigRoute,
+    ConnectionConfigRoute,
     PlaceId,
     ProcessAreaRoute,
     ViewMode,
   } from "./lib/types";
 
-  type ActiveRoute = PlaceId | EnvironmentRoute | ProcessAreaRoute | null;
+  type ArchitectureRoute = PlaceId | EnvironmentRoute | ProcessAreaRoute;
+  type ConfigRoute = ApplianceConfigRoute | ConnectionConfigRoute;
+  type ActiveRoute = ArchitectureRoute | ConfigRoute | null;
 
   let activeRoute: ActiveRoute = null;
+  let configHistory: (ArchitectureRoute | ConfigRoute)[] = [];
   let viewMode: ViewMode = "logical";
 
   function syncRoute() {
@@ -27,6 +35,15 @@
       ? route.slice("factory/process/".length)
       : "";
     const isProcessArea = processAreaKey !== "" && findProcessArea(processAreaKey) !== null;
+    const applianceId = route.startsWith("config/appliances/")
+      ? route.slice("config/appliances/".length)
+      : "";
+    const connectionId = route.startsWith("config/connections/")
+      ? route.slice("config/connections/".length)
+      : "";
+    const isApplianceConfig = applianceId !== "" && findAppliance(applianceId) !== null;
+    const isConnectionConfig =
+      connectionId !== "" && findConnection(connectionId) !== null;
 
     activeRoute = route === "customer" ||
       route === "office" ||
@@ -42,6 +59,10 @@
         ? (route as PlaceId | EnvironmentRoute)
         : isProcessArea
           ? (route as ProcessAreaRoute)
+          : isApplianceConfig
+            ? (route as ApplianceConfigRoute)
+            : isConnectionConfig
+              ? (route as ConnectionConfigRoute)
         : null;
   }
 
@@ -132,6 +153,37 @@
     );
   }
 
+  function openApplianceConfig(applianceId: string) {
+    if (!findAppliance(applianceId)) return;
+    openConfigRoute(`config/appliances/${applianceId}` as ApplianceConfigRoute);
+  }
+
+  function openConnectionConfig(connectionId: string) {
+    if (!findConnection(connectionId)) return;
+    openConfigRoute(
+      `config/connections/${connectionId}` as ConnectionConfigRoute,
+    );
+  }
+
+  function openConfigRoute(route: ConfigRoute) {
+    if (activeRoute && activeRoute !== route) {
+      configHistory = [...configHistory, activeRoute];
+    }
+    activeRoute = route;
+    window.location.hash = route;
+  }
+
+  function returnFromConfig() {
+    const previous = configHistory.at(-1);
+    if (previous) {
+      configHistory = configHistory.slice(0, -1);
+      activeRoute = previous;
+      window.location.hash = previous;
+      return;
+    }
+    returnToMap();
+  }
+
   onMount(() => {
     if (window.location.hash === "#office/ot-dmz") {
       window.history.replaceState(
@@ -148,6 +200,18 @@
 
 {#if activeRoute === null}
   <RegionMap bind:viewMode onEnter={enterPlace} />
+{:else if activeRoute.startsWith("config/appliances/")}
+  <ApplianceConfigView
+    applianceId={activeRoute.slice("config/appliances/".length)}
+    onBack={returnFromConfig}
+    onOpenConnection={openConnectionConfig}
+  />
+{:else if activeRoute.startsWith("config/connections/")}
+  <ConnectionConfigView
+    connectionId={activeRoute.slice("config/connections/".length)}
+    onBack={returnFromConfig}
+    onOpenAppliance={openApplianceConfig}
+  />
 {:else if activeRoute === "factory"}
   <FactoryOverview
     bind:viewMode
@@ -159,15 +223,21 @@
     bind:viewMode
     onBack={returnToFactory}
     onEnterArea={enterProcessArea}
+    onOpenAppliance={openApplianceConfig}
   />
 {:else if activeRoute.startsWith("factory/process/")}
   <ProcessAreaView
     bind:viewMode
     routeKey={activeRoute.slice("factory/process/".length)}
     onBack={returnToProcess}
+    onOpenAppliance={openApplianceConfig}
   />
 {:else if activeRoute === "customer/customer-lan"}
-  <CustomerLanView bind:viewMode onBack={returnToCustomer} />
+  <CustomerLanView
+    bind:viewMode
+    onBack={returnToCustomer}
+    onOpenAppliance={openApplianceConfig}
+  />
 {:else if
   activeRoute === "customer/customer-edge" ||
   activeRoute === "customer/public-web-path"}
@@ -175,6 +245,7 @@
     bind:viewMode
     environment={activeRoute === "customer/customer-edge" ? "edge" : "public-web-path"}
     onBack={returnToCustomer}
+    onOpenAppliance={openApplianceConfig}
   />
 {:else if
   activeRoute === "office/it-dmz" ||
@@ -184,6 +255,7 @@
     bind:viewMode
     environment={activeRoute.slice("office/".length) as "it-dmz" | "business-it" | "operations-intelligence"}
     onBack={returnToOffice}
+    onOpenAppliance={openApplianceConfig}
   />
 {:else if activeRoute === "factory/ot-dmz"}
   <OfficeEnvironmentView
@@ -191,6 +263,7 @@
     environment="ot-dmz"
     siteLabel="Factory"
     onBack={returnToFactory}
+    onOpenAppliance={openApplianceConfig}
   />
 {:else if activeRoute === "office" || activeRoute === "customer"}
   <LocationOverview

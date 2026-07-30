@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "dmz-sw-01-to-frw-02a"
+label: "DMZ switch 01 to internal firewall"
+lifecycle: "design"
+transport: "ethernet"
+medium:
+  type: "copper"
+  wiring: "straight-through"
+  category: "cat6a"
+  length_m: 10.0
+endpoints:
+  a:
+    appliance: "business-it-dmz-sw-01"
+    interface: "internal-firewall"
+  b:
+    appliance: "business-frw-02a"
+    interface: "outside"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "it-dmz"
+  - "internal-boundary"

@@ -10,8 +10,9 @@ premises. It owns the endpoints, access switch, and router inside interface.
 ## Implementation Status
 
 The physical and logical LAN diagrams are implemented. Addressing and
-connectivity below describe the intended baseline; they are not currently
-configured on emulated devices or verified by an executable network model.
+per-appliance interfaces are now represented in parsed YAML and available from
+each device inspector. Peer links are not yet fully canonical, and the LAN is
+not verified by an executable end-to-end network model.
 
 ## Scope
 
@@ -56,6 +57,7 @@ routing is required for the baseline.
 - The LAN has no direct provider or business attachment.
 - Translation and public reachability are evaluated at the next levels.
 
-Planned work defines the four assets, their interfaces, the three links, the
-private prefix, and positive and negative connectivity scenarios in canonical
-YAML. Rust will then determine whether each target is satisfied.
+The four assets, their baseline interfaces, and the private prefix are parsed
+from canonical YAML. Planned work completes the three peer links, constructs
+the topology, and adds positive and negative scenarios so Rust can determine
+whether each target is satisfied.

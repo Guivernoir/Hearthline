@@ -1,0 +1,35 @@
+schema_version: "0.3.0"
+id: "area-08-fan-01"
+label: "AREA-08-FAN-01"
+kind: "field-actuator"
+site: "Factory"
+environment: "Kiln 2"
+zone: "OT-AREA-08"
+role: "Combustion-air fan"
+summary: "Airflow demand and feedback."
+lifecycle: "design"
+tags:
+  - "ot-area-08"
+  - "actuator"
+render:
+  - view: "factory/process/kiln-two"
+    node: "area-08-fan-01"
+    mode: "any"
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10
+      duplex: "half"
+      mtu: 256
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "field-actuator"
+  command_tag: "area-08-fan-01-command"
+  safe_state: "stopped"
+  feedback_tag: "area-08-fan-01-feedback"

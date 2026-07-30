@@ -13,3 +13,7 @@ export type EnvironmentRoute =
   | "factory/process";
 
 export type ProcessAreaRoute = `factory/process/${string}`;
+
+export type ApplianceConfigRoute = `config/appliances/${string}`;
+
+export type ConnectionConfigRoute = `config/connections/${string}`;

@@ -1,0 +1,143 @@
+schema_version: "0.3.0"
+id: "business-it-core-sw-01"
+label: "Business IT-CORE-SW-01"
+kind: "layer-3-switch"
+site: "Central Office"
+environment: "Business IT"
+zone: "Network Core"
+role: "Business IT Layer 3 core member"
+summary: "One member of the redundant internal switching design."
+lifecycle: "design"
+tags: []
+render:
+  - view: "office/business-it"
+    node: "it-core"
+    mode: "any"
+interfaces:
+  - id: "uplink"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans:
+      - 20
+      - 30
+      - 40
+      - 50
+      - 60
+      - 70
+      - 80
+      - 90
+      - 999
+  - id: "peer-link"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans: []
+  - id: "srv-sw-01"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans: []
+  - id: "srv-sw-02"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans: []
+  - id: "svc-sw-01"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans: []
+  - id: "svc-sw-02"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans: []
+  - id: "usr-sw-01"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans: []
+  - id: "usr-sw-02"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans: []
+  - id: "frw-03a"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans: []
+behavior:
+  family: "router"
+  routes:
+    - destination: "10.10.0.0/16"
+      next_hop: null
+      interface: "internal"
+    - destination: "0.0.0.0/0"
+      next_hop: "10.255.0.6"
+      interface: "uplink"
+  forwarding: true

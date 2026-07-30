@@ -29,5 +29,5 @@ behavior.
 ## Planned Work
 
 Hearthline will simulate the process and control interface without claiming
-functional-safety or burner-management certification. Canonical YAML and
-control bindings remain pending.
+functional-safety or burner-management certification. Per-appliance YAML is
+implemented; resolved control bindings and firing behavior remain pending.

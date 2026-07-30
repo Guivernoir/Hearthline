@@ -1,0 +1,24 @@
+schema_version: "0.2.0"
+id: "customer-cpe-01-to-wan-01"
+label: "Customer access circuit"
+lifecycle: "design"
+transport: "wide-area"
+medium:
+  type: "carrier"
+  service: "Residential broadband access"
+endpoints:
+  a:
+    appliance: "customer-inet-cpe-01"
+    interface: "access"
+  b:
+    appliance: "wan-01"
+    interface: "customer"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 12
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "internet"
+  - "access"

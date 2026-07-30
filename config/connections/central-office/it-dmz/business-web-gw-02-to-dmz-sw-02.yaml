@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "business-web-gw-02-to-dmz-sw-02"
+label: "Web gateway 02 to DMZ switch 02"
+lifecycle: "design"
+transport: "ethernet"
+medium:
+  type: "copper"
+  wiring: "straight-through"
+  category: "cat6a"
+  length_m: 10.0
+endpoints:
+  a:
+    appliance: "business-web-gw-02"
+    interface: "dmz-b"
+  b:
+    appliance: "business-it-dmz-sw-02"
+    interface: "web-gw-02"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "it-dmz"
+  - "web-tier"

@@ -1,0 +1,27 @@
+schema_version: "0.2.0"
+id: "business-guest-client-to-ap-01"
+label: "Guest wireless client association"
+lifecycle: "design"
+transport: "wireless-lan"
+medium:
+  type: "radio"
+  standard: "IEEE 802.11ax"
+  ssid: "Business-Guest"
+  security: "WPA3-Enterprise"
+  distance_m: 15.0
+endpoints:
+  a:
+    appliance: "business-it-guest-client-01"
+    interface: "wireless-0"
+  b:
+    appliance: "business-it-guest-ap-01"
+    interface: "radio-0"
+properties:
+  capacity_mbps: 300
+  latency_ms: 2
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "business-it"
+  - "guest-wireless"

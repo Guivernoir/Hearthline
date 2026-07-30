@@ -18,7 +18,9 @@
     Wifi,
     X,
   } from "@lucide/svelte";
+  import ApplianceConfigSummary from "./ApplianceConfigSummary.svelte";
   import PhysicalDeviceMarker from "./PhysicalDeviceMarker.svelte";
+  import { findAppliancesForNode } from "./appliance-config";
   import type { ViewMode } from "./types";
 
   interface DevicePosition {
@@ -40,6 +42,7 @@
   }
 
   export let onBack: () => void = () => {};
+  export let onOpenAppliance: (id: string) => void = () => {};
   export let viewMode: ViewMode = "logical";
 
   const WORLD_WIDTH = 1250;
@@ -112,6 +115,9 @@
   let viewportHeight = 1;
 
   $: selectedDevice = devices.find((device) => device.id === selectedId) ?? null;
+  $: selectedAppliances = selectedDevice
+    ? findAppliancesForNode("customer/customer-lan", selectedDevice.id, viewMode)
+    : [];
   $: worldPixelWidth = WORLD_WIDTH * zoom;
   $: worldPixelHeight = WORLD_HEIGHT * zoom;
   $: worldOffsetX = Math.max(0, (viewportWidth - worldPixelWidth) / 2);
@@ -505,6 +511,10 @@
             <div><Wifi size={14} strokeWidth={1.8} />{port}</div>
           {/each}
         </div>
+        <ApplianceConfigSummary
+          appliances={selectedAppliances}
+          onOpen={onOpenAppliance}
+        />
       </aside>
     {/if}
   </main>

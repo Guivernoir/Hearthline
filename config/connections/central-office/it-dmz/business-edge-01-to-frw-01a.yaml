@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "business-edge-01-to-frw-01a"
+label: "Business edge 01 to perimeter firewall"
+lifecycle: "design"
+transport: "ethernet"
+medium:
+  type: "copper"
+  wiring: "straight-through"
+  category: "cat6a"
+  length_m: 10.0
+endpoints:
+  a:
+    appliance: "business-edge-rtr-01"
+    interface: "inside"
+  b:
+    appliance: "business-frw-01a"
+    interface: "outside"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "it-dmz"
+  - "perimeter"

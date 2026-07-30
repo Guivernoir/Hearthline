@@ -29,7 +29,9 @@
     Wifi,
     X,
   } from "@lucide/svelte";
+  import ApplianceConfigSummary from "./ApplianceConfigSummary.svelte";
   import PhysicalDeviceMarker from "./PhysicalDeviceMarker.svelte";
+  import { findAppliancesForNode } from "./appliance-config";
   import type { ViewMode } from "./types";
 
   type OfficeEnvironment =
@@ -58,6 +60,7 @@
 
   export let environment: OfficeEnvironment;
   export let onBack: () => void = () => {};
+  export let onOpenAppliance: (id: string) => void = () => {};
   export let siteLabel = "Central Office";
   export let viewMode: ViewMode = "logical";
 
@@ -725,6 +728,11 @@
   let viewportHeight = 1;
 
   $: selectedNode = nodes.find((node) => node.id === selectedId) ?? null;
+  $: configView =
+    environment === "ot-dmz" ? "factory/ot-dmz" : `office/${environment}`;
+  $: selectedAppliances = selectedNode
+    ? findAppliancesForNode(configView, selectedNode.id, viewMode)
+    : [];
   $: worldPixelWidth = WORLD_WIDTH * zoom;
   $: worldPixelHeight = WORLD_HEIGHT * zoom;
   $: worldOffsetX = Math.max(0, (viewportWidth - worldPixelWidth) / 2);
@@ -1328,6 +1336,10 @@
             <div><Wifi size={14} strokeWidth={1.8} />{fact}</div>
           {/each}
         </div>
+        <ApplianceConfigSummary
+          appliances={selectedAppliances}
+          onOpen={onOpenAppliance}
+        />
       </aside>
     {/if}
   </main>

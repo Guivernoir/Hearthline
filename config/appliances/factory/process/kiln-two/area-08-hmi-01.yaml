@@ -1,0 +1,38 @@
+schema_version: "0.3.0"
+id: "area-08-hmi-01"
+label: "AREA-08-HMI-01"
+kind: "hmi"
+site: "Factory"
+environment: "Kiln 2"
+zone: "OT-AREA-08"
+role: "Kiln 2 operator HMI"
+summary: "Profile and alarm display."
+lifecycle: "design"
+tags:
+  - "ot-area-08"
+  - "operator interface"
+render:
+  - view: "factory/process/kiln-two"
+    node: "area-08-hmi-01"
+    mode: "any"
+interfaces:
+  - id: "cell-network"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans:
+      - 108
+behavior:
+  family: "operator-interface"
+  controller: "area-08-vplc-01"
+  permissions:
+    - "observe"
+    - "acknowledge-alarms"
+    - "authorized-command"

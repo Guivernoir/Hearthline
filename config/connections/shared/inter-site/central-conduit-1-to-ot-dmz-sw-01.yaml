@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "central-conduit-1-to-ot-dmz-sw-01"
+label: "Encrypted conduit to factory DMZ switch 01"
+lifecycle: "design"
+transport: "encrypted-ip"
+medium:
+  type: "copper"
+  wiring: "straight-through"
+  category: "cat6a"
+  length_m: 10.0
+endpoints:
+  a:
+    appliance: "central-factory-conduit-01"
+    interface: "factory-1"
+  b:
+    appliance: "ot-dmz-sw-01"
+    interface: "northbound-conduit"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 12
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "inter-site"
+  - "factory"

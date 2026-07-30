@@ -1,0 +1,36 @@
+schema_version: "0.3.0"
+id: "area-07-vis-01"
+label: "AREA-07-VIS-01"
+kind: "field-sensor"
+site: "Factory"
+environment: "Intermediate Inspection"
+zone: "OT-AREA-07"
+role: "Machine-vision inspection camera"
+summary: "Image result interface."
+lifecycle: "design"
+tags:
+  - "ot-area-07"
+  - "sensor"
+render:
+  - view: "factory/process/intermediate-inspection"
+    node: "area-07-vis-01"
+    mode: "any"
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10
+      duplex: "half"
+      mtu: 256
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "field-sensor"
+  signal_tag: "area-07-vis-01"
+  unit: "state"
+  minimum: 0
+  maximum: 1

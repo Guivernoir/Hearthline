@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "ot-sensor-02-capture"
+label: "OT sensor 02 passive capture"
+lifecycle: "design"
+transport: "mirror"
+medium:
+  type: "copper"
+  wiring: "straight-through"
+  category: "cat6a"
+  length_m: 3.0
+endpoints:
+  a:
+    appliance: "ot-dmz-sw-02"
+    interface: "sensor-02-span"
+  b:
+    appliance: "ot-sensor-02"
+    interface: "capture"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 0
+  loss_every: null
+  direction: "a-to-b"
+  operational: true
+tags:
+  - "ot-dmz"
+  - "passive-monitoring"

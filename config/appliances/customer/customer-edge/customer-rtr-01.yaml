@@ -1,0 +1,64 @@
+schema_version: "0.3.0"
+id: "customer-rtr-01"
+label: "Customer RTR-01"
+kind: "nat-router"
+site: "Customer Residence"
+environment: "Customer Edge"
+zone: "Customer Perimeter"
+role: "Default gateway, routing, and PAT boundary"
+summary: "Translates the private customer LAN and forwards Internet-bound traffic to the provider."
+lifecycle: "design"
+tags:
+  - "gateway"
+  - "pat"
+render:
+  - view: "customer/customer-lan"
+    node: "rtr-01"
+    mode: "any"
+  - view: "customer/customer-edge"
+    node: "customer-router"
+    mode: "any"
+  - view: "customer/public-web-path"
+    node: "customer-router"
+    mode: "any"
+interfaces:
+  - id: "inside"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses:
+      - "192.168.0.1/24"
+    vlans: []
+  - id: "outside"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses:
+      - "203.0.113.2/24"
+    vlans: []
+behavior:
+  family: "nat-router"
+  routes:
+    - destination: "192.168.0.0/24"
+      next_hop: null
+      interface: "inside"
+    - destination: "0.0.0.0/0"
+      next_hop: "203.0.113.1"
+      interface: "outside"
+  inside_interfaces:
+    - "inside"
+  outside_interfaces:
+    - "outside"
+  translations: []

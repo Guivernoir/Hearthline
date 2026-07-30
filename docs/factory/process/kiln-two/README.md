@@ -30,4 +30,5 @@ behavior.
 
 The same safety boundary applies as for Kiln 1: simulation and interface tests
 do not constitute burner-management or functional-safety certification.
-Canonical YAML and control bindings remain pending.
+Per-appliance YAML is implemented; resolved control bindings and firing
+behavior remain pending.

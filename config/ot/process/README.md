@@ -1,88 +1,70 @@
 # OT Process Configuration Contract
 
-The OT process configuration will describe ten independently enterable process
-areas and the components shown inside them. The current Svelte application uses
-[`process-view.json`](../../../web/src/generated/process-view.json) as a
-bootstrap derivative while the Rust workspace and canonical YAML schemas are
-still pending.
+The ceramics process contains ten independently enterable areas. Canonical
+per-appliance records are stored under
+[`config/appliances/factory/process`](../../appliances/factory/process); this
+directory documents the additional area, control-source, and I/O-binding model
+that is still required.
 
-## Current Status
+## Implemented Baseline
 
-This document is a proposed contract. None of the example records are currently
-parsed, validated, or used to generate the Svelte application. The bootstrap
-JSON contains presentation records and future `configRef` values so the
-consumer contract can be developed before the authoritative configuration
-pipeline exists.
+Each area currently has nine parsed appliance files:
 
-## Source Rules
+- One industrial access switch.
+- One logical area vPLC.
+- One HMI.
+- One distributed-I/O station.
+- Two field sensors.
+- Two field actuators.
+- One safety or permissive interface.
 
-- One area file is stored at `areas/<area-id>.yaml`.
-- One component file is stored at `components/<component-id>.yaml`.
-- Area files reference component identifiers; they do not duplicate component
-  configuration.
-- Controller-to-program, tag-to-I/O, and simulation bindings are separate
-  records under `bindings/`.
-- Structured Text remains in `.st` files and Ladder Diagram uses the selected
-  machine-readable interchange format. Neither is embedded in YAML.
-- Every reference is resolved and validated by Rust before JSON is emitted.
-- Svelte consumes generated JSON only and never supplies configuration defaults
-  or simulation behavior.
+The separate physical `OT-vPLC-HOST-01/02` records are stored under
+[`config/appliances/factory/platform`](../../appliances/factory/platform).
+Physical-mode render bindings associate both hosts with each grouped vPLC host
+marker, while logical mode resolves the area-specific controller file.
 
-## Minimum Component Record
+Every process appliance uses schema `0.3.0` and is validated by Rust. Port
+hardware, state, speed, duplex, and MTU are appliance configuration; individual
+Ethernet, virtual-runtime, and field-wiring attachments remain separate
+connection documents. The
+vPLC records also reserve `program_ref` and `io_binding` paths. Those references
+are declared intent only: the referenced Structured Text programs and binding
+documents do not exist yet, and the current validator does not resolve them.
 
-Each component YAML file will contain:
+The current process configuration is a provisional placeholder baseline.
+Channel names, ranges, assignments, controller settings, and relationships
+will be completed after the communication and process-simulation contracts can
+exercise them.
 
-```yaml
-schema_version: 0.1.0
-id: area-01-lt-01
-kind: sensor
-site: factory
-zone: ot-area-01
-label: AREA-01-LT-01
-role: Body tank level transmitter
-icon: gauge
-upstream: area-01-rio-01
-network: null
-io:
-  direction: input
-  signal: analog
-  variable: BodyTankLevel
-simulation:
-  model: tank-level
-  parameters_ref: process/body-preparation
-```
+## Remaining Sources
 
-The example `schema_version` refers to the planned configuration schema, not
-the current frontend view schema `0.2.0`. Its exact structure remains
-provisional until the Rust validator is implemented. Fields unsupported by a
-device or process are explicitly `null` or omitted according to the final
-schema; they are not inferred in Svelte.
+The process model still needs canonical records for:
 
-## Generation Contract
+- Area sequence and material-flow relationships.
+- Cell-network and interface peer relationships.
+- Controller tasks and program assignments.
+- Symbolic tags and distributed-I/O channels.
+- Sensor and actuator simulation parameters.
+- Safety-status boundaries and independent protection ownership.
+- Process scenarios, expected results, and fault cases.
 
-Rust will produce a versioned process view model containing:
+Structured Text will remain in `.st` files. Ladder Diagram will use one declared
+machine-readable interchange format, with PLCopen XML as the current
+vendor-neutral candidate. Control logic is not embedded into appliance YAML.
 
-- Process sequence and material-flow order.
-- Area routes, labels, display metadata, and source references.
-- Component inventory and upstream relationships.
-- Network and I/O relationships.
-- IEC 61131-3 source and symbol cross-references.
-- Current simulation state and timestamp.
-- Connectivity and policy scenario results.
-- Validation diagnostics with source locations.
+## Generation Boundary
+
+[`process-view.json`](../../../web/src/generated/process-view.json) remains a
+bootstrap presentation model. Rust currently generates only
+[`appliance-configs.json`](../../../web/src/generated/appliance-configs.json)
+from validated appliance YAML. A future process generator must add area
+topology, control-source and I/O cross-references, simulation state, scenario
+results, and source-located diagnostics before the bootstrap model can be
+retired.
 
 Generated files are replaced atomically. Svelte rejects incompatible schema
-versions rather than silently rendering partial data.
+versions and does not supply missing control, network, or process defaults.
 
-## vPLC and I/O Records
-
-The planned canonical model distinguishes three separate assets:
-
-- The physical `OT-vPLC-HOST-01/02` compute cluster.
-- The logical `AREA-xx-vPLC-01` runtime assigned to one process area.
-- The physical `AREA-xx-RIO-01` distributed I/O station inside that cell.
-
-Each area network remains isolated from the cell boundary to the runtime
-interface on the host. Sensors and actuators bind to channels on the local
-distributed-I/O station; the vPLC exchanges process I/O with that station over
-the declared industrial control network.
+Before process-area control execution is integrated, the Rust engine will
+establish the formal communication contract used to carry network and field
+messages through these configured ports and media.

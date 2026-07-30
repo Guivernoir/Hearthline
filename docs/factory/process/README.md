@@ -12,9 +12,14 @@ permissive role.
 ## Implementation Status
 
 The ordered process canvas and ten process-area views are implemented. Each area
-uses bootstrap JSON for representative equipment and relationships. No process
-state, PLC scan, I/O update, alarm, interlock, material-flow, or fault behavior
-currently executes.
+uses bootstrap JSON for representative equipment and relationships. The Rust
+workspace now has provisional controller-scan, I/O, sensor, actuator, HMI,
+safety, and connector primitives plus parsed YAML for all 90 area components,
+both physical vPLC hosts, and the Level 3 aggregation pair. Per-connection YAML
+records redundant cell uplinks, virtual runtime attachment, HMI and remote I/O
+Ethernet, and individual field channels. These records are not yet connected
+to running component instances, and no area-specific program, plant state,
+material flow, or fault scenario executes.
 
 ## Process Sequence
 
@@ -50,9 +55,11 @@ Body Preparation
 
 The Svelte views currently consume
 [`process-view.json`](../../../web/src/generated/process-view.json), a versioned
-bootstrap view model. Canonical component YAML, IEC 61131-3 source references,
-connectivity results, virtual PLC state, and Rust process outcomes will replace
-the bootstrap records.
+bootstrap view model. Canonical appliance and connection YAML is available
+through the generated configuration catalog, while presentation relationships
+and coordinates remain in the bootstrap file. IEC 61131-3 sources, resolved
+I/O bindings, connectivity results, virtual PLC state, and Rust process
+outcomes will replace the remaining bootstrap records.
 
 Svelte owns layout and interaction. Rust owns process state, material movement,
 faults, accelerated time, network decisions, and generated results. The virtual

@@ -1,0 +1,36 @@
+schema_version: "0.3.0"
+id: "business-it-prn-01"
+label: "Business IT-PRN-01"
+kind: "printer"
+site: "Central Office"
+environment: "Business IT"
+zone: "IT Printers"
+role: "Shared managed office printer"
+summary: "Provides printing service from a dedicated restricted printer VLAN."
+lifecycle: "design"
+tags: []
+render:
+  - view: "office/business-it"
+    node: "printer"
+    mode: "any"
+interfaces:
+  - id: "fast-ethernet-0"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses:
+      - "10.10.50.10/24"
+    vlans:
+      - 50
+behavior:
+  family: "service-host"
+  accepted_services:
+    - "printing"
+    - "https"
+  respond_to_icmp: true

@@ -1,0 +1,50 @@
+schema_version: "0.3.0"
+id: "ot-frw-01b"
+label: "OT FRW-01B"
+kind: "firewall"
+site: "Factory"
+environment: "Factory OT DMZ"
+zone: "OT Southbound Security"
+role: "High-availability stateful policy enforcement member"
+summary: "Independently enforces named conduits between Level 3.5 services and Level 3 OT."
+lifecycle: "design"
+tags: []
+render:
+  - view: "factory/ot-dmz"
+    node: "south-firewall"
+    mode: "any"
+interfaces:
+  - id: "dmz"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+  - id: "level-three"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses: []
+    vlans: []
+behavior:
+  family: "stateful-firewall"
+  stateful: true
+  default_action: "deny"
+  rules:
+    - name: "permit-established-and-named-conduits"
+      action: "permit"
+      source: "approved-sources"
+      destination: "named-destinations"
+      service: "approved-services"

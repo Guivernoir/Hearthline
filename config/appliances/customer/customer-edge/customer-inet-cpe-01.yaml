@@ -1,0 +1,43 @@
+schema_version: "0.3.0"
+id: "customer-inet-cpe-01"
+label: "Customer INET-CPE-01"
+kind: "transparent-cpe"
+site: "Customer Residence"
+environment: "Customer Edge"
+zone: "Service Demarcation"
+role: "Provider access CPE and media termination"
+summary: "Bridges the customer router handoff to the provider access circuit without routing."
+lifecycle: "design"
+tags: []
+render:
+  - view: "customer/customer-edge"
+    node: "customer-modem"
+    mode: "any"
+interfaces:
+  - id: "customer"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "transparent"
+    addresses: []
+    vlans: []
+  - id: "access"
+    hardware: "carrier-demarc"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "transparent"
+    addresses: []
+    vlans: []
+behavior:
+  family: "transparent-link"
+  operational: true

@@ -10,9 +10,10 @@ used to reach Hearthline's public services.
 ## Implementation Status
 
 The location overview and its three environment routes are implemented in
-Svelte. The assets, links, addresses, and policy descriptions remain
-presentation data; they are not yet loaded from canonical YAML or evaluated by
-Rust.
+Svelte. Appliance identity, interfaces, behavior baselines, and source
+documents are loaded from Rust-generated data backed by canonical YAML. Link
+geometry and policy descriptions remain presentation data, and the complete
+customer topology is not yet evaluated by Rust.
 
 ## Environments
 
@@ -29,6 +30,7 @@ owns the router's boundary behavior and the access path to `ISP-RTR-01`. Public
 Web Path is an end-to-end service view: it references customer, provider, and
 business assets without becoming their configuration owner.
 
-Planned work moves inventory and policy into YAML and adds Rust evaluation for
+Planned work moves link and policy ownership into canonical inputs, constructs
+the configured appliances as one topology, and adds Rust evaluation for
 translation, route selection, permitted services, and declared denial
 scenarios.

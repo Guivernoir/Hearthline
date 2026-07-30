@@ -1,0 +1,65 @@
+schema_version: "0.3.0"
+id: "business-it-services-01"
+label: "Business IT Services-01"
+kind: "service-cluster"
+site: "Central Office"
+environment: "Business IT"
+zone: "Server Networks"
+role: "Infrastructure, application, data, transfer, monitoring, backup, and time service cluster"
+summary: "Logical service cluster representing the internal services currently grouped in the architecture view."
+lifecycle: "design"
+tags: []
+render:
+  - view: "office/business-it"
+    node: "server-fleet"
+    mode: "any"
+interfaces:
+  - id: "services"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "down"
+      initial_operational: "down"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses:
+      - "10.10.20.10/24"
+    vlans:
+      - 20
+  - id: "services-a"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans: []
+  - id: "services-b"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans: []
+behavior:
+  family: "service-host"
+  accepted_services:
+    - "dns"
+    - "dhcp"
+    - "pki"
+    - "ntp"
+    - "https"
+    - "monitoring"
+    - "backup"
+  respond_to_icmp: true

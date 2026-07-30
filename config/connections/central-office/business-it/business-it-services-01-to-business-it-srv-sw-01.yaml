@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "business-it-services-01-to-business-it-srv-sw-01"
+label: "Internal services primary attachment"
+lifecycle: "design"
+transport: "ethernet"
+medium:
+  type: "copper"
+  wiring: "straight-through"
+  category: "cat6a"
+  length_m: 10.0
+endpoints:
+  a:
+    appliance: "business-it-services-01"
+    interface: "services-a"
+  b:
+    appliance: "business-it-srv-sw-01"
+    interface: "services-cluster"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "business-it"
+  - "access"

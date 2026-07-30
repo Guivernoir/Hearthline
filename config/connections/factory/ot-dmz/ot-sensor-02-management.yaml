@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "ot-sensor-02-management"
+label: "OT sensor 02 management link"
+lifecycle: "design"
+transport: "ethernet"
+medium:
+  type: "copper"
+  wiring: "straight-through"
+  category: "cat6a"
+  length_m: 10.0
+endpoints:
+  a:
+    appliance: "ot-sensor-02"
+    interface: "management"
+  b:
+    appliance: "ot-dmz-sw-02"
+    interface: "sensor-02-management"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "ot-dmz"
+  - "monitoring"

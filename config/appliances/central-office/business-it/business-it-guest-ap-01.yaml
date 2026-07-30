@@ -1,0 +1,48 @@
+schema_version: "0.3.0"
+id: "business-it-guest-ap-01"
+label: "Business IT-GUEST-AP-01"
+kind: "wireless-access-point"
+site: "Central Office"
+environment: "Business IT"
+zone: "IT Guest"
+role: "Isolated guest wireless access point"
+summary: "Bridges guest clients into the Internet-only guest VLAN with client isolation."
+lifecycle: "design"
+tags: []
+render:
+  - view: "office/business-it"
+    node: "guest-access"
+    mode: "any"
+interfaces:
+  - id: "uplink"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans:
+      - 60
+      - 70
+  - id: "radio-0"
+    hardware: "wireless-radio"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 300
+      duplex: "auto"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans:
+      - 60
+behavior:
+  family: "wireless-bridge"
+  ssid: "Business-Guest"
+  client_vlan: 60
+  client_isolation: true

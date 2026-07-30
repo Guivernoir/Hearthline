@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "business-cpe-02-to-edge-02"
+label: "Business CPE 02 handoff"
+lifecycle: "design"
+transport: "ethernet"
+medium:
+  type: "copper"
+  wiring: "straight-through"
+  category: "cat6a"
+  length_m: 10.0
+endpoints:
+  a:
+    appliance: "business-inet-cpe-02"
+    interface: "customer"
+  b:
+    appliance: "business-edge-rtr-02"
+    interface: "outside"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "it-dmz"
+  - "edge"

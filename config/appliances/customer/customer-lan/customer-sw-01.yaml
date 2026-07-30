@@ -1,0 +1,61 @@
+schema_version: "0.3.0"
+id: "customer-sw-01"
+label: "Customer SW-01"
+kind: "layer-2-switch"
+site: "Customer Residence"
+environment: "Customer LAN"
+zone: "Private LAN"
+role: "Layer 2 customer access switch"
+summary: "Connects the customer endpoints to the residential gateway."
+lifecycle: "design"
+tags: []
+render:
+  - view: "customer/customer-lan"
+    node: "sw-01"
+    mode: "any"
+interfaces:
+  - id: "fast-ethernet-0-1"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans:
+      - 1
+  - id: "fast-ethernet-0-2"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans:
+      - 1
+  - id: "gigabit-ethernet-0-1"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans:
+      - 1
+behavior:
+  family: "ethernet-switch"
+  vlans:
+    - 1
+  management_vlan: null
+  spanning_tree: true

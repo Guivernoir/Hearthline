@@ -1,0 +1,76 @@
+schema_version: "0.3.0"
+id: "area-09-sw-01"
+label: "AREA-09-SW-01"
+kind: "layer-2-switch"
+site: "Factory"
+environment: "Final Inspection"
+zone: "OT-AREA-09"
+role: "Final-inspection access switch"
+summary: "Quality-cell uplink."
+lifecycle: "design"
+tags:
+  - "ot-area-09"
+  - "network"
+render:
+  - view: "factory/process/final-inspection"
+    node: "area-09-sw-01"
+    mode: "any"
+interfaces:
+  - id: "cell-uplink"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans:
+      - 109
+      - 309
+  - id: "cell-access"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans:
+      - 109
+  - id: "cell-uplink-standby"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans: []
+  - id: "remote-io-access"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans: []
+behavior:
+  family: "ethernet-switch"
+  vlans:
+    - 109
+    - 309
+  management_vlan: 309
+  spanning_tree: true

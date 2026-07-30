@@ -28,5 +28,5 @@ does not currently execute control logic, I/O, or process behavior.
 ## Planned Work
 
 Rust will track accelerated residence time, temperature, humidity, airflow,
-environmental history, and material moisture state. Canonical YAML and I/O
-bindings remain pending.
+environmental history, and material moisture state. Per-appliance YAML is
+implemented; resolved I/O bindings and process dynamics remain pending.

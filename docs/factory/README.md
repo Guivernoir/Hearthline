@@ -12,8 +12,13 @@ segmented ceramics process.
 
 The Factory overview, OT DMZ route, process route, and ten area routes are
 implemented in Svelte. The rendered segmentation and equipment are an
-architecture baseline. No controller logic, process dynamics, firewall policy,
-or availability behavior currently executes.
+architecture baseline. Generic Rust controller, I/O, field-device, safety,
+firewall, and connector primitives now exist, and all factory appliances and
+current attachment records have parsed YAML. The configuration includes a
+redundant Level 3 aggregation pair between the OT firewall, factory-local
+services, vPLC hosts, and cell uplinks. No area-specific control logic, plant
+dynamics, executable factory topology, or availability scenario currently
+runs.
 
 ## Environments
 

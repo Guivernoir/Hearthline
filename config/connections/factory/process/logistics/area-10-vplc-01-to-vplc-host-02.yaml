@@ -1,0 +1,25 @@
+schema_version: "0.2.0"
+id: "area-10-vplc-01-to-vplc-host-02"
+label: "AREA-10-vPLC-01 runtime on vPLC host 02"
+lifecycle: "design"
+transport: "virtual"
+medium:
+  type: "virtual"
+  technology: "Redundant isolated vPLC runtime network"
+endpoints:
+  a:
+    appliance: "area-10-vplc-01"
+    interface: "cell-network-standby"
+  b:
+    appliance: "ot-vplc-host-02"
+    interface: "area-10-runtime"
+properties:
+  capacity_mbps: 10000
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "ot"
+  - "ot-area-10"
+  - "vplc"

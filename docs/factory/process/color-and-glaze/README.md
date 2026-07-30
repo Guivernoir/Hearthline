@@ -28,5 +28,5 @@ does not currently execute control logic, I/O, or process behavior.
 ## Planned Work
 
 Simulation will model recipe state, tank level, application flow, circulation,
-flush state, and ventilation or cleaning permissives. Canonical YAML and I/O
-bindings remain pending.
+flush state, and ventilation or cleaning permissives. Per-appliance YAML is
+implemented; resolved I/O bindings and process behavior remain pending.

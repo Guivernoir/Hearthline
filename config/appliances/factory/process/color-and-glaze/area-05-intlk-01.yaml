@@ -1,0 +1,37 @@
+schema_version: "0.3.0"
+id: "area-05-intlk-01"
+label: "AREA-05-INTLK-01"
+kind: "safety-interface"
+site: "Factory"
+environment: "Color and Glaze"
+zone: "OT-AREA-05"
+role: "Ventilation and cleaning permissive"
+summary: "Prevents unsafe application."
+lifecycle: "design"
+tags:
+  - "ot-area-05"
+  - "interlock"
+render:
+  - view: "factory/process/color-and-glaze"
+    node: "area-05-intlk-01"
+    mode: "any"
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10
+      duplex: "half"
+      mtu: 256
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "safety"
+  permissives:
+    - "emergency-stop-healthy"
+    - "guard-closed"
+    - "process-permissive"
+  latched_trip: true

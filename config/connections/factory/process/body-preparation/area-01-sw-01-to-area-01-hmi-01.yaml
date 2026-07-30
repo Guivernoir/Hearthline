@@ -1,0 +1,27 @@
+schema_version: "0.2.0"
+id: "area-01-sw-01-to-area-01-hmi-01"
+label: "Body Preparation HMI access link"
+lifecycle: "design"
+transport: "ethernet"
+medium:
+  type: "copper"
+  wiring: "straight-through"
+  category: "cat6a"
+  length_m: 10.0
+endpoints:
+  a:
+    appliance: "area-01-sw-01"
+    interface: "cell-access"
+  b:
+    appliance: "area-01-hmi-01"
+    interface: "cell-network"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "ot"
+  - "ot-area-01"
+  - "hmi"

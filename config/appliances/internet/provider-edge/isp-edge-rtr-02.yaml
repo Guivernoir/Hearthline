@@ -1,0 +1,71 @@
+schema_version: "0.3.0"
+id: "isp-edge-rtr-02"
+label: "ISP EDGE-RTR-02"
+kind: "router"
+site: "Provider Network"
+environment: "Internet"
+zone: "Provider Edge"
+role: "Provider edge routing member"
+summary: "Provides redundant customer and business service routing within the abstracted provider edge."
+lifecycle: "design"
+tags: []
+render:
+  - view: "customer/customer-edge"
+    node: "isp-router"
+    mode: "any"
+  - view: "customer/public-web-path"
+    node: "isp-router"
+    mode: "any"
+interfaces:
+  - id: "customer-access"
+    hardware: "carrier-demarc"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses:
+      - "203.0.113.1/24"
+    vlans: []
+  - id: "provider-services"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses:
+      - "198.51.100.1/24"
+    vlans: []
+  - id: "business-access"
+    hardware: "carrier-demarc"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses:
+      - "192.0.2.1/24"
+    vlans: []
+behavior:
+  family: "router"
+  routes:
+    - destination: "203.0.113.0/24"
+      next_hop: null
+      interface: "customer-access"
+    - destination: "198.51.100.0/24"
+      next_hop: null
+      interface: "provider-services"
+    - destination: "192.0.2.0/24"
+      next_hop: null
+      interface: "business-access"
+  forwarding: true

@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "ot-operations-services-to-core-02"
+label: "OT operations services to Level 3 core 02"
+lifecycle: "design"
+transport: "ethernet"
+medium:
+  type: "copper"
+  wiring: "straight-through"
+  category: "cat6a"
+  length_m: 10.0
+endpoints:
+  a:
+    appliance: "ot-operations-services-01"
+    interface: "level-three-standby"
+  b:
+    appliance: "ot-level3-core-sw-02"
+    interface: "operations-services"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "ot"
+  - "operations"

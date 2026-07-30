@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "business-it-paw-01-to-business-it-usr-sw-01"
+label: "Privileged workstation access link"
+lifecycle: "design"
+transport: "ethernet"
+medium:
+  type: "copper"
+  wiring: "straight-through"
+  category: "cat6a"
+  length_m: 10.0
+endpoints:
+  a:
+    appliance: "business-it-paw-01"
+    interface: "ethernet-0"
+  b:
+    appliance: "business-it-usr-sw-01"
+    interface: "paw-01"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "business-it"
+  - "access"

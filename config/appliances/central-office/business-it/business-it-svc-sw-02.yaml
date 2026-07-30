@@ -1,0 +1,67 @@
+schema_version: "0.3.0"
+id: "business-it-svc-sw-02"
+label: "Business IT-SVC-SW-02"
+kind: "layer-2-switch"
+site: "Central Office"
+environment: "Business IT"
+zone: "Office Services"
+role: "Office service access switching member"
+summary: "One member of the redundant internal switching design."
+lifecycle: "design"
+tags: []
+render:
+  - view: "office/business-it"
+    node: "service-switch"
+    mode: "any"
+interfaces:
+  - id: "uplink"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "down"
+      initial_operational: "down"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans:
+      - 40
+      - 50
+      - 60
+      - 70
+      - 999
+  - id: "core-01"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans: []
+  - id: "core-02"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "trunk"
+    addresses: []
+    vlans: []
+behavior:
+  family: "ethernet-switch"
+  vlans:
+    - 40
+    - 50
+    - 60
+    - 70
+    - 999
+  management_vlan: 70
+  spanning_tree: true

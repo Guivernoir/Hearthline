@@ -18,7 +18,9 @@
     RotateCcw,
     X,
   } from "@lucide/svelte";
+  import ApplianceConfigSummary from "./ApplianceConfigSummary.svelte";
   import PhysicalDeviceMarker from "./PhysicalDeviceMarker.svelte";
+  import { findAppliancesForNode } from "./appliance-config";
   import { processIconByKey } from "./process-icons";
   import { findProcessArea, processView } from "./process-model";
 
@@ -28,6 +30,7 @@
 
   export let onBack: () => void = () => {};
   export let onEnterArea: (routeKey: string) => void = () => {};
+  export let onOpenAppliance: (id: string) => void = () => {};
   export let viewMode: ViewMode = "logical";
 
   interface DiagramNode {
@@ -44,7 +47,6 @@
     icon: Component<any>;
     tags: string[];
     detail: string;
-    configRef?: string;
     routeKey?: string;
   }
 
@@ -91,6 +93,9 @@
   $: selectedArea = selectedNode?.routeKey
     ? findProcessArea(selectedNode.routeKey)
     : null;
+  $: selectedAppliances = selectedNode
+    ? findAppliancesForNode("factory/process", selectedNode.id, viewMode)
+    : [];
   $: worldPixelWidth = WORLD_WIDTH * zoom;
   $: worldPixelHeight = WORLD_HEIGHT * zoom;
   $: worldOffsetX = Math.max(0, (viewportWidth - worldPixelWidth) / 2);
@@ -646,6 +651,10 @@
             <span><Check size={13} strokeWidth={2} />{tag}</span>
           {/each}
         </div>
+        <ApplianceConfigSummary
+          appliances={selectedAppliances}
+          onOpen={onOpenAppliance}
+        />
         {#if selectedArea}
           <button
             type="button"

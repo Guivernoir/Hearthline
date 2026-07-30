@@ -10,8 +10,10 @@ Customer LAN and the provider-facing access network.
 ## Implementation Status
 
 The edge topology and boundary intent are rendered in Svelte. PAT, default
-routing, reverse-flow state, and provider reachability are validation targets;
-no current engine executes them.
+routing, reverse-flow state, and provider reachability are validation targets.
+Rust now contains unit-tested routing and PAT primitives, but this rendered edge
+is only parsed as individual appliance configuration; it is not yet
+instantiated as one connected topology or tested as a complete path.
 
 ## Active Scope
 
@@ -68,5 +70,6 @@ switch are owned by the [Customer LAN](../customer-lan/README.md).
 - Failure of the edge or access link removes public reachability without
   changing the Customer LAN definition.
 
-Planned Rust evaluation will explain route selection, translation, reverse-flow
-state, and any denial using the future canonical YAML model.
+Planned Rust construction and evaluation will explain route selection,
+translation, reverse-flow state, and any denial using the implemented
+per-appliance YAML as its starting point.

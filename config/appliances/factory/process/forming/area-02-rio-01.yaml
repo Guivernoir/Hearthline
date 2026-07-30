@@ -1,0 +1,100 @@
+schema_version: "0.3.0"
+id: "area-02-rio-01"
+label: "AREA-02-RIO-01"
+kind: "remote-io"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Forming field I/O termination"
+summary: "Cell-local sensor and actuator termination. Cell network extends to the assigned vPLC runtime. No process sequence logic executes in the I/O station."
+lifecycle: "design"
+tags:
+  - "ot-area-02"
+  - "distributed I/O"
+render:
+  - view: "factory/process/forming"
+    node: "area-02-rio-01"
+    mode: "any"
+interfaces:
+  - id: "cell-network"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses: []
+    vlans:
+      - 102
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10
+      duplex: "half"
+      mtu: 256
+    mode: "field-io"
+    addresses: []
+    vlans: []
+  - id: "field-io-02"
+    hardware: "field-io-channel"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10
+      duplex: "half"
+      mtu: 256
+    mode: "field-io"
+    addresses: []
+    vlans: []
+  - id: "field-io-03"
+    hardware: "field-io-channel"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10
+      duplex: "half"
+      mtu: 256
+    mode: "field-io"
+    addresses: []
+    vlans: []
+  - id: "field-io-04"
+    hardware: "field-io-channel"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10
+      duplex: "half"
+      mtu: 256
+    mode: "field-io"
+    addresses: []
+    vlans: []
+  - id: "field-io-05"
+    hardware: "field-io-channel"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10
+      duplex: "half"
+      mtu: 256
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "remote-io"
+  controller: "area-02-vplc-01"
+  channels:
+    - "area-02-pe-01"
+    - "area-02-pt-01"
+    - "area-02-press-01"
+    - "area-02-cv-01"
+    - "area-02-safe-01"

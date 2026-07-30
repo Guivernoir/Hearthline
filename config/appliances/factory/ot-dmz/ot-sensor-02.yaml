@@ -1,0 +1,46 @@
+schema_version: "0.3.0"
+id: "ot-sensor-02"
+label: "OT-SENSOR-02"
+kind: "passive-network-sensor"
+site: "Factory"
+environment: "Factory OT DMZ"
+zone: "Monitoring Subzone"
+role: "Passive OT network sensor"
+summary: "Observes an approved SPAN or TAP source without forwarding process traffic."
+lifecycle: "design"
+tags: []
+render:
+  - view: "factory/ot-dmz"
+    node: "passive-sensors"
+    mode: "any"
+interfaces:
+  - id: "capture"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "monitor"
+    addresses: []
+    vlans: []
+  - id: "management"
+    hardware: "ethernet-rj45"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "management"
+    addresses: []
+    vlans:
+      - 353
+behavior:
+  family: "passive-monitor"
+  capture_sources:
+    - "approved-span-or-tap"
+  inline: false

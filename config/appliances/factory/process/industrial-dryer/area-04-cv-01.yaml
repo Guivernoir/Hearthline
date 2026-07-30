@@ -1,0 +1,35 @@
+schema_version: "0.3.0"
+id: "area-04-cv-01"
+label: "AREA-04-CV-01"
+kind: "field-actuator"
+site: "Factory"
+environment: "Industrial Dryer"
+zone: "OT-AREA-04"
+role: "Dryer conveyor drive"
+summary: "Residence-speed control."
+lifecycle: "design"
+tags:
+  - "ot-area-04"
+  - "actuator"
+render:
+  - view: "factory/process/industrial-dryer"
+    node: "area-04-cv-01"
+    mode: "any"
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10
+      duplex: "half"
+      mtu: 256
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "field-actuator"
+  command_tag: "area-04-cv-01-command"
+  safe_state: "stopped"
+  feedback_tag: "area-04-cv-01-feedback"

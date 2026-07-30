@@ -29,4 +29,5 @@ does not currently execute control logic, I/O, or process behavior.
 
 Simulation will model product identity, pallet presence, packing and
 palletizing state, discharge, warehouse handoff, and representative reporting.
-Canonical YAML and control bindings remain pending.
+Per-appliance YAML is implemented; resolved control bindings and logistics
+behavior remain pending.

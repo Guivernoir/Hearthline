@@ -28,5 +28,5 @@ does not currently execute control logic, I/O, or process behavior.
 ## Planned Work
 
 Simulation will model material inventory, transfer flow, pump state, valve
-position, and spill or invalid-transfer conditions. Canonical component YAML
-and I/O bindings remain pending.
+position, and spill or invalid-transfer conditions. Per-appliance YAML is
+implemented; resolved I/O bindings and control logic remain pending.
