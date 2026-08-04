@@ -1,0 +1,67 @@
+schema_version: "0.11.0"
+id: "business-northbound-firewall-isolation-fenced"
+label: "Northbound firewall isolation fencing"
+summary: "The HA synchronization link fails while member A remains operational; member B reaches its heartbeat hold timer but stays standby because peer failure is unconfirmed, preserving one active owner and the established reverse flow through member A."
+category: "availability"
+participants:
+  - "ot-dmz-hist-replica-01"
+  - "ot-dmz-sw-01"
+  - "ot-dmz-sw-02"
+  - "central-factory-conduit-01"
+  - "business-frw-03a"
+  - "business-frw-03b"
+  - "business-it-core-sw-01"
+  - "business-it-core-sw-02"
+  - "business-it-srv-sw-01"
+  - "operations-analytics-01"
+source: "ot-dmz-hist-replica-01"
+packet:
+  source_ip: "172.20.52.10"
+  destination_ip: "10.10.80.50"
+  ttl: 64
+  wire_length_bytes: 512
+  transport:
+    protocol: "tcp"
+    source_port: 44007
+    destination_port: 443
+    syn: true
+  application:
+    kind: "service"
+    service: "analytics"
+connection_overrides:
+  - connection: "business-core-02-to-frw-03b"
+    operational: false
+  - connection: "business-frw-03b-to-central-conduit-2"
+    operational: false
+  - connection: "central-conduit-2-to-ot-dmz-sw-02"
+    operational: false
+ha_isolation:
+  standby_appliance: "business-frw-03b"
+  isolation_at_us: 600000
+  continuation_at_us: 2000000
+  source: "operations-analytics-01"
+  connection_overrides:
+    - connection: "business-frw-03-ha-sync"
+      operational: false
+  packet:
+    source_ip: "10.10.80.50"
+    destination_ip: "172.20.52.10"
+    ttl: 64
+    wire_length_bytes: 256
+    transport:
+      protocol: "tcp"
+      source_port: 443
+      destination_port: 44007
+      ack: true
+    application:
+      kind: "service"
+      service: "historian-replication"
+  expectation:
+    component: "ot-dmz-hist-replica-01"
+    outcome: "delivered"
+    service: "historian-replication"
+expectation:
+  component: "operations-analytics-01"
+  outcome: "delivered"
+  service: "analytics"
+event_limit: 512

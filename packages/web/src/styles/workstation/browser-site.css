@@ -1,0 +1,132 @@
+.browser-site {
+  display: grid;
+  min-height: 100%;
+  color: #26312b;
+  background: #f7f8f6;
+  grid-template-rows: 58px minmax(220px, 1fr) auto;
+}
+
+.browser-site > header {
+  display: flex;
+  min-width: 0;
+  padding: 0 clamp(20px, 6vw, 72px);
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid #d9ded9;
+  background: #fff;
+}
+
+.browser-site > header strong {
+  color: #183f38;
+  font-size: 16px;
+}
+
+.browser-site > header span {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  overflow-wrap: anywhere;
+  color: #607069;
+  font-size: 10px;
+}
+
+.browser-site > main {
+  display: grid;
+  width: min(780px, calc(100% - 48px));
+  margin: 0 auto;
+  align-content: center;
+}
+
+.browser-site > main small {
+  color: #277166;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.browser-site > main h1 {
+  max-width: 680px;
+  margin: 10px 0 12px;
+  color: #23312b;
+  font-size: 34px;
+  line-height: 1.15;
+}
+
+.browser-site > main p {
+  max-width: 620px;
+  margin: 0;
+  color: #647068;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.browser-site > details {
+  padding: 0 clamp(20px, 6vw, 72px) 22px;
+  border-top: 1px solid #d9ded9;
+  background: #fff;
+}
+
+.browser-site > details summary {
+  padding: 14px 0;
+  color: #43635a;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.browser-site dl {
+  display: grid;
+  margin: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.browser-site dl div {
+  min-width: 0;
+}
+
+.browser-site dt {
+  color: #78827c;
+  font-size: 9px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.browser-site dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+  color: #354039;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+@media (max-width: 620px) {
+  .browser-site {
+    grid-template-rows: 52px minmax(240px, 1fr) auto;
+  }
+
+  .browser-site > header {
+    padding: 0 14px;
+  }
+
+  .browser-site > header span {
+    max-width: 48%;
+  }
+
+  .browser-site > main {
+    width: calc(100% - 28px);
+  }
+
+  .browser-site > main h1 {
+    font-size: 27px;
+  }
+
+  .browser-site > details {
+    padding: 0 14px 16px;
+  }
+
+  .browser-site dl {
+    grid-template-columns: 1fr 1fr;
+  }
+}

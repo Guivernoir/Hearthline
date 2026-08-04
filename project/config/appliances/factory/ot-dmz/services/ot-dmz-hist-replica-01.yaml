@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "ot-dmz-hist-replica-01"
 label: "OT-DMZ-HIST-REPLICA-01"
 kind: "historian-replica"
@@ -9,6 +9,7 @@ role: "Business-facing selected-data historian replica"
 summary: "Keeps IT consumers from querying the primary OT historian."
 lifecycle: "design"
 tags: []
+default_gateway: "172.20.52.1"
 render:
   - view: "factory/ot-dmz"
     node: "historian-replica"
@@ -16,6 +17,7 @@ render:
 interfaces:
   - id: "service"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:35:20:10"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -24,11 +26,13 @@ interfaces:
       duplex: "full"
       mtu: 1500
     mode: "access"
-    addresses: []
+    addresses:
+      - "172.20.52.10/24"
     vlans:
       - 352
   - id: "service-standby"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:35:20:11"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -37,8 +41,10 @@ interfaces:
       duplex: "full"
       mtu: 1500
     mode: "access"
-    addresses: []
-    vlans: []
+    addresses:
+      - "172.20.52.11/24"
+    vlans:
+      - 352
 behavior:
   family: "service-host"
   accepted_services:

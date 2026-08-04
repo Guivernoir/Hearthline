@@ -1,0 +1,41 @@
+schema_version: "0.9.0"
+id: "business-it-dns-01"
+label: "Business IT-DNS-01"
+kind: "dns-server"
+site: "Central Office"
+environment: "Business IT"
+zone: "Infrastructure Services"
+role: "Internal authoritative and service-discovery DNS member"
+summary: "Resolves the modeled internal portal through the infrastructure services VLAN."
+lifecycle: "simulated"
+tags: []
+default_gateway: "10.10.20.1"
+render:
+  - view: "office/business-it"
+    node: "server-fleet"
+    mode: "any"
+interfaces:
+  - id: "service"
+    hardware: "ethernet-rj45"
+    mac_address: "02:00:00:10:20:10"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses:
+      - "10.10.20.10/24"
+    vlans:
+      - 20
+behavior:
+  family: "service-host"
+  accepted_services:
+    - "dns-udp"
+    - "dns-tcp"
+  respond_to_icmp: true
+  dns_records:
+    - name: "portal.hearthline.test"
+      address: "10.10.80.20"

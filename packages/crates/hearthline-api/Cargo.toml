@@ -1,6 +1,6 @@
 [package]
 name = "hearthline-api"
-description = "Local validated configuration editing API for Hearthline"
+description = "Local validated configuration and scenario execution API for Hearthline"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

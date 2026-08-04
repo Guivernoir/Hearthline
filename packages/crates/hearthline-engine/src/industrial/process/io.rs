@@ -72,6 +72,9 @@ impl SimulatedComponent for RemoteIo {
                     single_effect(Effect::Drop(DropReason::PolicyDenied { rule: None }))
                 }
             }
+            SimulationEvent::Ipv4Egress(_) => {
+                single_effect(Effect::Drop(DropReason::UnsupportedProtocol))
+            }
             SimulationEvent::Process(ProcessEvent::Signal(signal)) => {
                 if get(&self.channels, &signal.tag) == Some(&IoDirection::Input) {
                     upsert(&mut self.values, signal.tag.clone(), signal.value.clone());
@@ -132,6 +135,9 @@ impl SimulatedComponent for RemoteIo {
                 single_effect(Effect::Observe {
                     detail: runtime_text(format_args!("operational={operational}")),
                 })
+            }
+            SimulationEvent::FirewallHa(_) => {
+                single_effect(Effect::Drop(DropReason::UnsupportedProtocol))
             }
         }
     }

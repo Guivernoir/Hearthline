@@ -1,0 +1,49 @@
+.security-event-filters {
+  display: grid;
+  padding: 5px 7px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  border-bottom: 1px solid #d4dad5;
+  background: #f4f6f4;
+}
+
+.security-event-filters button {
+  display: flex;
+  min-width: 0;
+  min-height: 27px;
+  padding: 0 7px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #66716b;
+  background: transparent;
+  font-size: 9px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.security-event-filters button:hover {
+  background: #e9eeea;
+}
+
+.security-event-filters button.active {
+  border-color: #9eb3a8;
+  color: #284f43;
+  background: #e3ece7;
+}
+
+.security-event-filters button strong {
+  font: 750 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@media (max-width: 360px) {
+  .security-event-filters button {
+    justify-content: center;
+  }
+
+  .security-event-filters button strong {
+    display: none;
+  }
+}

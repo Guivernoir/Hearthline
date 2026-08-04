@@ -16,7 +16,11 @@
     X,
   } from "@lucide/svelte";
   import ApplianceConfigSummary from "../config/ApplianceConfigSummary.svelte";
-  import { findAppliancesForNode } from "../config/appliance-config";
+  import {
+    findAppliancesForNode,
+    isInteractiveSecurityConsole,
+    isInteractiveWorkstation,
+  } from "../config/appliance-config";
   import PhysicalDeviceMarker from "../shared/PhysicalDeviceMarker.svelte";
   import type { ViewMode } from "../shared/types";
   import { businessItNodes } from "./model/business-it";
@@ -29,6 +33,8 @@
   export let environment: OfficeEnvironment;
   export let onBack: () => void = () => {};
   export let onOpenAppliance: (id: string) => void = () => {};
+  export let onOpenSecurityConsole: (id: string) => void = () => {};
+  export let onOpenWorkstation: (id: string) => void = () => {};
   export let siteLabel = "Central Office";
   export let viewMode: ViewMode = "logical";
 
@@ -89,6 +95,11 @@
   $: selectedAppliances = selectedNode
     ? findAppliancesForNode(configView, selectedNode.id, viewMode)
     : [];
+  $: selectedOperable = selectedAppliances.some(
+    (appliance) =>
+      isInteractiveWorkstation(appliance.id) ||
+      isInteractiveSecurityConsole(appliance.id),
+  );
   $: worldPixelWidth = WORLD_WIDTH * zoom;
   $: worldPixelHeight = WORLD_HEIGHT * zoom;
   $: worldOffsetX = Math.max(0, (viewportWidth - worldPixelWidth) / 2);
@@ -151,6 +162,14 @@
   function selectNode(event: MouseEvent, node: OfficeNode) {
     event.stopPropagation();
     selectedId = node.id;
+  }
+
+  function openOperation(id: string) {
+    if (isInteractiveWorkstation(id)) {
+      onOpenWorkstation(id);
+    } else if (isInteractiveSecurityConsole(id)) {
+      onOpenSecurityConsole(id);
+    }
   }
 
   function handleWheel(event: WheelEvent) {
@@ -420,6 +439,7 @@
         <ApplianceConfigSummary
           appliances={selectedAppliances}
           onOpen={onOpenAppliance}
+          onOperate={selectedOperable ? openOperation : null}
         />
       </aside>
     {/if}

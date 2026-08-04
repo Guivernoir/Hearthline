@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "area-08-pt-01"
 label: "AREA-08-PT-01"
 kind: "field-sensor"
@@ -34,3 +34,4 @@ behavior:
   unit: "kilopascal"
   minimum: -10
   maximum: 100
+  initial_value: -0.3

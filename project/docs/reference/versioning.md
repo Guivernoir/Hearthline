@@ -31,10 +31,15 @@ used for local artifacts but does not change compatibility.
 | Hearthline application release | `0.2.0` | `project/VERSION` |
 | Rust workspace packages | `0.2.0` | `packages/Cargo.toml` workspace package |
 | Svelte package | `0.2.0` | `packages/web/package.json` |
-| Appliance YAML schema | `0.3.0` | `APPLIANCE_SCHEMA_VERSION` |
+| Appliance YAML schema | `0.9.0` | `APPLIANCE_SCHEMA_VERSION` |
 | Connection YAML schema | `0.2.0` | `CONNECTION_SCHEMA_VERSION` |
-| Generated appliance catalog schema | `0.3.0` | `FRONTEND_CATALOG_SCHEMA_VERSION` |
+| Generated appliance catalog schema | `0.8.0` | `FRONTEND_CATALOG_SCHEMA_VERSION` |
 | Bootstrap process view schema | `0.2.0` | `packages/web/src/generated/process-view.json` |
+| Scenario YAML schema | `0.11.0` | `SCENARIO_SCHEMA_VERSION` |
+| Scenario report schema | `0.14.0` | `SCENARIO_REPORT_SCHEMA_VERSION` |
+| Workstation API schema | `0.6.0` | `WORKSTATION_SCHEMA_VERSION` |
+| HMI API schema | `0.1.0` | `HMI_SCHEMA_VERSION` |
+| Security-console session schema | `0.1.0` | `SECURITY_CONSOLE_SCHEMA_VERSION` |
 
 Application and schema versions are independent. A release may change no
 schemas, one schema, or several schemas. Schema changes are validated by their

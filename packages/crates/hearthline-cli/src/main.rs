@@ -3,14 +3,19 @@ use std::fs;
 use std::net::Ipv4Addr;
 use std::path::{Path, PathBuf};
 
-use hearthline_config::{ConfigRepository, ConnectionRepository};
+use hearthline_config::{
+    ConfigRepository, ConfiguredNetwork, ConnectionRepository, ScenarioRepository, run_scenario,
+};
 use hearthline_engine::{
-    Effect, LinkAppliance, LinkMode, RENDERED_ROLE_CONTRACTS, ServiceNode, Simulator,
-    appliance_contracts,
+    ConnectionMedium, CopperCategory, CopperMedium, CopperWiring, Effect, LinkAppliance,
+    LinkEndpoint, LinkMode, MediaLink, MediaLinkConfig, PortDuplex, PortHardwareKind, PortSettings,
+    PortState, PortStateConfig, RENDERED_ROLE_CONTRACTS, RoutedInterface, ServiceNode,
+    SimulatedPort, Simulator, appliance_contracts,
 };
 use hearthline_model::{
-    ApplicationData, ComponentId, ComponentKind, EthernetFrame, Ipv4Packet, MacAddress,
-    NetworkPayload, PortId, ServiceKind, TcpFlags, TcpSegment, Transport, VlanId,
+    ApplicationData, ComponentId, ComponentKind, EthernetFrame, IcmpMessage, Ipv4InterfaceAddress,
+    Ipv4Packet, MacAddress, NetworkPayload, PortId, ServiceKind, TcpFlags, TcpSegment, Transport,
+    VlanId,
 };
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -19,6 +24,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         "catalog" => print_catalog(),
         "coverage" => print_coverage(),
         "demo" => run_demo()?,
+        "config-demo" => run_config_demo()?,
+        "scenario-run" => run_configured_scenario()?,
         "config-validate" => validate_configs()?,
         "config-generate" => generate_frontend_configs()?,
         "version" | "--version" | "-V" => print_version(),
@@ -46,7 +53,9 @@ fn print_help() {
     println!("  catalog  List every appliance kind and assigned behavior family");
     println!("  coverage List rendered roles and their Rust appliance kinds");
     println!("  demo     Run a small deterministic forwarding scenario");
-    println!("  config-validate  Validate all appliance and connection YAML files");
+    println!("  config-demo      Run the YAML-built Customer LAN scenario");
+    println!("  scenario-run     Run a configured scenario by ID");
+    println!("  config-validate  Validate appliance, connection, and scenario YAML");
     println!("  config-generate  Validate project YAML and generate Svelte config data");
     println!("  version          Print the Hearthline release version");
 }
@@ -54,10 +63,13 @@ fn print_help() {
 fn validate_configs() -> Result<(), Box<dyn Error>> {
     let appliances = ConfigRepository::load("project/config/appliances")?;
     let connections = ConnectionRepository::load("project/config/connections", &appliances)?;
+    let scenarios =
+        ScenarioRepository::load("project/config/scenarios", &appliances, &connections)?;
     println!(
-        "validated {} appliance and {} connection configuration files",
+        "validated {} appliance, {} connection, and {} scenario configuration files",
         appliances.len(),
-        connections.len()
+        connections.len(),
+        scenarios.len()
     );
     Ok(())
 }
@@ -65,16 +77,25 @@ fn validate_configs() -> Result<(), Box<dyn Error>> {
 fn generate_frontend_configs() -> Result<(), Box<dyn Error>> {
     let appliances = ConfigRepository::load("project/config/appliances")?;
     let connections = ConnectionRepository::load("project/config/connections", &appliances)?;
+    let scenarios =
+        ScenarioRepository::load("project/config/scenarios", &appliances, &connections)?;
     let json = serde_json::to_string(&appliances.frontend_catalog(&connections))? + "\n";
     let output = Path::new("packages/web/src/generated/appliance-configs.json");
     let temporary = temporary_path(output);
     fs::write(&temporary, json)?;
     fs::rename(&temporary, output)?;
+    let scenario_unit = if scenarios.len() == 1 {
+        "scenario"
+    } else {
+        "scenarios"
+    };
     println!(
-        "generated {} from {} appliances and {} connections",
+        "generated {} from {} appliances, {} connections, and {} validated {}",
         output.display(),
         appliances.len(),
-        connections.len()
+        connections.len(),
+        scenarios.len(),
+        scenario_unit
     );
     Ok(())
 }
@@ -118,14 +139,33 @@ fn run_demo() -> Result<(), Box<dyn Error>> {
     let mut service = ServiceNode::new(
         service_id.clone(),
         ComponentKind::ServiceCluster,
-        [network_port.clone()],
-        [Ipv4Addr::new(192, 0, 2, 10)],
+        [RoutedInterface::new(
+            network_port.clone(),
+            MacAddress::new([0x02, 0, 0, 0, 0, 2]),
+            [Ipv4InterfaceAddress::new(Ipv4Addr::new(192, 0, 2, 10), 24)
+                .ok_or("invalid demo interface address")?],
+            VlanId::new(10).ok_or("invalid demo VLAN")?,
+            1_500,
+        )],
         [ServiceKind::Https],
     );
+    let mut connection = MediaLink::new(
+        component_id("cpe-to-service")?,
+        ethernet_endpoint(cpe_id.clone(), access_port.clone()),
+        ethernet_endpoint(service_id.clone(), network_port.clone()),
+        MediaLinkConfig::default(),
+        ConnectionMedium::Copper {
+            config: CopperMedium {
+                wiring: CopperWiring::StraightThrough,
+                category: CopperCategory::Cat6a,
+                length_m: 10.0,
+            },
+        },
+    )?;
     let mut simulator = Simulator::new();
     simulator.add(&mut cpe)?;
     simulator.add(&mut service)?;
-    simulator.connect(&cpe_id, &access_port, &service_id, &network_port)?;
+    simulator.add_link(&mut connection)?;
     simulator.inject_network(
         &cpe_id,
         &customer_port,
@@ -147,6 +187,7 @@ fn run_demo() -> Result<(), Box<dyn Error>> {
                 }),
                 application: ApplicationData::Service(ServiceKind::Https),
             }),
+            wire_len_bytes: 64,
         },
     )?;
 
@@ -175,10 +216,96 @@ fn run_demo() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+fn run_config_demo() -> Result<(), Box<dyn Error>> {
+    let appliances = ConfigRepository::load("project/config/appliances")?;
+    let connections = ConnectionRepository::load("project/config/connections", &appliances)?;
+    let source = component_id("customer-pc-01")?;
+    let mut network = ConfiguredNetwork::from_selection(
+        &appliances,
+        &connections,
+        ["customer-pc-01", "customer-sw-01", "customer-rtr-01"],
+    )?;
+    let trace = network.run_ipv4(
+        &source,
+        Ipv4Packet {
+            source: Ipv4Addr::new(192, 168, 0, 2),
+            destination: Ipv4Addr::new(192, 168, 0, 1),
+            ttl: 64,
+            transport: Transport::Icmp(IcmpMessage::EchoRequest {
+                identifier: 1,
+                sequence: 1,
+            }),
+            application: ApplicationData::None,
+        },
+        64,
+    )?;
+    println!(
+        "configured {} appliances and {} links",
+        network.appliance_count(),
+        network.link_count()
+    );
+    for entry in trace {
+        println!(
+            "{:>8} us  {:<28} {:?}",
+            entry.time_us, entry.component, entry.effect
+        );
+    }
+    Ok(())
+}
+
+fn run_configured_scenario() -> Result<(), Box<dyn Error>> {
+    let id = std::env::args()
+        .nth(2)
+        .unwrap_or_else(|| "customer-dns-lookup".into());
+    let appliances = ConfigRepository::load("project/config/appliances")?;
+    let connections = ConnectionRepository::load("project/config/connections", &appliances)?;
+    let scenarios =
+        ScenarioRepository::load("project/config/scenarios", &appliances, &connections)?;
+    let scenario = scenarios
+        .get(&id)
+        .ok_or_else(|| format!("unknown configured scenario {id}"))?;
+    let report = run_scenario(&appliances, &connections, &scenario.config, None)?;
+    println!(
+        "{}: {:?}; {} appliances, {} links, {} trace entries, {} us",
+        report.scenario_label,
+        report.status,
+        report.appliance_count,
+        report.link_count,
+        report.statistics.events,
+        report.duration_us
+    );
+    for entry in report.trace {
+        println!(
+            "{:>8} us  {:<28} {:<12?} {}",
+            entry.time_us, entry.component, entry.kind, entry.summary
+        );
+    }
+    Ok(())
+}
+
 fn component_id(value: &str) -> Result<ComponentId, Box<dyn Error>> {
     Ok(ComponentId::new(value)?)
 }
 
 fn port_id(value: &str) -> Result<PortId, Box<dyn Error>> {
     Ok(PortId::new(value)?)
+}
+
+fn ethernet_endpoint(component: ComponentId, port: PortId) -> LinkEndpoint {
+    LinkEndpoint {
+        component,
+        port,
+        profile: SimulatedPort {
+            hardware: PortHardwareKind::EthernetRj45,
+            state: PortStateConfig {
+                administrative: PortState::Up,
+                initial_operational: PortState::Up,
+            },
+            settings: PortSettings {
+                speed_mbps: 1_000,
+                duplex: PortDuplex::Full,
+                mtu: 1_500,
+            },
+        },
+    }
 }

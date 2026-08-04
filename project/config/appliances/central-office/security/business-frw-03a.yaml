@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "business-frw-03a"
 label: "Business FRW-03A"
 kind: "firewall"
@@ -9,6 +9,17 @@ role: "High-availability stateful policy enforcement member"
 summary: "Enforces named, authenticated conduits between Central Office governance services and the Factory OT DMZ."
 lifecycle: "design"
 tags: []
+firewall_ha:
+  domain: "business-northbound-firewall"
+  peer: "business-frw-03b"
+  role: "active"
+  sync_interface: "ha-sync"
+  monitored_interfaces:
+    - "business-it"
+    - "factory-conduit"
+  session_sync: true
+  heartbeat_interval_ms: 250
+  failure_hold_ms: 750
 render:
   - view: "office/business-it"
     node: "frw-03"
@@ -22,6 +33,7 @@ render:
 interfaces:
   - id: "business-it"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:25:03:01"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -30,10 +42,21 @@ interfaces:
       duplex: "full"
       mtu: 1500
     mode: "routed"
-    addresses: []
-    vlans: []
+    addresses:
+      - "10.255.3.2/29"
+    vlans:
+      - 380
+    first_hop:
+      protocol: "vrrp"
+      group: 31
+      virtual_ip: "10.255.3.1"
+      virtual_mac: "00:00:5e:00:01:1f"
+      priority: 110
+      preempt: true
+      initial_role: "active"
   - id: "factory-conduit"
     hardware: "carrier-demarc"
+    mac_address: "02:00:00:35:03:01"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -42,15 +65,55 @@ interfaces:
       duplex: "full"
       mtu: 1500
     mode: "routed"
+    addresses:
+      - "172.20.52.2/24"
+    vlans:
+      - 352
+    first_hop:
+      protocol: "vrrp"
+      group: 32
+      virtual_ip: "172.20.52.1"
+      virtual_mac: "00:00:5e:00:01:20"
+      priority: 110
+      preempt: true
+      initial_role: "active"
+  - id: "ha-sync"
+    hardware: "ethernet-sfp"
+    mac_address: "02:00:00:25:03:a1"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "monitor"
     addresses: []
     vlans: []
 behavior:
   family: "stateful-firewall"
   stateful: true
   default_action: "deny"
+  zones:
+    - interface: "factory-conduit"
+      name: "factory-exchange"
+    - interface: "business-it"
+      name: "business-it"
+  routes:
+    - destination: "172.20.52.0/24"
+      next_hop: null
+      interface: "factory-conduit"
+    - destination: "10.255.3.0/29"
+      next_hop: null
+      interface: "business-it"
+    - destination: "10.10.80.0/24"
+      next_hop: "10.255.3.6"
+      interface: "business-it"
   rules:
-    - name: "permit-established-and-named-conduits"
+    - name: "permit-historian-analytics-https"
       action: "permit"
-      source: "approved-sources"
-      destination: "named-destinations"
-      service: "approved-services"
+      source_zone: "factory-exchange"
+      destination_zone: "business-it"
+      source: "172.20.52.10/32"
+      destination: "10.10.80.50/32"
+      service: "https"

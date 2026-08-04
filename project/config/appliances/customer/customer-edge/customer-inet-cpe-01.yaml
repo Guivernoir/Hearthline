@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "customer-inet-cpe-01"
 label: "Customer INET-CPE-01"
 kind: "transparent-cpe"

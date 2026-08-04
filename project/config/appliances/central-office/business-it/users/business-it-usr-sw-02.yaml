@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "business-it-usr-sw-02"
 label: "Business IT-USR-SW-02"
 kind: "layer-2-switch"
@@ -7,8 +7,21 @@ environment: "Business IT"
 zone: "User Access"
 role: "Employee access switching member"
 summary: "One member of the redundant internal switching design."
-lifecycle: "design"
+lifecycle: "simulated"
 tags: []
+spanning_tree:
+  protocol: "rapid-pvst"
+  bridge_priority: 32768
+  bridge_mac: "02:00:00:10:30:12"
+link_aggregation:
+  system_mac: "02:00:00:10:30:12"
+  groups:
+    - id: "po-core"
+      logical_id: "business-it-usr-sw-02-uplink"
+      protocol: "lacp"
+      mode: "active"
+      minimum_active_members: 1
+      members: ["core-01", "core-02"]
 render:
   - view: "office/business-it"
     node: "user-switch"
@@ -40,7 +53,10 @@ interfaces:
       mtu: 1500
     mode: "trunk"
     addresses: []
-    vlans: []
+    vlans:
+      - 30
+      - 70
+      - 999
   - id: "core-02"
     hardware: "ethernet-sfp"
     state:
@@ -52,7 +68,10 @@ interfaces:
       mtu: 1500
     mode: "trunk"
     addresses: []
-    vlans: []
+    vlans:
+      - 30
+      - 70
+      - 999
   - id: "user-pc-03"
     hardware: "ethernet-rj45"
     state:
@@ -64,7 +83,8 @@ interfaces:
       mtu: 1500
     mode: "access"
     addresses: []
-    vlans: []
+    vlans:
+      - 30
   - id: "user-pc-04"
     hardware: "ethernet-rj45"
     state:
@@ -76,7 +96,8 @@ interfaces:
       mtu: 1500
     mode: "access"
     addresses: []
-    vlans: []
+    vlans:
+      - 30
 behavior:
   family: "ethernet-switch"
   vlans:

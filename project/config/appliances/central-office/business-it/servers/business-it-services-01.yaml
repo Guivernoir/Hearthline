@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "business-it-services-01"
 label: "Business IT Services-01"
 kind: "service-cluster"
@@ -9,6 +9,7 @@ role: "Infrastructure, application, data, transfer, monitoring, backup, and time
 summary: "Logical service cluster representing the internal services currently grouped in the architecture view."
 lifecycle: "design"
 tags: []
+default_gateway: "10.10.80.1"
 render:
   - view: "office/business-it"
     node: "server-fleet"
@@ -24,12 +25,12 @@ interfaces:
       duplex: "full"
       mtu: 1500
     mode: "access"
-    addresses:
-      - "10.10.20.10/24"
+    addresses: []
     vlans:
       - 20
   - id: "services-a"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:10:80:10"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -38,8 +39,10 @@ interfaces:
       duplex: "full"
       mtu: 1500
     mode: "access"
-    addresses: []
-    vlans: []
+    addresses:
+      - "10.10.80.10/24"
+    vlans:
+      - 80
   - id: "services-b"
     hardware: "ethernet-rj45"
     state:
@@ -63,3 +66,8 @@ behavior:
     - "monitoring"
     - "backup"
   respond_to_icmp: true
+  http_site:
+    host: "shop.hearthline.test"
+    title: "Hearthline Store"
+    heading: "Ceramic process equipment"
+    body: "Modeled catalog access is online through the published HTTPS service."

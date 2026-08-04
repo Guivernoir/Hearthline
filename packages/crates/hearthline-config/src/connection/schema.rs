@@ -3,13 +3,13 @@ use std::fmt::{self, Display, Formatter};
 use hearthline_model::ComponentId;
 use serde::{Deserialize, Deserializer};
 
-use crate::appliance::{ConfigError, ConfigRepository, InterfaceConfig, Lifecycle};
+use crate::appliance::{ConfigError, ConfigRepository, Lifecycle};
 use hearthline_engine::{
-    CarrierMedium, ConnectionMedium, CopperMedium, FiberMedium, FieldWiringMedium, MediumKind,
-    PortDuplex, PortState, PortStateConfig, RadioMedium, TelephoneMedium, VirtualMedium,
+    CarrierMedium, ConnectionMedium, CopperMedium, FiberMedium, FieldWiringMedium, MediaLink,
+    MediumKind, RadioMedium, TelephoneMedium, VirtualMedium,
 };
 
-use super::{SimulatedConnector, default_capacity, default_true, endpoint_port};
+use super::{build_media_link, default_capacity, default_true};
 
 pub const CONNECTION_SCHEMA_VERSION: &str = "0.2.0";
 
@@ -100,20 +100,8 @@ impl ConnectionConfig {
         Ok(())
     }
 
-    pub fn connector(
-        &self,
-        appliances: &ConfigRepository,
-    ) -> Result<SimulatedConnector, ConfigError> {
-        let endpoint_a = endpoint_port(appliances, &self.endpoints.a)?;
-        let endpoint_b = endpoint_port(appliances, &self.endpoints.b)?;
-        SimulatedConnector::new_configured(
-            ComponentId::new(&self.id).map_err(|error| ConfigError::new(error.to_string()))?,
-            self.endpoints.clone(),
-            self.properties,
-            self.medium.clone(),
-            endpoint_a.into(),
-            endpoint_b.into(),
-        )
+    pub fn media_link(&self, appliances: &ConfigRepository) -> Result<MediaLink, ConfigError> {
+        build_media_link(self, appliances)
     }
 }
 
@@ -209,39 +197,6 @@ impl Default for ConnectionProperties {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-pub struct ConnectorPortProfile {
-    pub state: PortStateConfig,
-    pub speed_mbps: u64,
-    pub duplex: PortDuplex,
-    pub mtu: u32,
-}
-
-impl Default for ConnectorPortProfile {
-    fn default() -> Self {
-        Self {
-            state: PortStateConfig {
-                administrative: PortState::Up,
-                initial_operational: PortState::Up,
-            },
-            speed_mbps: u64::MAX,
-            duplex: PortDuplex::Full,
-            mtu: 1_500,
-        }
-    }
-}
-
-impl From<&InterfaceConfig> for ConnectorPortProfile {
-    fn from(interface: &InterfaceConfig) -> Self {
-        Self {
-            state: interface.state,
-            speed_mbps: interface.settings.speed_mbps,
-            duplex: interface.settings.duplex,
-            mtu: interface.settings.mtu,
-        }
-    }
-}
-
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "kebab-case")]
 pub enum ConnectionDirection {
@@ -249,16 +204,6 @@ pub enum ConnectionDirection {
     Bidirectional,
     AToB,
     BToA,
-}
-
-impl ConnectionDirection {
-    pub(super) const fn permits_a_to_b(self) -> bool {
-        matches!(self, Self::Bidirectional | Self::AToB)
-    }
-
-    pub(super) const fn permits_b_to_a(self) -> bool {
-        matches!(self, Self::Bidirectional | Self::BToA)
-    }
 }
 
 impl Display for ConnectionDirection {

@@ -11,8 +11,16 @@ Final Inspection is the post-Kiln-2 quality gate before release to Logistics.
 
 ## Current Representation
 
-The Svelte view renders the representative assets below from bootstrap JSON. It
-does not currently execute control logic, I/O, or process behavior.
+The architecture view renders the representative assets below from bootstrap
+JSON. `AREA-09-HMI-01` is enterable as a Rust-backed operator session assembled
+from the area appliance YAML. It displays configured vision and dimensional
+states, requires a healthy interlock reset, and exposes stopped, pass, and
+reject diverter states plus conveyor control. Accepted commands traverse the
+HMI, vPLC, remote I/O, and selected field actuator.
+
+This is a deterministic operator-command baseline. Image analysis, dimensional
+measurement, disposition logic, traceability, and Structured Text execution
+remain pending.
 
 | Function | Representative component |
 | --- | --- |

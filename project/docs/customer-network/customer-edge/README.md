@@ -7,13 +7,19 @@ Customer LAN and the provider-facing access network.
 
 ![Customer Edge logical view](logical-screenshot.png)
 
+![Customer access-circuit recovery simulation](recovery-screenshot.png)
+
 ## Implementation Status
 
-The edge topology and boundary intent are rendered in Svelte. PAT, default
-routing, reverse-flow state, and provider reachability are validation targets.
-Rust now contains unit-tested routing and PAT primitives, but this rendered edge
-is only parsed as individual appliance configuration; it is not yet
-instantiated as one connected topology or tested as a complete path.
+The edge topology and boundary intent are rendered in Svelte. Selected A-side
+DNS and public-service scenarios instantiate the customer router, transparent
+CPE, provider access, routing, and PAT behavior from canonical YAML. A
+customer-WAN outage scenario now marks the residential access connection down
+for one run and verifies that provider-bound ARP is dropped at
+`Customer INET-CPE-01`. Its YAML recovery contract restores that circuit and
+requires the original DNS response to reach `Customer PC-01`; both outcomes
+execute through Rust. Complete redundant-edge, measured recovery timing, and
+arbitrary reachability evaluation remain unimplemented.
 
 ## Active Scope
 
@@ -70,6 +76,9 @@ switch are owned by the [Customer LAN](../customer-lan/README.md).
 - Failure of the edge or access link removes public reachability without
   changing the Customer LAN definition.
 
-Planned Rust construction and evaluation will explain route selection,
-translation, reverse-flow state, and any denial using the implemented
-per-appliance YAML as its starting point.
+The simulation workspace exposes every selected connection as an up/down
+switch. Overrides apply only to the current run and reset to the scenario's
+canonical YAML state. The outage scenario also exposes a recovery command that
+applies its YAML-declared restored state and selects the corresponding
+DNS-delivery expectation. Additional device, provider, isolation, and
+failover cases remain planned.

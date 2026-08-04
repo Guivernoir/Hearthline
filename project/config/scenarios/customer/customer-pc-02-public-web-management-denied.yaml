@@ -1,0 +1,37 @@
+schema_version: "0.11.0"
+id: "customer-pc-02-public-web-management-denied"
+label: "Customer PC-02 public management denied"
+summary: "The public path translates the published address but the perimeter firewall rejects an undeclared SSH management attempt from Customer PC-02."
+category: "security-policy"
+participants:
+  - "customer-pc-02"
+  - "customer-sw-01"
+  - "customer-rtr-01"
+  - "customer-inet-cpe-01"
+  - "wan-01"
+  - "isp-edge-rtr-01"
+  - "wan-02a"
+  - "business-inet-cpe-01"
+  - "business-edge-rtr-01"
+  - "business-frw-01a"
+  - "business-it-dmz-sw-01"
+  - "business-web-gw-01"
+source: "customer-pc-02"
+packet:
+  source_ip: "192.168.0.3"
+  destination_ip: "192.0.2.10"
+  ttl: 64
+  wire_length_bytes: 256
+  transport:
+    protocol: "tcp"
+    source_port: 55101
+    destination_port: 22
+    syn: true
+  application:
+    kind: "service"
+    service: "ssh"
+expectation:
+  component: "business-frw-01a"
+  outcome: "dropped"
+  reason_contains: "denied by default policy"
+event_limit: 256

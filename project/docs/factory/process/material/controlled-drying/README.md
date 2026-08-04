@@ -12,8 +12,15 @@ industrial dryer.
 
 ## Current Representation
 
-The Svelte view renders the representative assets below from bootstrap JSON. It
-does not currently execute control logic, I/O, or process behavior.
+The architecture view renders the representative assets below from bootstrap
+JSON. `AREA-03-HMI-01` is enterable as a Rust-backed operator session assembled
+from the area appliance YAML. It displays configured temperature and humidity
+samples, requires a healthy interlock reset, and exposes fan and damper state
+commands through the HMI, vPLC, remote I/O, and field-actuator path.
+
+This is a deterministic operator-command baseline. Residence-time acceleration,
+environmental dynamics, automatic control, and Structured Text execution
+remain pending.
 
 | Function | Representative component |
 | --- | --- |

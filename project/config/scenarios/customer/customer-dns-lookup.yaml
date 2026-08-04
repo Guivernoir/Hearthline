@@ -1,0 +1,31 @@
+schema_version: "0.11.0"
+id: "customer-dns-lookup"
+label: "Customer DNS lookup"
+summary: "Customer PC-01 resolves the modeled public business service through the customer edge and ISP DNS path."
+category: "network"
+participants:
+  - "customer-pc-01"
+  - "customer-sw-01"
+  - "customer-rtr-01"
+  - "customer-inet-cpe-01"
+  - "wan-01"
+  - "isp-edge-rtr-01"
+  - "isp-dns-01"
+source: "customer-pc-01"
+packet:
+  source_ip: "192.168.0.2"
+  destination_ip: "198.51.100.50"
+  ttl: 64
+  wire_length_bytes: 96
+  transport:
+    protocol: "udp"
+    source_port: 53000
+    destination_port: 53
+  application:
+    kind: "dns-query"
+    name: "shop.hearthline.test"
+expectation:
+  component: "customer-pc-01"
+  outcome: "delivered"
+  service: "dns"
+event_limit: 128

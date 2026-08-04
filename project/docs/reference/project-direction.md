@@ -121,7 +121,7 @@ simulation state, or scenario outcomes have been validated.
 
 The appliance configuration catalog is
 [`packages/web/src/generated/appliance-configs.json`](../../../packages/web/src/generated/appliance-configs.json).
-Rust generates it from 160 parsed per-appliance and 205 per-connection YAML
+Rust generates it from 162 parsed per-appliance and 208 per-connection YAML
 files. It provides stable IDs, typed kind and behavior-family metadata,
 resolved connection endpoints, lifecycle state, source revisions, full source
 text, and environment-scoped render bindings. Svelte uses this derivative
@@ -140,23 +140,45 @@ The initial Rust workspace now contains:
 - `hearthline-config` for host-side appliance and connection parsing,
   filesystem repositories, cross-file validation, and frontend projection.
 - `hearthline-api` for localhost-only validated and atomic configuration
-  editing.
+  editing plus configured scenario catalog and execution.
 - `hearthline-cli` for behavior-catalog inspection, rendered-role coverage,
-  configuration validation and generation, and a small forwarding
-  demonstration.
+  configuration validation and generation, a hand-built forwarding
+  demonstration, and versioned YAML-built scenarios.
 
 External integration suites cover switching, static routing, PAT, stateful
 policy, connectors, DNS, services, web gateways, controller scans, media
-compatibility, and safety behavior. The engine is not yet constructed from
-YAML and does not yet execute the complete rendered topology. The YAML
-pipeline now cross-validates connection endpoints, appliance port hardware,
-port state and settings, physical-media compatibility and capacity, and
-point-to-point port ownership; simulator construction and end-to-end flow
-evaluation remain pending.
+compatibility, and safety behavior. Selected endpoint, switch, router, NAT
+router, stateful firewall, DNS, web-server, web-gateway, HMI, virtual-PLC,
+remote-I/O, field-device, safety-interface, and link components are now
+constructed from YAML. Twenty-eight versioned end-to-end scenarios cover
+independent customer public paths, Business IT PC-01 through PC-04 internal DNS
+and HTTPS, approved or denied factory operations-data transfer, three
+WAF-prevented path-traversal, disallowed-method, and SQL-injection request-body
+exercises, a customer access-circuit outage with a declared restored-state
+DNS-delivery expectation, a Business IT core recovery that transfers three
+VRRP groups and Rust-computed Rapid-PVST forwarding roles to Core-02, and a
+converged northbound-firewall recovery that transfers active ownership to the
+validated standby, plus a protocol-timed variant that carries one session and
+heartbeats over the HA medium before validating a reverse ACK. Rust also
+executes three bounded fault variants: an HA-medium outage after successful
+state replication, standby session-state loss that must fail closed after
+promotion, retained state that expires after the modeled TCP idle timer, and
+sync-path isolation that fences the standby while peer failure is unconfirmed.
+The twenty-eighth scenario drops both factory-facing conduit handoffs while an
+independent Body Preparation HMI, vPLC, remote-I/O, safety, and pump path
+remains operational; passing requires the expected historian-path failure and
+the configured local pump command. Rust exposes each trace through the local API and
+Svelte simulation workspace; security evidence can also
+enter a bounded Central SOC session. The engine does not yet execute the
+complete rendered topology. The YAML pipeline cross-validates connection
+endpoints, appliance port hardware, port state and settings, physical-media
+compatibility and capacity, point-to-point port ownership, and each selected
+scenario path; broader policy, service, controller-program, and process-state
+scenarios remain pending.
 
 ## YAML Scope
 
-Appliance schema `0.3.0` currently covers:
+Appliance schema `0.9.0` currently covers:
 
 - One stable file and ID per appliance.
 - Appliance kind, typed behavior family, placement, role, summary, lifecycle,
@@ -165,6 +187,17 @@ Appliance schema `0.3.0` currently covers:
 - Ports with Rust-defined hardware capabilities, administrative and initial
   operational state, speed, duplex, MTU, logical mode, addresses, and VLAN
   lists.
+- Routed-interface first-hop groups with virtual IP and MAC identity, member
+  priority, preemption intent, and an initial active or standby role.
+- Optional Rapid-PVST bridge protocol, standard bridge priority, and unique
+  bridge MAC identity for Layer 2 and Layer 3 switches.
+- Optional LACP system identity, local groups, shared logical bundle IDs,
+  active or passive mode, minimum links, and member interfaces.
+- Optional reciprocal multi-chassis domain, primary or secondary role, and
+  peer-link interface.
+- Optional reciprocal stateful-firewall domain, active or standby role,
+  monitored virtual interfaces, session-sync intent, dedicated sync port, and
+  validated heartbeat and failure-hold timers.
 - Family-specific baselines for links, switching, routing, NAT, firewalls,
   application gateways, service endpoints, wireless, monitoring, control
   compute, vPLCs, HMIs, remote I/O, field devices, and safety interfaces.
@@ -273,22 +306,32 @@ packet emulator or substitute for qualified hardware testing.
 
 The navigable Svelte and documentation baseline, initial Rust behavior
 foundation, typed appliance and connection repositories, frontend projection,
-and local validated editor are complete. The next engineering milestone is a
-formal device-to-device communication contract executed through configured
-ports and typed media. Complete topology construction and deeper network
-cross-validation follow that contract; later steps remain unimplemented unless
-stated otherwise in the repository-level README.
+local validated editor, media-transit contract, Customer DNS path, customer
+public-service delivery/denial pair, Business IT internal-service paths, and
+operations-data delivery/denial pair are complete. The bounded factory
+conduit-outage/local-command autonomy proof is also complete. Customer PC-01/02 and
+Business IT PC-01/02/03/04 are enterable and invoke independent Rust-backed
+paths from terminals and browsers. Their browsers render configured content
+returned through the selected public or internal path. Complete topology
+construction and deeper network cross-validation follow; later steps remain
+unimplemented unless stated otherwise in the repository-level README.
+
+All ten process areas have configured HMI sessions. Rust validates operator
+permission and sends each accepted command through HMI, vPLC, remote I/O, and
+actuator primitives while preserving safety, alarm, actuator, and audit state.
+This does not yet execute the referenced Structured Text programs or simulate
+changing plant material and energy state.
 
 1. Maintain the navigable Svelte architecture and synchronized documentation.
-2. Carry typed messages between configured device ports through the Rust media
-   and connector layer with deterministic traces.
-3. Validate the Customer LAN and Customer Edge as the first executable path.
+2. Add changing process state, alarm, permissive, and actuator outcomes across
+   deterministic scans and plant-model steps.
+3. Add further exact Phase 1 failover, isolation, and outage scenarios.
 4. Extend structural validation with address, VLAN, route, policy, and HA
    reference rules.
 5. Translate remaining site and environment presentation data into canonical
    inputs.
-6. Construct simulator components and connectors from parsed configuration.
-7. Assemble routing, NAT, stateful-policy, and conduit primitives into complete
+6. Extend parsed component construction to behavior families not yet supported.
+7. Assemble routing, NAT, stateful-policy, and conduit primitives into broader
    configured topologies.
 8. Extend versioned JSON generation to topology and scenario data.
 9. Add positive and negative network scenarios.

@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "area-04-af-01"
 label: "AREA-04-AF-01"
 kind: "field-sensor"
@@ -34,3 +34,4 @@ behavior:
   unit: "cubic-metre-per-second"
   minimum: 0
   maximum: 100
+  initial_value: 0

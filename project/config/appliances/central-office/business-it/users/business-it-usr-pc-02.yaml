@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "business-it-usr-pc-02"
 label: "Business IT-USR-PC-02"
 kind: "workstation"
@@ -7,8 +7,10 @@ environment: "Business IT"
 zone: "IT Users"
 role: "Managed employee workstation"
 summary: "Representative managed user endpoint on the employee access network."
-lifecycle: "design"
-tags: []
+lifecycle: "simulated"
+tags:
+  - "interactive"
+default_gateway: "10.10.30.1"
 render:
   - view: "office/business-it"
     node: "user-pcs"
@@ -16,6 +18,7 @@ render:
 interfaces:
   - id: "ethernet-0"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:10:30:66"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -24,10 +27,14 @@ interfaces:
       duplex: "full"
       mtu: 1500
     mode: "access"
-    addresses: []
+    addresses:
+      - "10.10.30.102/24"
     vlans:
       - 30
 behavior:
   family: "endpoint"
   accepted_services: []
   respond_to_icmp: true
+  hostname: "business-it-usr-pc-02"
+  dns_servers:
+    - "10.10.20.10"

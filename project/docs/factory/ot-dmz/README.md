@@ -14,7 +14,10 @@ implemented as physical and logical diagrams. Firewall HA, session recording,
 replication, transfer inspection, passive monitoring, identity checks, and
 failover remain requirements rather than tested behavior. Parsed YAML now
 provides separate member identities, default-deny firewall baselines, DMZ VLAN
-baselines, service roles, and explicitly non-inline passive sensors.
+baselines, service roles, and explicitly non-inline passive sensors. The
+selected Exchange VLAN 352 path from `OT-DMZ-HIST-REPLICA-01` through
+`Business FRW-03A` is executable: HTTPS reaches Central Office analytics under
+a named rule, while SSH is denied by default policy.
 
 ## Architecture
 
@@ -89,8 +92,9 @@ The target trust model is:
 
 ## Conduit Register
 
-The future conduit and policy extension to the current YAML model must record
-every allowed flow with:
+The current executable historian rule records source and destination zones,
+host prefixes, protocol service, and direction. Future conduit and policy
+extensions must also record every allowed flow with:
 
 - Source and destination zone or asset.
 - Protocol and service.
@@ -123,19 +127,20 @@ Loss of remote access, analytics, or the Central Office conduit must not stop
 safe local process operation. Data may be buffered for later transfer, and
 non-urgent changes remain staged until the authorized path returns.
 
-## Planned Validation Scenarios
+## Validation Scenarios
 
-| Scenario | Expected result |
-| --- | --- |
-| Approved administrator to jump service | Allowed |
-| Central Office source directly to Level 3 | Denied |
-| Jump service to approved Level 3 target | Allowed only with separate authorization |
-| Historian replica to selected enterprise consumer | Allowed in the declared direction |
-| Enterprise source directly to OT historian | Denied |
-| Approved signed package through transfer service | Allowed |
-| Unapproved package or undeclared direction | Denied |
-| Passive sensor receives mirrored traffic | Allowed without becoming a forwarding dependency |
-| Inter-site conduit unavailable | Local process remains operational |
+| Scenario | Expected result | Status |
+| --- | --- | --- |
+| Approved administrator to jump service | Allowed | Planned |
+| Central Office source directly to Level 3 | Denied | Planned |
+| Jump service to approved Level 3 target | Allowed only with separate authorization | Planned |
+| Historian replica to selected enterprise consumer over HTTPS | Allowed in the declared direction | Implemented |
+| Historian replica to enterprise analytics over SSH | Denied by default policy | Implemented |
+| Enterprise source directly to OT historian | Denied | Planned |
+| Approved signed package through transfer service | Allowed | Planned |
+| Unapproved package or undeclared direction | Denied | Planned |
+| Passive sensor receives mirrored traffic | Allowed without becoming a forwarding dependency | Planned |
+| Inter-site conduit unavailable | Operations-data transfer fails on both factory handoffs while the configured local HMI-to-actuator command succeeds | Implemented |
 
 ## Design Acceptance Criteria
 

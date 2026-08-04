@@ -26,6 +26,7 @@
 
   export let onBack: () => void = () => {};
   export let onOpenAppliance: (id: string) => void = () => {};
+  export let onOpenWorkstation: (id: string) => void = () => {};
   export let viewMode: ViewMode = "logical";
 
   const WORLD_WIDTH = 1250;
@@ -446,6 +447,9 @@
         <ApplianceConfigSummary
           appliances={selectedAppliances}
           onOpen={onOpenAppliance}
+          onOperate={selectedAppliances.length === 1 && selectedAppliances[0].kind === "workstation"
+            ? onOpenWorkstation
+            : null}
         />
       </aside>
     {/if}

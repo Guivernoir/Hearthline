@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "area-05-pmp-01"
 label: "AREA-05-PMP-01"
 kind: "field-actuator"
@@ -33,3 +33,6 @@ behavior:
   command_tag: "area-05-pmp-01-command"
   safe_state: "stopped"
   feedback_tag: "area-05-pmp-01-feedback"
+  states:
+    - "stopped"
+    - "running"

@@ -1,0 +1,26 @@
+schema_version: "0.2.0"
+id: "business-it-dns-01-to-business-it-srv-sw-02"
+label: "Internal DNS primary attachment"
+lifecycle: "simulated"
+transport: "ethernet"
+medium:
+  type: "copper"
+  wiring: "straight-through"
+  category: "cat6a"
+  length_m: 10.0
+endpoints:
+  a:
+    appliance: "business-it-dns-01"
+    interface: "service"
+  b:
+    appliance: "business-it-srv-sw-02"
+    interface: "internal-dns"
+properties:
+  capacity_mbps: 1000
+  latency_ms: 0
+  loss_every: null
+  direction: "bidirectional"
+  operational: true
+tags:
+  - "business-it"
+  - "infrastructure"

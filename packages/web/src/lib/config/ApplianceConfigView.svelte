@@ -1,9 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { ArrowLeft, Cable, Network } from "@lucide/svelte";
+  import { ArrowLeft, Cable, GitFork, Network, ShieldCheck } from "@lucide/svelte";
   import YamlEditor from "./YamlEditor.svelte";
   import {
-    SUPPORTED_APPLIANCE_CATALOG_SCHEMA,
+    SUPPORTED_APPLIANCE_SCHEMA,
     findAppliance,
     findConnectionsForAppliance,
     installCatalog,
@@ -160,6 +160,45 @@
             {/if}
           </section>
 
+          {#if appliance.spanningTree}
+            <section>
+              <span><GitFork size={13} strokeWidth={1.8} /> Spanning tree</span>
+              <strong>{appliance.spanningTree.protocol.toUpperCase()}</strong>
+              <small>Bridge priority {appliance.spanningTree.bridgePriority}</small>
+              <small>Bridge MAC {appliance.spanningTree.bridgeMac}</small>
+            </section>
+          {/if}
+
+          {#if appliance.linkAggregation}
+            <section>
+              <span><GitFork size={13} strokeWidth={1.8} /> Link aggregation</span>
+              <strong>{appliance.linkAggregation.groups.length} LACP {appliance.linkAggregation.groups.length === 1 ? "bundle" : "bundles"}</strong>
+              <small>System MAC {appliance.linkAggregation.systemMac}</small>
+              {#each appliance.linkAggregation.groups as group}
+                <small>{group.id} / {group.mode} / min {group.minimumActiveMembers} / {group.members.join(", ")}</small>
+              {/each}
+            </section>
+          {/if}
+
+          {#if appliance.multiChassis}
+            <section>
+              <span><Network size={13} strokeWidth={1.8} /> Multi-chassis</span>
+              <strong>{appliance.multiChassis.domain}</strong>
+              <small>{appliance.multiChassis.role} / peer {appliance.multiChassis.peer}</small>
+              <small>Peer link {appliance.multiChassis.peerLink}</small>
+            </section>
+          {/if}
+
+          {#if appliance.firewallHa}
+            <section>
+              <span><ShieldCheck size={13} strokeWidth={1.8} /> Firewall HA</span>
+              <strong>{appliance.firewallHa.domain}</strong>
+              <small>{appliance.firewallHa.role} / peer {appliance.firewallHa.peer}</small>
+              <small>Sync {appliance.firewallHa.syncInterface} / sessions {appliance.firewallHa.sessionSync ? "enabled" : "disabled"}</small>
+              <small>Monitors {appliance.firewallHa.monitoredInterfaces.join(", ")}</small>
+            </section>
+          {/if}
+
           <section class="config-port-list">
             <span>Port configuration</span>
             {#each appliance.interfaces as port}
@@ -176,6 +215,9 @@
                 </header>
                 <small>{port.hardware} / {port.mode}</small>
                 <small>{port.speedMbps.toLocaleString()} Mbps / {port.duplex} / MTU {port.mtu}</small>
+                {#if port.firstHop}
+                  <small>{port.firstHop.protocol.toUpperCase()} {port.firstHop.group} / {port.firstHop.virtualIp} / priority {port.firstHop.priority} / {port.firstHop.initialRole}</small>
+                {/if}
                 <small>Supports {port.supportedMedia.join(", ")}</small>
               </div>
             {/each}
@@ -217,7 +259,7 @@
 
         <YamlEditor
           sourceYaml={appliance.sourceYaml}
-          schemaVersion={SUPPORTED_APPLIANCE_CATALOG_SCHEMA}
+          schemaVersion={SUPPORTED_APPLIANCE_SCHEMA}
           writable={apiWritable}
           {saving}
           {saveError}

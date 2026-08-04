@@ -167,6 +167,7 @@ pub enum ComponentKind {
     EncryptedConduit,
     Firewall,
     DnsServer,
+    WebServer,
     ReverseProxyWaf,
     ServiceCluster,
     IdentityPolicyService,
@@ -190,7 +191,7 @@ pub enum ComponentKind {
 }
 
 impl ComponentKind {
-    pub const ALL: [Self; 35] = [
+    pub const ALL: [Self; 36] = [
         Self::Workstation,
         Self::PrivilegedWorkstation,
         Self::EngineeringWorkstation,
@@ -206,6 +207,7 @@ impl ComponentKind {
         Self::EncryptedConduit,
         Self::Firewall,
         Self::DnsServer,
+        Self::WebServer,
         Self::ReverseProxyWaf,
         Self::ServiceCluster,
         Self::IdentityPolicyService,
@@ -236,6 +238,7 @@ impl ComponentKind {
             | Self::OperationsConsole => BehaviorFamily::Endpoint,
             Self::Printer
             | Self::DnsServer
+            | Self::WebServer
             | Self::ServiceCluster
             | Self::NetworkController
             | Self::MonitoringCollector
@@ -285,6 +288,7 @@ impl Display for ComponentKind {
             Self::EncryptedConduit => "encrypted-conduit",
             Self::Firewall => "firewall",
             Self::DnsServer => "dns-server",
+            Self::WebServer => "web-server",
             Self::ReverseProxyWaf => "reverse-proxy-waf",
             Self::ServiceCluster => "service-cluster",
             Self::IdentityPolicyService => "identity-policy-service",
@@ -330,6 +334,7 @@ impl FromStr for ComponentKind {
             "encrypted-conduit" => Self::EncryptedConduit,
             "firewall" => Self::Firewall,
             "dns-server" => Self::DnsServer,
+            "web-server" => Self::WebServer,
             "reverse-proxy-waf" => Self::ReverseProxyWaf,
             "service-cluster" => Self::ServiceCluster,
             "identity-policy-service" => Self::IdentityPolicyService,
@@ -350,7 +355,9 @@ impl FromStr for ComponentKind {
             "field-sensor" => Self::FieldSensor,
             "field-actuator" => Self::FieldActuator,
             "safety-interface" => Self::SafetyInterface,
-            _ => return Err(ComponentKindParseError(Text::from(value))),
+            _ => {
+                return Err(ComponentKindParseError(Text::try_new(value).ok()));
+            }
         };
         Ok(kind)
     }
@@ -358,11 +365,17 @@ impl FromStr for ComponentKind {
 
 /// Error returned when a configuration names an unsupported appliance kind.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ComponentKindParseError(Text<IDENTIFIER_CAPACITY>);
+pub struct ComponentKindParseError(Option<Text<IDENTIFIER_CAPACITY>>);
 
 impl Display for ComponentKindParseError {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
-        write!(formatter, "unsupported component kind '{}'", self.0)
+        match &self.0 {
+            Some(value) => write!(formatter, "unsupported component kind '{value}'"),
+            None => write!(
+                formatter,
+                "component kind exceeds {IDENTIFIER_CAPACITY}-byte parse capacity"
+            ),
+        }
     }
 }
 
@@ -386,6 +399,7 @@ pub enum ServiceKind {
     FileTransfer,
     HistorianReplication,
     Monitoring,
+    Backup,
     Analytics,
     VoiceSignaling,
     Printing,

@@ -12,9 +12,16 @@ airflow, combustion interfaces, and unloading.
 
 ## Current Representation
 
-The Svelte view renders the representative assets below from bootstrap JSON. It
-does not currently execute control logic, I/O, burner-management, or process
-behavior.
+The architecture view renders the representative assets below from bootstrap
+JSON. `AREA-06-HMI-01` is enterable as a Rust-backed operator session assembled
+from the area appliance YAML. It displays configured temperature and pressure
+samples, evaluates the three modeled burner-management permissives, and exposes
+burner-demand and fan states after an authorized reset. Accepted commands
+traverse the HMI, vPLC, remote I/O, and field actuator.
+
+The reset and burner-demand path is a deterministic simulation contract. It is
+not burner-management logic, a firing sequence, or evidence of functional
+safety; Structured Text and kiln dynamics remain pending.
 
 | Function | Representative component |
 | --- | --- |

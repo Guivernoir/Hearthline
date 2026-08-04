@@ -1,25 +1,37 @@
+use std::fs;
 use std::net::Ipv4Addr;
+use std::path::PathBuf;
 
-use hearthline_config::{
-    ConnectionConfig, ConnectionDirection, ConnectionEndpoint, ConnectionEndpoints,
-    ConnectionProperties, ConnectorDropReason, ConnectorPortProfile, SimulatedConnector,
-};
+use hearthline_config::{ConfigRepository, ConnectionConfig, ConnectionRepository};
 use hearthline_engine::{
-    ConnectionMedium, CopperCategory, CopperMedium, CopperWiring, PortState, PortStateConfig,
-    RadioMedium, VirtualMedium,
+    ConnectionMedium, CopperCategory, CopperMedium, CopperWiring, LinkDirection, LinkEndpoint,
+    MediaDropReason, MediaLink, MediaLinkConfig, PortDuplex, PortHardwareKind, PortSettings,
+    PortState, PortStateConfig, RadioMedium, SimulatedPort, VirtualMedium,
 };
 use hearthline_model::{
-    ArpOperation, ArpPacket, ComponentId, EthernetFrame, MacAddress, NetworkPayload, VlanId,
+    ArpOperation, ArpPacket, ComponentId, EthernetFrame, MacAddress, NetworkPayload, PortId, VlanId,
 };
 
-fn endpoint(appliance: &str, interface: &str) -> ConnectionEndpoint {
-    ConnectionEndpoint {
-        appliance: appliance.into(),
-        interface: interface.into(),
+fn endpoint(appliance: &str, interface: &str) -> LinkEndpoint {
+    LinkEndpoint {
+        component: ComponentId::new(appliance).expect("valid component"),
+        port: PortId::new(interface).expect("valid port"),
+        profile: SimulatedPort {
+            hardware: PortHardwareKind::VirtualNic,
+            state: PortStateConfig {
+                administrative: PortState::Up,
+                initial_operational: PortState::Up,
+            },
+            settings: PortSettings {
+                speed_mbps: 1_000,
+                duplex: PortDuplex::Full,
+                mtu: 1_500,
+            },
+        },
     }
 }
 
-fn frame() -> EthernetFrame {
+fn frame(wire_len_bytes: u16) -> EthernetFrame {
     EthernetFrame {
         source: MacAddress::new([0x02, 0, 0, 0, 0, 1]),
         destination: MacAddress::new([0x02, 0, 0, 0, 0, 2]),
@@ -31,75 +43,87 @@ fn frame() -> EthernetFrame {
             target_mac: None,
             target_ip: Ipv4Addr::new(192, 0, 2, 2),
         }),
+        wire_len_bytes,
     }
+}
+
+fn virtual_medium() -> ConnectionMedium {
+    ConnectionMedium::Virtual {
+        config: VirtualMedium {
+            technology: "test bridge".into(),
+        },
+    }
+}
+
+fn link(config: MediaLinkConfig) -> MediaLink {
+    MediaLink::new(
+        ComponentId::new("connection-01").expect("valid ID"),
+        endpoint("switch-01", "ethernet-1"),
+        endpoint("router-01", "ethernet-1"),
+        config,
+        virtual_medium(),
+    )
+    .expect("valid connection")
 }
 
 #[test]
 fn connector_applies_serialization_and_fixed_delay() {
-    let a = endpoint("switch-01", "ethernet-1");
-    let b = endpoint("router-01", "ethernet-1");
-    let mut connector = SimulatedConnector::new(
-        ComponentId::new("connection-01").expect("valid ID"),
-        ConnectionEndpoints {
-            a: a.clone(),
-            b: b.clone(),
-        },
-        ConnectionProperties {
-            capacity_mbps: 1,
-            latency_ms: 2,
-            ..ConnectionProperties::default()
-        },
-    )
-    .expect("valid connector");
-    let (destination, transit) = connector
-        .transmit(&a, &frame(), 1_500)
+    let mut connector = link(MediaLinkConfig {
+        capacity_mbps: 1,
+        latency_ms: 2,
+        ..MediaLinkConfig::default()
+    });
+    let transit = connector
+        .transmit(
+            &ComponentId::new("switch-01").expect("component"),
+            &PortId::new("ethernet-1").expect("port"),
+            &frame(1_500),
+            0,
+        )
         .expect("frame should transit");
-    assert_eq!(destination, &b);
-    assert_eq!(transit.delay_ms, 14);
+    assert_eq!(
+        transit.destination_component,
+        ComponentId::new("router-01").expect("component")
+    );
+    assert_eq!(transit.serialization_us, 12_160);
+    assert_eq!(transit.arrival_us, 14_160);
 }
 
 #[test]
 fn connector_enforces_mtu_loss_and_operational_state() {
-    let a = endpoint("switch-01", "ethernet-1");
-    let b = endpoint("router-01", "ethernet-1");
-    let mut connector = SimulatedConnector::new_configured(
+    let mut endpoint_a = endpoint("switch-01", "ethernet-1");
+    endpoint_a.profile.settings.mtu = 100;
+    let mut endpoint_b = endpoint("router-01", "ethernet-1");
+    endpoint_b.profile.settings.mtu = 100;
+    let mut connector = MediaLink::new(
         ComponentId::new("connection-01").expect("valid ID"),
-        ConnectionEndpoints { a: a.clone(), b },
-        ConnectionProperties {
+        endpoint_a,
+        endpoint_b,
+        MediaLinkConfig {
             loss_every: Some(2),
-            ..ConnectionProperties::default()
+            ..MediaLinkConfig::default()
         },
-        ConnectionMedium::Virtual {
-            config: VirtualMedium {
-                technology: "test bridge".into(),
-            },
-        },
-        ConnectorPortProfile {
-            mtu: 100,
-            ..ConnectorPortProfile::default()
-        },
-        ConnectorPortProfile {
-            mtu: 100,
-            ..ConnectorPortProfile::default()
-        },
+        virtual_medium(),
     )
-    .expect("valid connector");
+    .expect("valid connection");
+    let source = ComponentId::new("switch-01").expect("component");
+    let port = PortId::new("ethernet-1").expect("port");
     assert_eq!(
-        connector.transmit(&a, &frame(), 101),
-        Err(ConnectorDropReason::MtuExceeded {
-            frame_bytes: 101,
-            mtu: 100
+        connector.transmit(&source, &port, &frame(123), 0),
+        Err(MediaDropReason::MtuExceeded {
+            wire_bytes: 123,
+            maximum: 122,
         })
     );
-    assert!(connector.transmit(&a, &frame(), 100).is_ok());
+    assert!(connector.transmit(&source, &port, &frame(100), 0).is_ok());
     assert_eq!(
-        connector.transmit(&a, &frame(), 100),
-        Err(ConnectorDropReason::ModeledLoss)
+        connector.transmit(&source, &port, &frame(100), 0),
+        Err(MediaDropReason::ModeledLoss)
     );
     connector.set_operational(false);
     assert_eq!(
-        connector.transmit(&a, &frame(), 100),
-        Err(ConnectorDropReason::Down)
+        connector.transmit(&source, &port, &frame(100), 0),
+        Err(MediaDropReason::Down)
     );
 }
 
@@ -115,14 +139,7 @@ fn physical_media_exclusivity_matches_medium_type() {
         }
         .requires_exclusive_endpoints()
     );
-    assert!(
-        !ConnectionMedium::Virtual {
-            config: VirtualMedium {
-                technology: "test bridge".into(),
-            },
-        }
-        .requires_exclusive_endpoints()
-    );
+    assert!(!virtual_medium().requires_exclusive_endpoints());
     assert!(
         !ConnectionMedium::Radio {
             config: RadioMedium {
@@ -165,50 +182,90 @@ properties:
 
 #[test]
 fn connector_rejects_down_ports_and_reverse_direction() {
-    let a = endpoint("switch-01", "span");
-    let b = endpoint("sensor-01", "capture");
-    let mut down = SimulatedConnector::new_configured(
+    let mut source_endpoint = endpoint("switch-01", "span");
+    source_endpoint.profile.state.initial_operational = PortState::Down;
+    let mut down = MediaLink::new(
         ComponentId::new("connection-01").expect("valid ID"),
-        ConnectionEndpoints {
-            a: a.clone(),
-            b: b.clone(),
-        },
-        ConnectionProperties::default(),
-        ConnectionMedium::Virtual {
-            config: VirtualMedium {
-                technology: "test bridge".into(),
-            },
-        },
-        ConnectorPortProfile {
-            state: PortStateConfig {
-                administrative: PortState::Down,
-                initial_operational: PortState::Down,
-            },
-            ..ConnectorPortProfile::default()
-        },
-        ConnectorPortProfile::default(),
+        source_endpoint,
+        endpoint("sensor-01", "capture"),
+        MediaLinkConfig::default(),
+        virtual_medium(),
     )
-    .expect("valid connector");
+    .expect("valid connection");
+    let source = ComponentId::new("switch-01").expect("component");
+    let source_port = PortId::new("span").expect("port");
     assert_eq!(
-        down.transmit(&a, &frame(), 64),
-        Err(ConnectorDropReason::SourcePortDown)
+        down.transmit(&source, &source_port, &frame(64), 0),
+        Err(MediaDropReason::SourcePortDown)
     );
 
-    let mut directional = SimulatedConnector::new(
-        ComponentId::new("mirror-connection-01").expect("valid ID"),
-        ConnectionEndpoints {
-            a: a.clone(),
-            b: b.clone(),
-        },
-        ConnectionProperties {
-            direction: ConnectionDirection::AToB,
-            ..ConnectionProperties::default()
-        },
-    )
-    .expect("valid connector");
-    assert!(directional.transmit(&a, &frame(), 64).is_ok());
+    let mut directional = link(MediaLinkConfig {
+        direction: LinkDirection::AToB,
+        ..MediaLinkConfig::default()
+    });
+    assert!(
+        directional
+            .transmit(
+                &ComponentId::new("switch-01").expect("component"),
+                &PortId::new("ethernet-1").expect("port"),
+                &frame(64),
+                0,
+            )
+            .is_ok()
+    );
     assert_eq!(
-        directional.transmit(&b, &frame(), 64),
-        Err(ConnectorDropReason::InvalidEndpoint)
+        directional.transmit(
+            &ComponentId::new("router-01").expect("component"),
+            &PortId::new("ethernet-1").expect("port"),
+            &frame(64),
+            0,
+        ),
+        Err(MediaDropReason::DirectionDenied)
+    );
+}
+
+#[test]
+fn repository_rejects_mismatched_aggregate_member_vlans() {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../project/config");
+    let appliance_root = root.join("appliances");
+    let access_switch =
+        appliance_root.join("central-office/business-it/users/business-it-usr-sw-02.yaml");
+    let source = fs::read_to_string(&access_switch).expect("access switch source");
+    let invalid = source.replacen(
+        "      - 70\n      - 999\n  - id: \"core-02\"",
+        "  - id: \"core-02\"",
+        1,
+    );
+    let appliances =
+        ConfigRepository::load_with_override(&appliance_root, Some((&access_switch, &invalid)))
+            .expect("locally valid asymmetric trunk");
+    let error = ConnectionRepository::load(root.join("connections"), &appliances)
+        .expect_err("LACP VLAN mismatch must fail");
+    assert!(
+        error
+            .to_string()
+            .contains("matching mode, speed, duplex, MTU, and VLANs")
+    );
+}
+
+#[test]
+fn repository_requires_an_operational_bidirectional_firewall_sync_link() {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../project/config");
+    let appliances = ConfigRepository::load(root.join("appliances")).expect("appliances");
+    let sync =
+        root.join("connections/central-office/business-it/boundary/business-frw-03-ha-sync.yaml");
+    let source = fs::read_to_string(&sync).expect("firewall sync source");
+    let invalid = source.replace("direction: \"bidirectional\"", "direction: \"a-to-b\"");
+
+    let error = ConnectionRepository::load_with_override(
+        root.join("connections"),
+        &appliances,
+        Some((&sync, &invalid)),
+    )
+    .expect_err("one-way firewall sync must fail");
+    assert!(
+        error
+            .to_string()
+            .contains("operational bidirectional Ethernet")
     );
 }

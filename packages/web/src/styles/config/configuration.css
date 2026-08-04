@@ -83,6 +83,17 @@
   cursor: pointer;
 }
 
+.appliance-actions {
+  display: grid;
+  gap: 6px;
+}
+
+.appliance-operate {
+  color: #fff;
+  border-color: #276f64;
+  background: #276f64;
+}
+
 .appliance-open {
   width: 100%;
   min-height: 34px;
@@ -95,6 +106,12 @@
 .appliance-member-list button:hover {
   border-color: #267168;
   background: #eaf2ee;
+}
+
+.appliance-operate:hover {
+  color: #fff;
+  border-color: #1d5d54;
+  background: #1d5d54;
 }
 
 .appliance-member-list {
@@ -479,4 +496,3 @@
   background: #fff;
   cursor: pointer;
 }
-

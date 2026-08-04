@@ -7,13 +7,23 @@
 
 ![Intermediate Inspection logical view](logical-screenshot.png)
 
+![Intermediate Inspection operator interface](hmi-screenshot.png)
+
 Intermediate Inspection classifies defects and routes material before the
 second firing.
 
 ## Current Representation
 
-The Svelte view renders the representative assets below from bootstrap JSON. It
-does not currently execute control logic, I/O, or process behavior.
+The architecture view renders the representative assets below from bootstrap
+JSON. `AREA-07-HMI-01` is enterable as a Rust-backed operator session assembled
+from the area appliance YAML. It displays configured vision and presence
+states, requires a healthy interlock reset, and exposes stopped, accept, and
+rework diverter states plus conveyor control. Accepted commands traverse the
+HMI, vPLC, remote I/O, and selected field actuator.
+
+This is a deterministic operator-command baseline. Image analysis, automatic
+classification, traceability, routing logic, and Structured Text execution
+remain pending.
 
 | Function | Representative component |
 | --- | --- |

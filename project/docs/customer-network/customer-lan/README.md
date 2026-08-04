@@ -7,12 +7,20 @@ premises. It owns the endpoints, access switch, and router inside interface.
 
 ![Customer LAN logical view](logical-screenshot.png)
 
+![Representative Customer PC-01 workstation view](workstation-screenshot.png)
+
 ## Implementation Status
 
 The physical and logical LAN diagrams are implemented. Addressing and
 per-appliance interfaces are now represented in parsed YAML and available from
-each device inspector. Peer links are not yet fully canonical, and the LAN is
-not verified by an executable end-to-end network model.
+each device inspector. Customer PC-01 and PC-02 are enterable as responsive
+workstations whose profiles, terminals, browsers, and activity traces are
+supplied by the local Rust API. Each endpoint has independent DNS, public
+HTTPS, and perimeter-denied SSH scenarios. Complete LAN-only reachability
+remains unimplemented. Customer PC-01 can also run configured traversal,
+disallowed-method, and SQL-injection request-body probes with `curl`; all three
+are prevented by the business DMZ WAF and create distinct defensive evidence
+for the Central SOC session.
 
 ## Scope
 
@@ -58,6 +66,15 @@ routing is required for the baseline.
 - Translation and public reachability are evaluated at the next levels.
 
 The four assets, their baseline interfaces, and the private prefix are parsed
-from canonical YAML. Planned work completes the three peer links, constructs
-the topology, and adds positive and negative scenarios so Rust can determine
-whether each target is satisfied.
+from canonical YAML. The selected DNS and public-service scenarios construct
+the originating workstation, access switch, and router from those records and
+exercise their selected links. PC-01 and PC-02 terminal and browser actions
+use independent source addresses and scenario documents for `nslookup`,
+HTTPS, and denied SSH. LAN-only reachability scenarios remain planned.
+
+PC-01 additionally selects a security exercise only for its exact configured
+method, path, and request body. `curl -I` follows the normal configured HTTPS
+scenario, whereas the traversal URL, `curl -X DELETE` request, and quoted
+`curl --data "username=admin' OR '1'='1"` payload select their respective
+controlled denials. A benign quoted POST uses the normal HTTPS path. Ordinary
+browsing continues to use GET on the successful public HTTPS scenario.

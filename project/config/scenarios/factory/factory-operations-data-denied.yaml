@@ -1,0 +1,32 @@
+schema_version: "0.11.0"
+id: "factory-operations-data-denied"
+label: "Factory operations data denied"
+summary: "The northbound firewall rejects an unauthorized SSH attempt from the OT DMZ historian replica while leaving the approved HTTPS conduit unchanged."
+category: "security-policy"
+participants:
+  - "ot-dmz-hist-replica-01"
+  - "ot-dmz-sw-01"
+  - "central-factory-conduit-01"
+  - "business-frw-03a"
+  - "business-it-core-sw-01"
+  - "business-it-srv-sw-01"
+  - "operations-analytics-01"
+source: "ot-dmz-hist-replica-01"
+packet:
+  source_ip: "172.20.52.10"
+  destination_ip: "10.10.80.50"
+  ttl: 64
+  wire_length_bytes: 512
+  transport:
+    protocol: "tcp"
+    source_port: 44001
+    destination_port: 22
+    syn: true
+  application:
+    kind: "service"
+    service: "analytics"
+expectation:
+  component: "business-frw-03a"
+  outcome: "dropped"
+  reason_contains: "denied by default policy"
+event_limit: 128

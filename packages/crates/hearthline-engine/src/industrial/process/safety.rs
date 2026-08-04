@@ -1,12 +1,14 @@
 use heapless::Vec as FixedList;
 use hearthline_model::{ComponentId, ComponentKind, PortId, ProcessEvent, SignalValue, Text};
 
+use super::storage::{Ports, collect_ports};
 use crate::runtime::{collect_fixed, runtime_text, single_effect};
 use crate::{DropReason, Effect, EffectList, ProcessEffect, SimulatedComponent, SimulationEvent};
 
 #[derive(Clone, Debug)]
 pub struct SafetyInterface {
     id: ComponentId,
+    ports: Ports,
     required_permissives: FixedList<Text<64>, 16>,
     permissives: FixedList<(Text<64>, bool), 16>,
     trip_latched: bool,
@@ -16,6 +18,14 @@ pub struct SafetyInterface {
 
 impl SafetyInterface {
     pub fn new(id: ComponentId, required_permissives: impl IntoIterator<Item = Text<64>>) -> Self {
+        Self::with_ports(id, [], required_permissives)
+    }
+
+    pub fn with_ports(
+        id: ComponentId,
+        ports: impl IntoIterator<Item = PortId>,
+        required_permissives: impl IntoIterator<Item = Text<64>>,
+    ) -> Self {
         let required_permissives = collect_fixed(required_permissives);
         let mut permissives = FixedList::new();
         for tag in &required_permissives {
@@ -25,6 +35,7 @@ impl SafetyInterface {
         }
         Self {
             id,
+            ports: collect_ports(ports),
             required_permissives,
             permissives,
             trip_latched: true,
@@ -56,8 +67,8 @@ impl SimulatedComponent for SafetyInterface {
         ComponentKind::SafetyInterface
     }
 
-    fn has_port(&self, _port: &PortId) -> bool {
-        false
+    fn has_port(&self, port: &PortId) -> bool {
+        self.ports.contains(port)
     }
 
     fn handle(&mut self, event: SimulationEvent) -> EffectList {
@@ -120,7 +131,9 @@ impl SimulatedComponent for SafetyInterface {
             }
             SimulationEvent::Process(ProcessEvent::Tick { .. })
             | SimulationEvent::Process(ProcessEvent::Command(_)) => EffectList::new(),
-            SimulationEvent::Network(_) => {
+            SimulationEvent::Network(_)
+            | SimulationEvent::Ipv4Egress(_)
+            | SimulationEvent::FirewallHa(_) => {
                 single_effect(Effect::Drop(DropReason::UnsupportedProtocol))
             }
         }

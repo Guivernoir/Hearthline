@@ -1,7 +1,19 @@
 use core::fmt::{self, Display, Formatter};
 use core::net::Ipv4Addr;
+use core::str::FromStr;
 
-use crate::{PortId, ServiceKind, Text};
+use crate::{ApplicationData, PortId};
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct NetworkAddressParseError(&'static str);
+
+impl Display for NetworkAddressParseError {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        formatter.write_str(self.0)
+    }
+}
+
+impl core::error::Error for NetworkAddressParseError {}
 
 /// IEEE 802 MAC address used by the abstract Ethernet model.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -25,6 +37,19 @@ impl MacAddress {
     pub const fn is_multicast(self) -> bool {
         self.0[0] & 1 == 1
     }
+
+    pub const fn is_zero(self) -> bool {
+        self.0[0] == 0
+            && self.0[1] == 0
+            && self.0[2] == 0
+            && self.0[3] == 0
+            && self.0[4] == 0
+            && self.0[5] == 0
+    }
+
+    pub const fn is_unicast(self) -> bool {
+        !self.is_zero() && !self.is_multicast()
+    }
 }
 
 impl Display for MacAddress {
@@ -34,6 +59,32 @@ impl Display for MacAddress {
             "{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
             self.0[0], self.0[1], self.0[2], self.0[3], self.0[4], self.0[5]
         )
+    }
+}
+
+impl FromStr for MacAddress {
+    type Err = NetworkAddressParseError;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        let mut bytes = [0_u8; 6];
+        let mut parts = value.split(':');
+        for byte in &mut bytes {
+            let part = parts
+                .next()
+                .ok_or(NetworkAddressParseError("MAC address requires six octets"))?;
+            if part.len() != 2 {
+                return Err(NetworkAddressParseError(
+                    "MAC address octets require two hexadecimal digits",
+                ));
+            }
+            *byte = u8::from_str_radix(part, 16).map_err(|_| {
+                NetworkAddressParseError("MAC address contains invalid hexadecimal")
+            })?;
+        }
+        if parts.next().is_some() {
+            return Err(NetworkAddressParseError("MAC address requires six octets"));
+        }
+        Ok(Self::new(bytes))
     }
 }
 
@@ -82,6 +133,15 @@ impl Ipv4Cidr {
     }
 }
 
+impl FromStr for Ipv4Cidr {
+    type Err = NetworkAddressParseError;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        let (address, prefix) = parse_ipv4_prefix(value)?;
+        Self::new(address, prefix).ok_or(NetworkAddressParseError("invalid IPv4 prefix"))
+    }
+}
+
 impl Display for Ipv4Cidr {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         write!(formatter, "{}/{}", self.network, self.prefix)
@@ -94,6 +154,73 @@ const fn prefix_mask(prefix: u8) -> u32 {
     } else {
         u32::MAX << (32 - prefix)
     }
+}
+
+/// IPv4 address assigned to an interface while retaining its host bits.
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct Ipv4InterfaceAddress {
+    address: Ipv4Addr,
+    subnet: Ipv4Cidr,
+}
+
+impl Ipv4InterfaceAddress {
+    pub fn new(address: Ipv4Addr, prefix: u8) -> Option<Self> {
+        let subnet = Ipv4Cidr::new(address, prefix)?;
+        if address.is_unspecified()
+            || address.is_multicast()
+            || address == Ipv4Addr::BROADCAST
+            || (prefix <= 30
+                && (address == subnet.network()
+                    || u32::from(address) == (u32::from(subnet.network()) | !prefix_mask(prefix))))
+        {
+            return None;
+        }
+        Some(Self { address, subnet })
+    }
+
+    pub const fn address(self) -> Ipv4Addr {
+        self.address
+    }
+
+    pub const fn subnet(self) -> Ipv4Cidr {
+        self.subnet
+    }
+
+    pub fn is_on_link(self, address: Ipv4Addr) -> bool {
+        self.subnet.contains(address)
+    }
+}
+
+impl Display for Ipv4InterfaceAddress {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        write!(formatter, "{}/{}", self.address, self.subnet.prefix())
+    }
+}
+
+impl FromStr for Ipv4InterfaceAddress {
+    type Err = NetworkAddressParseError;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        let (address, prefix) = parse_ipv4_prefix(value)?;
+        Self::new(address, prefix).ok_or(NetworkAddressParseError("invalid IPv4 interface prefix"))
+    }
+}
+
+fn parse_ipv4_prefix(value: &str) -> Result<(Ipv4Addr, u8), NetworkAddressParseError> {
+    let (address, prefix) = value
+        .split_once('/')
+        .ok_or(NetworkAddressParseError("IPv4 address requires a prefix"))?;
+    let address = Ipv4Addr::from_str(address)
+        .map_err(|_| NetworkAddressParseError("invalid IPv4 address"))?;
+    let prefix = prefix
+        .parse::<u8>()
+        .map_err(|_| NetworkAddressParseError("invalid IPv4 prefix"))?;
+    if prefix > 32 {
+        return Err(NetworkAddressParseError(
+            "IPv4 prefix must be between 0 and 32",
+        ));
+    }
+    Ok((address, prefix))
 }
 
 /// One route in an appliance forwarding table.
@@ -237,41 +364,6 @@ impl Transport {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum HttpMethod {
-    Get,
-    Head,
-    Post,
-    Put,
-    Patch,
-    Delete,
-    Options,
-}
-
-// Fixed text buffers intentionally keep packet data allocator-free.
-#[allow(clippy::large_enum_variant)]
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ApplicationData {
-    None,
-    DnsQuery {
-        name: Text<128>,
-    },
-    DnsAnswer {
-        name: Text<128>,
-        address: Option<Ipv4Addr>,
-    },
-    HttpRequest {
-        method: HttpMethod,
-        host: Text<128>,
-        path: Text<192>,
-        body_bytes: usize,
-    },
-    HttpResponse {
-        status: u16,
-    },
-    Service(ServiceKind),
-}
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Ipv4Packet {
     pub source: Ipv4Addr,
@@ -329,11 +421,27 @@ pub struct ArpPacket {
     pub target_ip: Ipv4Addr,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum FirewallHaMessage {
+    Heartbeat {
+        domain: crate::Text<64>,
+        sequence: u64,
+        sent_at_us: u64,
+    },
+    SessionUpsert {
+        domain: crate::Text<64>,
+        generation: u64,
+        flow: FlowKey,
+        expires_at_us: u64,
+    },
+}
+
 // Packet payloads remain inline so forwarding never requires heap ownership.
 #[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum NetworkPayload {
     Arp(ArpPacket),
+    FirewallHa(FirewallHaMessage),
     Ipv4(Ipv4Packet),
 }
 
@@ -343,4 +451,15 @@ pub struct EthernetFrame {
     pub destination: MacAddress,
     pub vlan: VlanId,
     pub payload: NetworkPayload,
+    /// Bytes carried on the Ethernet medium from destination MAC through FCS.
+    pub wire_len_bytes: u16,
+}
+
+impl EthernetFrame {
+    pub const MIN_WIRE_LEN_BYTES: u16 = 64;
+    pub const VLAN_OVERHEAD_BYTES: u32 = 22;
+
+    pub const fn has_valid_wire_length(&self) -> bool {
+        self.wire_len_bytes >= Self::MIN_WIRE_LEN_BYTES
+    }
 }

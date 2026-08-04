@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "area-03-dmpr-01"
 label: "AREA-03-DMPR-01"
 kind: "field-actuator"
@@ -33,3 +33,6 @@ behavior:
   command_tag: "area-03-dmpr-01-command"
   safe_state: "closed"
   feedback_tag: "area-03-dmpr-01-feedback"
+  states:
+    - "closed"
+    - "open"

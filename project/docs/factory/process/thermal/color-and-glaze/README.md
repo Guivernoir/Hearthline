@@ -12,8 +12,15 @@ and controlled cleaning cycles.
 
 ## Current Representation
 
-The Svelte view renders the representative assets below from bootstrap JSON. It
-does not currently execute control logic, I/O, or process behavior.
+The architecture view renders the representative assets below from bootstrap
+JSON. `AREA-05-HMI-01` is enterable as a Rust-backed operator session assembled
+from the area appliance YAML. It displays configured tank-level and flow
+samples, requires a healthy interlock reset, and exposes pump and spray-gun
+states through the HMI, vPLC, remote I/O, and field-actuator path.
+
+This is a deterministic operator-command baseline. Recipe handling, circulation
+and cleaning sequences, process dynamics, and Structured Text execution remain
+pending.
 
 | Function | Representative component |
 | --- | --- |

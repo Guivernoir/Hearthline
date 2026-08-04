@@ -1,6 +1,6 @@
 # Hearthline
 
-**Current development release:** `0.2.0`
+**Current development release:** `0.3.0`
 
 See the [changelog](CHANGELOG.md) and
 [versioning policy](project/docs/reference/versioning.md).
@@ -8,10 +8,44 @@ See the [changelog](CHANGELOG.md) and
 Hearthline is an industrial architecture and simulation project intended to
 connect a public customer journey, enterprise services, governed IT/OT
 exchange, and a segmented ceramics process. Its current implementation is a
-navigable Svelte architecture application plus an initial deterministic Rust
-component engine. Typed appliance and connection YAML pipelines now validate
-the rendered inventory and its physical and logical attachment records,
-generate frontend configuration data, and support validated local editing.
+navigable Svelte architecture application plus a deterministic Rust component
+engine. Typed appliance, connection, and scenario YAML pipelines validate the
+rendered inventory and selected executable paths, generate frontend
+configuration data, and support validated local editing. Twenty-eight configured
+scenarios cover independent Customer PC-01 and PC-02 public paths, independent
+Business IT PC-01 through PC-04 internal DNS and HTTPS paths, approved or
+denied factory operations-data flows, and three controlled public-web security
+exercises: path traversal, a disallowed method, and a bounded SQL-injection
+request body.
+The first availability scenario applies a request-scoped customer access-link
+outage, verifies the resulting media drop, and defines a separate recovery
+state whose restored run must deliver the original DNS response.
+A second availability scenario combines VRRP gateway transfer with
+Rust-computed Rapid-PVST root, root-port, designated-port, and alternate-port
+states so the unchanged Business IT DNS packet follows Core-01 at baseline and
+Core-02 after the selected primary uplinks fail.
+The northbound firewall pair now also executes a timed continuity scenario:
+the active member serializes one TCP session and heartbeats over its dedicated
+HA medium, the standby promotes after the configured hold timer, advertises
+the shared first-hop identities, and permits the exact reverse ACK from
+synchronized state. This is a deterministic Hearthline protocol abstraction,
+not an implementation of a vendor HA protocol or a seamless-failover claim.
+Two fault variants now distinguish retained state from unavailable state: one
+drops the HA medium after synchronization and preserves the reverse flow,
+while the other clears the standby session table and verifies default-deny
+behavior after promotion.
+A third fault case retains synchronized state through promotion, waits beyond
+the modeled 300-second idle TCP timeout, and proves that FRW-03B expires the
+stale entry before rejecting the delayed reverse ACK.
+An HA-isolation case drops only the synchronization path while FRW-03A remains
+healthy. FRW-03B reaches its hold timer but stays fenced because peer failure
+is unconfirmed, preserving one active owner and the established flow.
+A factory-autonomy case disables both factory-facing inter-site handoffs. The
+operations-data transfer fails on both paths while an independently evaluated
+Body Preparation control chain retains seven operational local links, resets
+its healthy safety circuit, and starts the configured transfer pump through
+HMI, vPLC, remote I/O, and actuator behavior. This is a bounded command-level
+proof, not yet a changing plant-state or controller-program simulation.
 Complete topology execution, IEC 61131-3 control execution, and plant
 simulation remain planned engineering layers.
 
@@ -77,34 +111,71 @@ The following capabilities are implemented in the Svelte application:
 - Rust-generated appliance and connection metadata, full YAML inspection, and
   validated editing through a localhost-only Rust API.
 - A Rust workspace with shared model contracts, typed YAML configuration,
-  deterministic appliance primitives, process-component primitives, trace
-  output, and command-line validation and generation.
+  deterministic appliance primitives, process-component primitives, physical
+  media transit, trace output, and command-line validation and generation.
+- An API-backed simulation workspace for packet overrides, deterministic
+  execution, outcome metrics, trace filtering, and desktop or mobile scenario
+  selection.
+- Scenario-owned and request-time connection-state overrides with an editable
+  link-state panel, canonical reset, YAML-declared recovery action, active
+  baseline or recovery expectations, and explicit media-failure traces.
+- YAML-configured VRRP identities with validated active/standby state, an
+  editable first-hop role panel, split-brain rejection, and a Core-02 recovery
+  trace after selected Core-01 uplink failure.
+- Reciprocal firewall-HA configuration with validated heartbeat and hold
+  timers, media-carried bounded session updates, active-member failure,
+  standby promotion, gratuitous first-hop announcements, and reverse-flow
+  continuity evidence in the simulation workspace.
+- YAML-configured Rapid-PVST bridge identities and priorities with
+  Rust-computed per-VLAN root selection, long path costs, port roles,
+  forwarding or discarding state, and scenario-report projection.
+- Enterable Customer PC-01 and PC-02 endpoints with responsive desktops,
+  terminals, browsers, independent YAML-derived network identities, and
+  Rust-backed DNS, HTTPS, and denied SSH actions.
+- Enterable Business IT PC-01 through PC-04 endpoints with scenario-derived
+  portal home pages and Rust-backed internal DNS and HTTPS actions across
+  trunked VLANs 20, 30, and 80 through routed Core-01 SVIs.
+- Enterable HMIs for all ten process areas with YAML-derived instruments,
+  safety permissives, alarm acknowledgement, operator audit, equipment-specific
+  actuator states, and commands executed through Rust HMI, vPLC, remote-I/O,
+  and field-actuator primitives.
+- Composite factory-autonomy evidence in the simulation workspace, including
+  redundant conduit loss, local-path health, safety reset, command result,
+  final actuator state, and the six recorded control stages.
+- Controlled customer-workstation path-traversal, disallowed-method, and
+  request-body SQL-injection exercises that are prevented by the DMZ
+  reverse-proxy WAF and projected into an enterable Central SOC session with
+  evidence, filtering, acknowledgement, and bounded event retention.
 
 Current maturity is:
 
 | Layer | Status |
 | --- | --- |
-| Application release | `0.2.0`, initial development |
+| Application release | `0.3.0`, initial development |
 | Svelte architecture application | Implemented and buildable; rendered architecture remains provisional |
 | Physical and logical documentation captures | Implemented for every documented route |
 | Process view-model contract | Bootstrap JSON, schema `0.2.0` |
-| Canonical appliance YAML | Provisional baseline; 160 schema `0.3.0` files, one per appliance |
-| Canonical connection YAML | Provisional baseline; 205 schema `0.2.0` files, one per modeled connection |
-| Rust component simulation | Initial allocator-free implementation; reusable primitives and external integration tests exist, but the project topology is not instantiated |
-| Rust YAML validation and frontend projection | Implemented for appliance behavior, port hardware and state, connection media, endpoint compatibility, capacity, exclusive point-to-point ports, file identity, and render bindings |
+| Canonical appliance YAML | Provisional baseline; 162 schema `0.9.0` files, one per appliance |
+| Canonical connection YAML | Provisional baseline; 208 schema `0.2.0` files, one per modeled connection |
+| Rust component simulation | Allocator-free appliance runtime with Ethernet, ARP, switching, LACP aggregation, bounded multi-chassis split horizon, routing, NAT, active/standby stateful firewalls, service, media, and process primitives |
+| Rust YAML validation and frontend projection | Implemented for appliance behavior, port hardware and state, VRRP member consistency, Rapid-PVST bridge identities, LACP, multi-chassis and firewall-HA relationships, synchronized firewall policy, connection media, endpoint compatibility, capacity, exclusive point-to-point ports, file identity, and render bindings |
 | Local YAML editing | Implemented with revision checks, whole-project validation, atomic writes, and catalog regeneration |
-| Configured topology and end-to-end scenarios | Planned; validated connection records are not yet assembled into an executable project graph |
+| Configured topology and end-to-end scenarios | Initial implementation; 28 versioned scenarios cover independent customer public paths, Business IT PC-01 through PC-04 internal DNS and HTTPS, deterministic Business IT core recovery, converged and protocol-timed northbound-firewall recovery, HA-sync, standby-state, stale-session, and fenced-isolation cases, a brokered OT-DMZ-to-analytics path with explicit HTTPS delivery and SSH default denial, a composite local-control/inter-site-outage case, three WAF-prevented security exercises, and one customer access-circuit outage with an explicit restoration expectation |
+| Offensive and defensive interaction | First controlled slice implemented through Customer PC-01 method- and body-aware `curl`, configuration-owned DMZ WAF policy, and a filterable session-local Central SOC queue; broader attack techniques, telemetry transport, correlation, and response automation remain planned |
+| HMI and process interaction | Operator sessions implemented for all ten process areas; static configured samples, startup safety reset, alarm acknowledgement, equipment-specific commands, audit, and four-stage component traces execute, while plant dynamics and IEC 61131-3 logic remain planned |
 | IEC 61131-3 sources and vPLC execution | Planned; no control sources or runtime integration exist yet |
 | Deployment or standards conformance | Not claimed |
 
 The generated catalog proves that the current YAML files parse, every
-connection resolves to declared appliance ports, each port supports its
+connection resolves to declared appliance ports, configured spanning-tree
+bridges have valid and unique identities, each port supports its
 connection medium, link capacity does not exceed configured port or medium
 limits, and point-to-point physical ports are not reused. It does not prove
-address uniqueness, VLAN or route consistency, policy correctness, HA
-behavior, or end-to-end reachability. Remaining bootstrap frontend datasets
-still describe architecture and presentation intent rather than simulated
-behavior.
+project-wide address uniqueness, VLAN or route consistency, policy
+correctness, complete HA behavior, or arbitrary end-to-end reachability. The
+28 configured scenarios prove only their selected participant paths and
+expected outcomes. Remaining bootstrap frontend datasets still describe architecture
+and presentation intent rather than simulated behavior.
 
 The current YAML values and rendered architecture are intentionally
 provisional placeholders. They provide stable identifiers, parser coverage,
@@ -231,39 +302,35 @@ corresponding current view.
 
 ## Next Planned Step
 
-The next engineering milestone is a formal device-to-device communication
-model executed through the typed media layer added in release `0.2.0`. Rust
-will instantiate configured ports and connections, carry typed network or
-field messages across them, apply link state, direction, capacity, MTU,
-serialization, propagation, and loss behavior, and emit an explained trace for
-each hop.
-
-The Customer LAN and Customer Edge will provide the first executable path.
-This milestone will establish the communication contract used later by
-switching, routing, NAT, firewall, service, OT, and controller scenarios.
+The next engineering milestone adds changing local process state and alarm
+transitions so autonomy can be evaluated across controller scans and equipment
+effects rather than only one bounded operator command.
 
 ## Roadmap
 
-1. Implement formal device-to-device communication through configured ports
-   and typed media, beginning with the Customer LAN and Customer Edge.
+1. Add changing process-state presentation, alarm transitions, and equipment
+   effects behind the ten-area HMI baseline.
 2. Extend cross-file validation to addresses, VLANs, routes, NAT, services,
    policy references, and HA relationships.
-3. Move the remaining site and environment presentation data out of Svelte
+3. Extend configured component construction beyond the currently executable
+   network, service, link, and industrial process families.
+4. Add further positive, negative, outage, and isolation set simulations with
+   deterministic traces and explicit policy expectations.
+5. Add further factory-local outage and recovery scenarios as plant behavior
+   becomes executable.
+6. Move the remaining site and environment presentation data out of Svelte
    components.
-4. Construct simulated component instances from validated appliance
-   configuration.
-5. Assemble complete topologies from the existing routing, NAT, firewall,
-   switching, link, service, and OT behavior primitives.
-6. Add positive and negative end-to-end scenarios with deterministic traces.
-7. Emit versioned JSON view models and scenario results for Svelte.
-8. Replace provisional configuration values and architecture placeholders with
+7. Replace provisional configuration values and architecture placeholders with
    scenario-derived, cross-validated, and reviewed engineering definitions.
-9. Select the supported IEC 61131-3 edition, Structured Text dialect, and
+8. Select the supported IEC 61131-3 edition, Structured Text dialect, and
    Ladder interchange format.
-10. Implement program, symbol, task, tag, and I/O cross-references.
-11. Integrate virtual PLC execution with the Rust plant model.
-12. Add process scenarios, accelerated time, material tracking, and fault
+9. Implement program, symbol, task, tag, and I/O cross-references.
+10. Integrate virtual PLC execution with the Rust plant model.
+11. Add process scenarios, accelerated time, material tracking, and fault
     injection.
+12. Extend the controlled Phase 3 WAF baseline with additional attack,
+    detection, triage, and response paths backed by deterministic policy
+    behavior.
 
 ## Running the Application
 
@@ -273,7 +340,8 @@ npm install
 npm run dev
 ```
 
-Validated editing requires the local Rust API from the repository root:
+Scenario execution and validated editing require the local Rust API from the
+repository root:
 
 ```bash
 cargo run --manifest-path packages/Cargo.toml -p hearthline-api
@@ -293,6 +361,8 @@ cargo clippy --manifest-path packages/Cargo.toml --workspace --all-targets --all
 cargo test --manifest-path packages/Cargo.toml --workspace --all-features
 cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- config-validate
 cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- config-generate
+cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- config-demo
+cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run customer-dns-lookup
 cargo bench --manifest-path packages/Cargo.toml --workspace --all-features
 ```
 

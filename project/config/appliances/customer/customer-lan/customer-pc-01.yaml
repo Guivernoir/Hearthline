@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "customer-pc-01"
 label: "Customer PC-01"
 kind: "workstation"
@@ -11,6 +11,8 @@ lifecycle: "design"
 tags:
   - "customer"
   - "endpoint"
+  - "interactive"
+default_gateway: "192.168.0.1"
 render:
   - view: "customer/customer-lan"
     node: "pc-01"
@@ -18,6 +20,7 @@ render:
 interfaces:
   - id: "fast-ethernet-0"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:00:01:02"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -34,3 +37,6 @@ behavior:
   family: "endpoint"
   accepted_services: []
   respond_to_icmp: true
+  hostname: "customer-pc-01"
+  dns_servers:
+    - "198.51.100.50"

@@ -21,6 +21,48 @@ export interface FrontendAppliance {
   interfaces: FrontendInterface[];
   services: string[];
   behaviorFacts: string[];
+  spanningTree: FrontendSpanningTree | null;
+  linkAggregation: FrontendLinkAggregation | null;
+  multiChassis: FrontendMultiChassis | null;
+  firewallHa: FrontendFirewallHa | null;
+}
+
+export interface FrontendSpanningTree {
+  protocol: "rapid-pvst";
+  bridgePriority: number;
+  bridgeMac: string;
+}
+
+export interface FrontendLinkAggregation {
+  systemMac: string;
+  groups: FrontendLinkAggregationGroup[];
+}
+
+export interface FrontendLinkAggregationGroup {
+  id: string;
+  logicalId: string;
+  protocol: "lacp";
+  mode: "active" | "passive";
+  minimumActiveMembers: number;
+  members: string[];
+}
+
+export interface FrontendMultiChassis {
+  domain: string;
+  peer: string;
+  peerLink: string;
+  role: "primary" | "secondary";
+}
+
+export interface FrontendFirewallHa {
+  domain: string;
+  peer: string;
+  role: "active" | "standby";
+  syncInterface: string;
+  monitoredInterfaces: string[];
+  sessionSync: boolean;
+  heartbeatIntervalMs: number;
+  failureHoldMs: number;
 }
 
 export interface FrontendInterface {
@@ -35,6 +77,17 @@ export interface FrontendInterface {
   addresses: string[];
   vlans: number[];
   supportedMedia: string[];
+  firstHop: FrontendFirstHop | null;
+}
+
+export interface FrontendFirstHop {
+  protocol: "vrrp";
+  group: number;
+  virtualIp: string;
+  virtualMac: string;
+  priority: number;
+  preempt: boolean;
+  initialRole: "active" | "standby";
 }
 
 export interface FrontendConnectionEndpoint {
@@ -75,6 +128,7 @@ export interface FrontendConnection {
 
 export interface ApplianceCatalog {
   schemaVersion: string;
+  applianceSchemaVersion: string;
   generationStatus: "generated";
   generatedBy: string;
   applianceSourceRoot: string;
@@ -85,7 +139,8 @@ export interface ApplianceCatalog {
   applianceConnectionIndex: Record<string, string[]>;
 }
 
-export const SUPPORTED_APPLIANCE_CATALOG_SCHEMA = "0.3.0";
+export const SUPPORTED_APPLIANCE_CATALOG_SCHEMA = "0.8.0";
+export const SUPPORTED_APPLIANCE_SCHEMA = "0.9.0";
 export const SUPPORTED_CONNECTION_SCHEMA = "0.2.0";
 
 let activeCatalog = applianceConfigData as ApplianceCatalog;
@@ -93,6 +148,12 @@ let activeCatalog = applianceConfigData as ApplianceCatalog;
 if (activeCatalog.schemaVersion !== SUPPORTED_APPLIANCE_CATALOG_SCHEMA) {
   throw new Error(
     `Unsupported appliance catalog schema ${activeCatalog.schemaVersion}; expected ${SUPPORTED_APPLIANCE_CATALOG_SCHEMA}`,
+  );
+}
+
+if (activeCatalog.applianceSchemaVersion !== SUPPORTED_APPLIANCE_SCHEMA) {
+  throw new Error(
+    `Unsupported appliance YAML schema ${activeCatalog.applianceSchemaVersion}; expected ${SUPPORTED_APPLIANCE_SCHEMA}`,
   );
 }
 
@@ -111,6 +172,11 @@ export function installCatalog(catalog: ApplianceCatalog) {
       `Unsupported appliance catalog schema ${catalog.schemaVersion}; expected ${SUPPORTED_APPLIANCE_CATALOG_SCHEMA}`,
     );
   }
+  if (catalog.applianceSchemaVersion !== SUPPORTED_APPLIANCE_SCHEMA) {
+    throw new Error(
+      `Unsupported appliance YAML schema ${catalog.applianceSchemaVersion}; expected ${SUPPORTED_APPLIANCE_SCHEMA}`,
+    );
+  }
   activeCatalog = catalog;
   appliancesById = indexById(catalog.appliances);
   connectionsById = indexById(catalog.connections);
@@ -126,6 +192,29 @@ export function findAppliance(id: string) {
 
 export function findConnection(id: string) {
   return connectionsById.get(id) ?? null;
+}
+
+export function isInteractiveWorkstation(id: string) {
+  const appliance = findAppliance(id);
+  return appliance !== null &&
+    ["workstation", "privileged-workstation", "engineering-workstation"].includes(
+      appliance.kind,
+    ) &&
+    appliance.tags.includes("interactive");
+}
+
+export function isInteractiveHmi(id: string) {
+  const appliance = findAppliance(id);
+  return appliance !== null &&
+    appliance.kind === "hmi" &&
+    appliance.tags.includes("interactive");
+}
+
+export function isInteractiveSecurityConsole(id: string) {
+  const appliance = findAppliance(id);
+  return appliance !== null &&
+    appliance.kind === "operations-console" &&
+    appliance.tags.includes("interactive");
 }
 
 export function findConnectionsForAppliance(id: string) {

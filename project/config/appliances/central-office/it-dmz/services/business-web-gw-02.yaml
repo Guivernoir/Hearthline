@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "business-web-gw-02"
 label: "Business WEB-GW-02"
 kind: "reverse-proxy-waf"
@@ -60,6 +60,24 @@ behavior:
   listeners:
     - protocol: "https"
       port: 443
+  allowed_hosts:
+    - "shop.hearthline.test"
+  allowed_methods:
+    - "get"
+    - "head"
+    - "post"
+  inspection_rules:
+    - id: "path-traversal"
+      target: "path"
+      contains: ".."
+      case_sensitive: true
+      reason: "rule path-traversal: path traversal pattern"
+    - id: "sql-injection-tautology"
+      target: "body"
+      contains: "' OR '1'='1"
+      case_sensitive: false
+      reason: "rule sql-injection-tautology: SQL injection tautology pattern"
   upstreams:
-    - "internal-application-vip"
+    - id: "business-it-services-01"
+      address: "10.10.80.10"
   max_request_bytes: 1048576

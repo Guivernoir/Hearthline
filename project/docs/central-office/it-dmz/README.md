@@ -10,11 +10,18 @@ to the provider and internal Business IT.
 ## Implementation Status
 
 The DMZ architecture, addressing intent, and policy boundaries are represented
-in Svelte. The paired assets indicate an availability target, not implemented
-HA. Rust now contains initial NAT, firewall, service, and abstract web-gateway
-primitives and parses each rendered appliance's YAML. The DMZ instances are not
-yet connected into a complete simulation; TLS processing, synchronized HA
-state, and failover are not implemented or tested.
+in Svelte. Rust assembles and tests one selected A-side customer path through
+the business edge, external firewall, DMZ switch, and web gateway. Static
+destination NAT publishes `192.0.2.10`, named policy permits HTTPS to
+`172.16.10.2`, and the gateway validates `shop.hearthline.test/shop` before an
+upstream request crosses `Business FRW-02A` to `Business IT Services-01`.
+Configured HTTP 200 content returns to the customer through stateful policy and
+reverse NAT. The gateway allows GET, HEAD, and POST from canonical YAML, and
+rejects configured traversal, DELETE, and SQL-injection request-body probes
+with separate evidence.
+Public SSH is denied by default policy. The paired assets indicate an
+availability target; TLS cryptography, synchronized HA state, and failover are
+not implemented or tested.
 
 ## Architecture
 
@@ -65,18 +72,21 @@ The target design assigns `Business EDGE-RTR-01/02` a static translation from
 - Device management uses dedicated management roles, not the public conduit.
 - NAT and firewall policy remain separate concerns and are evaluated in order.
 
-## Planned Validation Scenarios
+## Scenario Coverage
 
-| Flow | Expected result |
-| --- | --- |
-| Public DNS-resolved HTTPS to `192.0.2.10` | Allowed and translated to `172.16.10.2` |
-| Public HTTP to the published service | Redirected to HTTPS when enabled |
-| Unpublished public service | Denied |
-| Public source to Business IT | Denied |
-| Web server to an explicitly approved internal dependency | Allowed only by named rule |
-| DMZ source to network-management interfaces | Denied |
+| Flow | Status | Result |
+| --- | --- | --- |
+| Public DNS-resolved HTTPS to `192.0.2.10` | Implemented | Translated, admitted at both firewall boundaries, answered by `10.10.80.10`, and returned to the customer |
+| Public SSH to `192.0.2.10` | Implemented | Translated, then denied at the external perimeter |
+| Public traversal probe over HTTPS | Implemented | Admitted through the perimeter, then rejected at `Business WEB-GW-01` with security evidence |
+| Public DELETE probe over HTTPS | Implemented | Admitted through the perimeter, then rejected by the gateway's YAML-defined method allowlist with separate evidence |
+| Public SQL-injection POST probe over HTTPS | Implemented | Admitted through the perimeter, then rejected by the gateway's YAML-defined body inspection rule with separate evidence |
+| Public HTTP to the published service | Planned | Redirect behavior exists as a primitive but is not configured end to end |
+| Other unpublished public service | Planned | Expected denied |
+| Public source to Business IT | Planned | Expected denied |
+| Web gateway to an approved internal dependency | Implemented | Exact HTTPS policy permits `172.16.10.2` to `10.10.80.10` on the selected A-side path |
+| DMZ source to network-management interfaces | Planned | Expected denied |
 
-The current appliance YAML defines baseline interfaces, services, translation,
-and default-deny behavior. Planned schema expansion and topology construction
-must replace generic policy placeholders with named references before the Rust
-evaluator can report each route, NAT stage, policy boundary, and final result.
+The current test proves only the selected A-side path and the declared
+outcomes. It does not prove arbitrary DMZ reachability or redundant service
+operation.

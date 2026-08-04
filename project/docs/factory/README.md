@@ -17,8 +17,15 @@ firewall, and connector primitives now exist, and all factory appliances and
 current attachment records have parsed YAML. The configuration includes a
 redundant Level 3 aggregation pair between the OT firewall, factory-local
 services, vPLC hosts, and cell uplinks. No area-specific control logic, plant
-dynamics, executable factory topology, or availability scenario currently
-runs.
+dynamics, or complete factory topology currently runs.
+One selected OT DMZ exchange path is executable for historian-replica data to
+Central Office analytics, including a positive HTTPS result and a negative SSH
+result. Each of the ten process HMIs also runs a deterministic YAML-derived
+operator session with startup safety reset, alarm and audit state, and
+four-stage field-command traces. A composite availability scenario drops both
+factory-facing conduit handoffs while the Body Preparation HMI resets its
+safety interface and commands its pump over an independently validated local
+path. These sessions do not yet execute automatic control or process dynamics.
 
 ## Environments
 

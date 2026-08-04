@@ -1,0 +1,33 @@
+schema_version: "0.11.0"
+id: "business-it-user-pc-01-portal"
+label: "Business user PC-01 internal portal"
+summary: "Managed user PC-01 reaches the internal employee portal through user access, Core-01 routing, and application access on VLAN 80."
+category: "business-it"
+participants:
+  - "business-it-usr-pc-01"
+  - "business-it-usr-sw-01"
+  - "business-it-core-sw-01"
+  - "business-it-srv-sw-01"
+  - "business-it-portal-01"
+source: "business-it-usr-pc-01"
+packet:
+  source_ip: "10.10.30.101"
+  destination_ip: "10.10.80.20"
+  ttl: 64
+  wire_length_bytes: 768
+  transport:
+    protocol: "tcp"
+    source_port: 55010
+    destination_port: 443
+    syn: true
+  application:
+    kind: "http-request"
+    method: "get"
+    host: "portal.hearthline.test"
+    path: "/"
+    body_bytes: 0
+expectation:
+  component: "business-it-usr-pc-01"
+  outcome: "delivered"
+  service: "https"
+event_limit: 192

@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "business-edge-rtr-01"
 label: "Business EDGE-RTR-01"
 kind: "nat-router"
@@ -19,6 +19,7 @@ render:
 interfaces:
   - id: "outside"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:30:01:01"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -29,9 +30,11 @@ interfaces:
     mode: "routed"
     addresses:
       - "192.0.2.2/24"
-    vlans: []
+    vlans:
+      - 1
   - id: "inside"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:30:01:02"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -42,7 +45,8 @@ interfaces:
     mode: "routed"
     addresses:
       - "10.255.0.1/30"
-    vlans: []
+    vlans:
+      - 1
 behavior:
   family: "nat-router"
   routes:

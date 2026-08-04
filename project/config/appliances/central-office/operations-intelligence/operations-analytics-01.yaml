@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "operations-analytics-01"
 label: "Process Analytics Platform-01"
 kind: "analytics-platform"
@@ -9,6 +9,7 @@ role: "Enterprise process analytics platform"
 summary: "Analyzes selected brokered production, quality, energy, and maintenance data."
 lifecycle: "design"
 tags: []
+default_gateway: "10.10.80.1"
 render:
   - view: "office/operations-intelligence"
     node: "analytics-platform"
@@ -16,6 +17,7 @@ render:
 interfaces:
   - id: "enterprise"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:10:80:50"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -24,8 +26,10 @@ interfaces:
       duplex: "full"
       mtu: 1500
     mode: "routed"
-    addresses: []
-    vlans: []
+    addresses:
+      - "10.10.80.50/24"
+    vlans:
+      - 80
 behavior:
   family: "service-host"
   accepted_services:

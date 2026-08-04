@@ -1,0 +1,29 @@
+schema_version: "0.11.0"
+id: "business-it-user-pc-03-dns"
+label: "Business user PC-03 internal DNS"
+summary: "Managed user PC-03 resolves the internal portal through User Access Switch 02, Core-01 SVI routing, and the internal DNS service on VLAN 20."
+category: "business-it"
+participants:
+  - "business-it-usr-pc-03"
+  - "business-it-usr-sw-02"
+  - "business-it-core-sw-01"
+  - "business-it-srv-sw-02"
+  - "business-it-dns-01"
+source: "business-it-usr-pc-03"
+packet:
+  source_ip: "10.10.30.103"
+  destination_ip: "10.10.20.10"
+  ttl: 64
+  wire_length_bytes: 96
+  transport:
+    protocol: "udp"
+    source_port: 53030
+    destination_port: 53
+  application:
+    kind: "dns-query"
+    name: "portal.hearthline.test"
+expectation:
+  component: "business-it-usr-pc-03"
+  outcome: "delivered"
+  service: "dns"
+event_limit: 192

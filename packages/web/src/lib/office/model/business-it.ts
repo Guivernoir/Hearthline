@@ -100,7 +100,10 @@ export const businessItNodes: OfficeNode[] = [
     role: "Representative managed employee workstations",
     area: "VLAN 30 · IT_USERS",
     address: "DHCP from 10.10.30.100",
-    facts: ["Fa0/1–4 on USR-SW-01", "Internal DNS 10.10.20.10"],
+    facts: [
+      "PC-01/02 on USR-SW-01; PC-03/04 on USR-SW-02",
+      "Internal DNS 10.10.20.10",
+    ],
     accent: "#426d9d",
     icon: Users,
     physical: { x: 790, y: 520 },

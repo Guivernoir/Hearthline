@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::ffi::OsString;
 use std::fs;
 use std::net::{Ipv4Addr, SocketAddr};
@@ -7,9 +8,12 @@ use std::sync::Arc;
 use axum::extract::{Path as RoutePath, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use axum::routing::{get, put};
+use axum::routing::{get, post, put};
 use axum::{Json, Router};
-use hearthline_config::{ConfigRepository, ConnectionRepository, FrontendApplianceCatalog};
+use hearthline_config::{
+    ConfigRepository, ConnectionRepository, FrontendApplianceCatalog, HmiSession,
+    ScenarioRepository,
+};
 use serde::{Deserialize, Serialize};
 use tokio::sync::Mutex;
 
@@ -19,11 +23,14 @@ const DEFAULT_PORT: u16 = 3001;
 struct AppState {
     paths: Arc<ProjectPaths>,
     write_lock: Arc<Mutex<()>>,
+    hmi_sessions: Arc<Mutex<BTreeMap<String, HmiSession>>>,
+    security_events: Arc<Mutex<security::SecurityEventStore>>,
 }
 
 struct ProjectPaths {
     appliance_root: PathBuf,
     connection_root: PathBuf,
+    scenario_root: PathBuf,
     generated_catalog: PathBuf,
 }
 
@@ -32,6 +39,7 @@ impl ProjectPaths {
         Self {
             appliance_root: root.join("project/config/appliances"),
             connection_root: root.join("project/config/connections"),
+            scenario_root: root.join("project/config/scenarios"),
             generated_catalog: root.join("packages/web/src/generated/appliance-configs.json"),
         }
     }
@@ -41,6 +49,15 @@ impl ProjectPaths {
         let connections = ConnectionRepository::load(&self.connection_root, &appliances)
             .map_err(ApiError::project)?;
         Ok((appliances, connections))
+    }
+
+    fn load_scenarios(
+        &self,
+        appliances: &ConfigRepository,
+        connections: &ConnectionRepository,
+    ) -> Result<ScenarioRepository, ApiError> {
+        ScenarioRepository::load(&self.scenario_root, appliances, connections)
+            .map_err(ApiError::project)
     }
 }
 
@@ -114,17 +131,34 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .join("../../..")
         .canonicalize()?;
     let paths = ProjectPaths::from_project_root(&project_root);
-    paths.load().map_err(|error| error.message)?;
+    let (appliances, connections) = paths.load().map_err(|error| error.message)?;
+    paths
+        .load_scenarios(&appliances, &connections)
+        .map_err(|error| error.message)?;
 
     let state = AppState {
         paths: Arc::new(paths),
         write_lock: Arc::new(Mutex::new(())),
+        hmi_sessions: Arc::new(Mutex::new(BTreeMap::new())),
+        security_events: Arc::new(Mutex::new(security::SecurityEventStore::default())),
     };
     let app = Router::new()
         .route("/api/health", get(health))
         .route("/api/config/catalog", get(catalog))
         .route("/api/config/appliances/{id}", put(update_appliance))
         .route("/api/config/connections/{id}", put(update_connection))
+        .route("/api/simulations", get(simulation::catalog))
+        .route("/api/simulations/{id}/run", post(simulation::run))
+        .route("/api/hmis/{id}", get(hmi::profile))
+        .route("/api/hmis/{id}/actions", post(hmi::action))
+        .route("/api/workstations/{id}", get(workstation::profile))
+        .route("/api/workstations/{id}/actions", post(workstation::action))
+        .route("/api/security/consoles/{id}", get(security::console))
+        .route(
+            "/api/security/events/{id}/acknowledge",
+            post(security::acknowledge),
+        )
+        .route("/api/security/consoles/{id}/clear", post(security::clear))
         .with_state(state);
 
     let port = std::env::var("HEARTHLINE_API_PORT")
@@ -133,7 +167,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap_or(DEFAULT_PORT);
     let address = SocketAddr::from((Ipv4Addr::LOCALHOST, port));
     let listener = tokio::net::TcpListener::bind(address).await?;
-    println!("Hearthline configuration API listening on http://{address}");
+    println!("Hearthline local API listening on http://{address}");
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal())
         .await?;
@@ -190,6 +224,8 @@ async fn update_appliance(
         &state.paths.generated_catalog,
         &catalog,
     )?;
+    state.hmi_sessions.lock().await.clear();
+    state.security_events.lock().await.clear();
     Ok(Json(catalog))
 }
 
@@ -222,6 +258,8 @@ async fn update_connection(
         &state.paths.generated_catalog,
         &catalog,
     )?;
+    state.hmi_sessions.lock().await.clear();
+    state.security_events.lock().await.clear();
     Ok(Json(catalog))
 }
 
@@ -274,3 +312,7 @@ fn temporary_path(path: &Path) -> PathBuf {
     name.push(".hearthline.tmp");
     PathBuf::from(name)
 }
+mod hmi;
+mod security;
+mod simulation;
+mod workstation;

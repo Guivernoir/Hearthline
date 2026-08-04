@@ -2,12 +2,14 @@ use hearthline_model::{
     ComponentId, ComponentKind, PortId, ProcessEvent, ProcessSignal, SignalValue, Text,
 };
 
+use super::storage::{Ports, collect_ports};
 use crate::runtime::{runtime_text, single_effect};
 use crate::{DropReason, Effect, EffectList, ProcessEffect, SimulatedComponent, SimulationEvent};
 
 #[derive(Clone, Debug)]
 pub struct FieldSensor {
     id: ComponentId,
+    ports: Ports,
     tag: Text<64>,
     raw_value: f64,
     gain: f64,
@@ -27,9 +29,21 @@ impl FieldSensor {
         gain: f64,
         offset: f64,
     ) -> Self {
+        Self::with_ports(id, [], tag, sample_period_ms, gain, offset)
+    }
+
+    pub fn with_ports(
+        id: ComponentId,
+        ports: impl IntoIterator<Item = PortId>,
+        tag: Text<64>,
+        sample_period_ms: u64,
+        gain: f64,
+        offset: f64,
+    ) -> Self {
         assert!(sample_period_ms > 0, "sample period must be positive");
         Self {
             id,
+            ports: collect_ports(ports),
             tag,
             raw_value: 0.0,
             gain,
@@ -56,8 +70,8 @@ impl SimulatedComponent for FieldSensor {
         ComponentKind::FieldSensor
     }
 
-    fn has_port(&self, _port: &PortId) -> bool {
-        false
+    fn has_port(&self, port: &PortId) -> bool {
+        self.ports.contains(port)
     }
 
     fn handle(&mut self, event: SimulationEvent) -> EffectList {
@@ -111,6 +125,8 @@ impl SimulatedComponent for FieldSensor {
                 EffectList::new()
             }
             SimulationEvent::Network(_)
+            | SimulationEvent::Ipv4Egress(_)
+            | SimulationEvent::FirewallHa(_)
             | SimulationEvent::Process(ProcessEvent::Signal(_))
             | SimulationEvent::Process(ProcessEvent::Command(_)) => {
                 single_effect(Effect::Drop(DropReason::UnsupportedProtocol))
@@ -122,6 +138,7 @@ impl SimulatedComponent for FieldSensor {
 #[derive(Clone, Debug)]
 pub struct Actuator {
     id: ComponentId,
+    ports: Ports,
     tag: Text<64>,
     actual: SignalValue,
     safe_value: SignalValue,
@@ -136,8 +153,19 @@ impl Actuator {
         initial: SignalValue,
         safe_value: SignalValue,
     ) -> Self {
+        Self::with_ports(id, [], tag, initial, safe_value)
+    }
+
+    pub fn with_ports(
+        id: ComponentId,
+        ports: impl IntoIterator<Item = PortId>,
+        tag: Text<64>,
+        initial: SignalValue,
+        safe_value: SignalValue,
+    ) -> Self {
         Self {
             id,
+            ports: collect_ports(ports),
             tag,
             actual: initial,
             safe_value,
@@ -167,8 +195,8 @@ impl SimulatedComponent for Actuator {
         ComponentKind::FieldActuator
     }
 
-    fn has_port(&self, _port: &PortId) -> bool {
-        false
+    fn has_port(&self, port: &PortId) -> bool {
+        self.ports.contains(port)
     }
 
     fn handle(&mut self, event: SimulationEvent) -> EffectList {
@@ -212,7 +240,10 @@ impl SimulatedComponent for Actuator {
             SimulationEvent::Process(ProcessEvent::Tick { .. })
             | SimulationEvent::Process(ProcessEvent::Signal(_))
             | SimulationEvent::Process(ProcessEvent::Reset { .. }) => EffectList::new(),
-            SimulationEvent::Network(_) | SimulationEvent::Process(ProcessEvent::Command(_)) => {
+            SimulationEvent::Network(_)
+            | SimulationEvent::Ipv4Egress(_)
+            | SimulationEvent::FirewallHa(_)
+            | SimulationEvent::Process(ProcessEvent::Command(_)) => {
                 single_effect(Effect::Drop(DropReason::UnsupportedProtocol))
             }
         }

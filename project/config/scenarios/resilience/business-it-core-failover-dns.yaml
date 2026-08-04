@@ -1,0 +1,61 @@
+schema_version: "0.11.0"
+id: "business-it-core-failover-dns"
+label: "Business IT core failover"
+summary: "Business IT PC-03 resolves the internal portal through the preferred core, then repeats the same request after the primary user and server uplinks fail and the VRRP gateway groups converge on Core-02."
+category: "availability"
+participants:
+  - "business-it-usr-pc-03"
+  - "business-it-usr-sw-02"
+  - "business-it-core-sw-01"
+  - "business-it-core-sw-02"
+  - "business-it-srv-sw-02"
+  - "business-it-dns-01"
+source: "business-it-usr-pc-03"
+packet:
+  source_ip: "10.10.30.103"
+  destination_ip: "10.10.20.10"
+  ttl: 64
+  wire_length_bytes: 96
+  transport:
+    protocol: "udp"
+    source_port: 53003
+    destination_port: 53
+  application:
+    kind: "dns-query"
+    name: "portal.hearthline.test"
+recovery:
+  label: "Fail over to Core-02"
+  summary: "Remove the preferred core from the user and infrastructure forwarding paths, transfer all modeled VRRP groups to Core-02, and verify the unchanged DNS request."
+  connection_overrides:
+    - connection: "business-it-usr-sw-02-to-core-01"
+      operational: false
+    - connection: "business-it-srv-sw-02-to-core-01"
+      operational: false
+  first_hop_overrides:
+    - appliance: "business-it-core-sw-01"
+      interface: "vlan-20"
+      role: "standby"
+    - appliance: "business-it-core-sw-01"
+      interface: "vlan-30"
+      role: "standby"
+    - appliance: "business-it-core-sw-01"
+      interface: "vlan-80"
+      role: "standby"
+    - appliance: "business-it-core-sw-02"
+      interface: "vlan-20"
+      role: "active"
+    - appliance: "business-it-core-sw-02"
+      interface: "vlan-30"
+      role: "active"
+    - appliance: "business-it-core-sw-02"
+      interface: "vlan-80"
+      role: "active"
+  expectation:
+    component: "business-it-usr-pc-03"
+    outcome: "delivered"
+    service: "dns"
+expectation:
+  component: "business-it-usr-pc-03"
+  outcome: "delivered"
+  service: "dns"
+event_limit: 192

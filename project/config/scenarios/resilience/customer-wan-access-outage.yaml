@@ -1,0 +1,44 @@
+schema_version: "0.11.0"
+id: "customer-wan-access-outage"
+label: "Customer WAN access outage"
+summary: "Customer PC-01 attempts a public DNS lookup while the residential access circuit is operationally down; the provider CPE cannot place the ARP request onto the carrier link."
+category: "availability"
+participants:
+  - "customer-pc-01"
+  - "customer-sw-01"
+  - "customer-rtr-01"
+  - "customer-inet-cpe-01"
+  - "wan-01"
+  - "isp-edge-rtr-01"
+  - "isp-dns-01"
+source: "customer-pc-01"
+packet:
+  source_ip: "192.168.0.2"
+  destination_ip: "198.51.100.50"
+  ttl: 64
+  wire_length_bytes: 96
+  transport:
+    protocol: "udp"
+    source_port: 53000
+    destination_port: 53
+  application:
+    kind: "dns-query"
+    name: "shop.hearthline.test"
+connection_overrides:
+  - connection: "customer-cpe-01-to-wan-01"
+    operational: false
+recovery:
+  label: "Restore customer access circuit"
+  summary: "Return the provider-facing customer circuit to service and verify that the original DNS request completes without changing packet or appliance configuration."
+  connection_overrides:
+    - connection: "customer-cpe-01-to-wan-01"
+      operational: true
+  expectation:
+    component: "customer-pc-01"
+    outcome: "delivered"
+    service: "dns"
+expectation:
+  component: "customer-inet-cpe-01"
+  outcome: "dropped"
+  reason_contains: "connection is down"
+event_limit: 128

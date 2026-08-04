@@ -17,3 +17,9 @@ export type ProcessAreaRoute = `factory/process/${string}`;
 export type ApplianceConfigRoute = `config/appliances/${string}`;
 
 export type ConnectionConfigRoute = `config/connections/${string}`;
+
+export type WorkstationRoute = `workstations/${string}`;
+
+export type HmiRoute = `hmis/${string}`;
+
+export type SecurityConsoleRoute = `security/${string}`;

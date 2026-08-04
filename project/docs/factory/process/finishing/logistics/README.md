@@ -12,8 +12,16 @@ production reporting.
 
 ## Current Representation
 
-The Svelte view renders the representative assets below from bootstrap JSON. It
-does not currently execute control logic, I/O, or process behavior.
+The architecture view renders the representative assets below from bootstrap
+JSON. `AREA-10-HMI-01` is enterable as a Rust-backed operator session assembled
+from the area appliance YAML. It displays configured scanner and pallet
+presence states, requires a healthy safety reset, and exposes packing-machine
+and palletizer cycle commands through the HMI, vPLC, remote I/O, and field
+actuator.
+
+This is a deterministic operator-command baseline. Product identity handling,
+packing sequences, warehouse integration, and Structured Text execution remain
+pending.
 
 | Function | Representative component |
 | --- | --- |

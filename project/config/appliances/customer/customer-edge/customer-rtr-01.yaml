@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "customer-rtr-01"
 label: "Customer RTR-01"
 kind: "nat-router"
@@ -24,6 +24,7 @@ render:
 interfaces:
   - id: "inside"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:00:01:01"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -37,6 +38,7 @@ interfaces:
     vlans: []
   - id: "outside"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:00:02:02"
     state:
       administrative: "up"
       initial_operational: "up"

@@ -75,7 +75,7 @@ impl Display for PortState {
     }
 }
 
-#[derive(Clone, Copy, Debug, Deserialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct PortStateConfig {
     pub administrative: PortState,
@@ -110,7 +110,7 @@ impl Display for PortDuplex {
     }
 }
 
-#[derive(Clone, Copy, Debug, Deserialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct PortSettings {
     pub speed_mbps: u64,
@@ -130,7 +130,7 @@ impl PortSettings {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct SimulatedPort {
     pub hardware: PortHardwareKind,
     pub state: PortStateConfig,
@@ -182,7 +182,8 @@ pub const fn appliance_supports_port(appliance: ComponentKind, port: PortHardwar
         ),
         PortHardwareKind::VirtualNic => matches!(
             appliance,
-            ComponentKind::VirtualizationHost
+            ComponentKind::Layer3Switch
+                | ComponentKind::VirtualizationHost
                 | ComponentKind::VirtualPlc
                 | ComponentKind::EncryptedConduit
         ),

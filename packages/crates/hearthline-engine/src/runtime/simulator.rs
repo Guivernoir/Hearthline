@@ -2,19 +2,23 @@ use core::error::Error;
 use core::fmt::{self, Display, Formatter, Write as _};
 
 use heapless::{Deque, Vec as FixedList};
-use hearthline_model::{ComponentId, EthernetFrame, PortId, Text};
+use hearthline_model::{ComponentId, EthernetFrame, Ipv4Packet, PortId, Text};
 
-use crate::{DropReason, Effect, NetworkIngress, SimulatedComponent, SimulationEvent};
+use crate::{
+    DropReason, Effect, Ipv4Egress, MediaLink, NetworkIngress, SimulatedComponent, SimulationEvent,
+};
 
 const COMPONENT_CAPACITY: usize = 192;
 const LINK_CAPACITY: usize = 256;
-const IMMEDIATE_CAPACITY: usize = 16;
-const DELAYED_CAPACITY: usize = 16;
-const TRACE_CAPACITY: usize = 128;
+const IMMEDIATE_CAPACITY: usize = 64;
+const DELAYED_CAPACITY: usize = 64;
+const TRACE_CAPACITY: usize = 224;
+const SHARED_MEDIA_CAPACITY: usize = 32;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct TraceEntry {
     pub time_ms: u64,
+    pub time_us: u64,
     pub component: ComponentId,
     pub effect: Effect,
 }
@@ -22,6 +26,7 @@ pub struct TraceEntry {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SimulationError {
     DuplicateComponent(ComponentId),
+    DuplicateConnection(ComponentId),
     UnknownComponent(ComponentId),
     UnknownPort(Text<96>),
     PortAlreadyConnected(Text<96>),
@@ -39,6 +44,9 @@ impl Display for SimulationError {
         match self {
             Self::DuplicateComponent(component) => {
                 write!(formatter, "component {component} already exists")
+            }
+            Self::DuplicateConnection(connection) => {
+                write!(formatter, "connection {connection} already exists")
             }
             Self::UnknownComponent(component) => write!(formatter, "unknown component {component}"),
             Self::UnknownPort(endpoint) => write!(formatter, "unknown port {endpoint}"),
@@ -68,43 +76,18 @@ struct QueuedEvent {
 
 #[derive(Clone, Debug)]
 struct DelayedEvent {
-    time_ms: u64,
+    time_us: u64,
     sequence: u64,
     event: QueuedEvent,
 }
 
-#[derive(Clone, Debug)]
-struct LinkBinding {
-    left_component: ComponentId,
-    left_port: PortId,
-    right_component: ComponentId,
-    right_port: PortId,
-}
-
-impl LinkBinding {
-    fn contains(&self, component: &ComponentId, port: &PortId) -> bool {
-        (&self.left_component == component && &self.left_port == port)
-            || (&self.right_component == component && &self.right_port == port)
-    }
-
-    fn peer(&self, component: &ComponentId, port: &PortId) -> Option<(&ComponentId, &PortId)> {
-        if &self.left_component == component && &self.left_port == port {
-            Some((&self.right_component, &self.right_port))
-        } else if &self.right_component == component && &self.right_port == port {
-            Some((&self.left_component, &self.left_port))
-        } else {
-            None
-        }
-    }
-}
-
 pub struct Simulator<'components> {
     components: FixedList<&'components mut dyn SimulatedComponent, COMPONENT_CAPACITY>,
-    links: FixedList<LinkBinding, LINK_CAPACITY>,
+    links: FixedList<&'components mut MediaLink, LINK_CAPACITY>,
     immediate: Deque<QueuedEvent, IMMEDIATE_CAPACITY>,
     delayed: FixedList<DelayedEvent, DELAYED_CAPACITY>,
     next_sequence: u64,
-    time_ms: u64,
+    time_us: u64,
     trace: FixedList<TraceEntry, TRACE_CAPACITY>,
 }
 
@@ -116,13 +99,17 @@ impl Default for Simulator<'_> {
 
 impl<'components> Simulator<'components> {
     pub const fn new() -> Self {
+        Self::with_start_time_us(0)
+    }
+
+    pub const fn with_start_time_us(time_us: u64) -> Self {
         Self {
             components: FixedList::new(),
             links: FixedList::new(),
             immediate: Deque::new(),
             delayed: FixedList::new(),
             next_sequence: 0,
-            time_ms: 0,
+            time_us,
             trace: FixedList::new(),
         }
     }
@@ -143,24 +130,29 @@ impl<'components> Simulator<'components> {
             })
     }
 
-    pub fn connect(
-        &mut self,
-        left_component: &ComponentId,
-        left_port: &PortId,
-        right_component: &ComponentId,
-        right_port: &PortId,
-    ) -> Result<(), SimulationError> {
-        self.ensure_port(left_component, left_port)?;
-        self.ensure_port(right_component, right_port)?;
-        self.ensure_available(left_component, left_port)?;
-        self.ensure_available(right_component, right_port)?;
+    pub fn add_link(&mut self, link: &'components mut MediaLink) -> Result<(), SimulationError> {
+        if self
+            .links
+            .iter()
+            .any(|candidate| candidate.id() == link.id())
+        {
+            return Err(SimulationError::DuplicateConnection(link.id().clone()));
+        }
+        let (endpoint_a, endpoint_b) = link.endpoints();
+        self.ensure_port(&endpoint_a.component, &endpoint_a.port)?;
+        self.ensure_port(&endpoint_b.component, &endpoint_b.port)?;
+        self.ensure_available(
+            &endpoint_a.component,
+            &endpoint_a.port,
+            link.requires_exclusive_endpoints(),
+        )?;
+        self.ensure_available(
+            &endpoint_b.component,
+            &endpoint_b.port,
+            link.requires_exclusive_endpoints(),
+        )?;
         self.links
-            .push(LinkBinding {
-                left_component: left_component.clone(),
-                left_port: left_port.clone(),
-                right_component: right_component.clone(),
-                right_port: right_port.clone(),
-            })
+            .push(link)
             .map_err(|_| SimulationError::CapacityExceeded {
                 resource: "links",
                 limit: LINK_CAPACITY,
@@ -179,6 +171,7 @@ impl<'components> Simulator<'components> {
             event: SimulationEvent::Network(NetworkIngress {
                 port: ingress.clone(),
                 frame,
+                received_at_us: self.time_us,
             }),
         })
     }
@@ -197,12 +190,29 @@ impl<'components> Simulator<'components> {
         })
     }
 
+    pub fn inject_ipv4(
+        &mut self,
+        component: &ComponentId,
+        packet: Ipv4Packet,
+        wire_len_bytes: u16,
+    ) -> Result<(), SimulationError> {
+        self.inject(
+            component,
+            SimulationEvent::Ipv4Egress(Ipv4Egress {
+                packet,
+                wire_len_bytes,
+                sent_at_us: self.time_us,
+            }),
+        )
+    }
+
     pub fn run(&mut self, event_limit: usize) -> Result<&[TraceEntry], SimulationError> {
         let mut processed = 0;
         while let Some(queued) = self.next_event() {
             if processed >= event_limit {
                 self.record(TraceEntry {
-                    time_ms: self.time_ms,
+                    time_ms: self.time_ms(),
+                    time_us: self.time_us,
                     component: queued.component,
                     effect: Effect::Drop(DropReason::QueueLimit),
                 })?;
@@ -215,7 +225,8 @@ impl<'components> Simulator<'components> {
             let effects = component.handle(queued.event);
             for effect in effects {
                 self.record(TraceEntry {
-                    time_ms: self.time_ms,
+                    time_ms: self.time_ms(),
+                    time_us: self.time_us,
                     component: queued.component.clone(),
                     effect: effect.clone(),
                 })?;
@@ -234,7 +245,11 @@ impl<'components> Simulator<'components> {
     }
 
     pub const fn time_ms(&self) -> u64 {
-        self.time_ms
+        self.time_us / 1_000
+    }
+
+    pub const fn time_us(&self) -> u64 {
+        self.time_us
     }
 
     fn route_effect(
@@ -251,25 +266,86 @@ impl<'components> Simulator<'components> {
         else {
             return Ok(());
         };
-        let peer = self
+        let mut link_indices: FixedList<usize, SHARED_MEDIA_CAPACITY> = FixedList::new();
+        for (index, _) in self
             .links
             .iter()
-            .find_map(|link| link.peer(source, &egress))
-            .map(|(component, port)| (component.clone(), port.clone()));
-        if let Some((component, port)) = peer {
-            self.schedule(
-                self.time_ms.saturating_add(delay_ms),
-                QueuedEvent {
-                    component,
-                    event: SimulationEvent::Network(NetworkIngress { port, frame }),
-                },
-            )
-        } else {
+            .enumerate()
+            .filter(|(_, link)| link.contains(source, &egress))
+        {
+            link_indices
+                .push(index)
+                .map_err(|_| SimulationError::CapacityExceeded {
+                    resource: "shared media fan-out",
+                    limit: SHARED_MEDIA_CAPACITY,
+                })?;
+        }
+        if link_indices.is_empty() {
             self.record(TraceEntry {
-                time_ms: self.time_ms,
+                time_ms: self.time_ms(),
+                time_us: self.time_us,
                 component: source.clone(),
                 effect: Effect::Drop(DropReason::PortDown(egress)),
-            })
+            })?;
+            return Ok(());
+        }
+        let ready_at_us = self.time_us.saturating_add(delay_ms.saturating_mul(1_000));
+        for link_index in link_indices {
+            self.route_over_link(link_index, source, &egress, &frame, ready_at_us)?;
+        }
+        Ok(())
+    }
+
+    fn route_over_link(
+        &mut self,
+        link_index: usize,
+        source: &ComponentId,
+        egress: &PortId,
+        frame: &EthernetFrame,
+        ready_at_us: u64,
+    ) -> Result<(), SimulationError> {
+        let (connection, transit) = {
+            let link = &mut self.links[link_index];
+            (
+                link.id().clone(),
+                link.transmit(source, egress, frame, ready_at_us),
+            )
+        };
+        match transit {
+            Ok(transit) => {
+                self.record(TraceEntry {
+                    time_ms: self.time_ms(),
+                    time_us: self.time_us,
+                    component: source.clone(),
+                    effect: Effect::MediaTransit {
+                        connection,
+                        destination_component: transit.destination_component.clone(),
+                        destination_port: transit.destination_port.clone(),
+                        wire_bytes: frame.wire_len_bytes,
+                        queue_delay_us: transit.queue_delay_us,
+                        serialization_us: transit.serialization_us,
+                        propagation_us: transit.propagation_us,
+                        arrival_us: transit.arrival_us,
+                    },
+                })?;
+                self.schedule(
+                    transit.arrival_us,
+                    QueuedEvent {
+                        component: transit.destination_component,
+                        event: SimulationEvent::Network(NetworkIngress {
+                            port: transit.destination_port,
+                            frame: frame.clone(),
+                            received_at_us: transit.arrival_us,
+                        }),
+                    },
+                )
+            }
+            Err(reason) => self.record(TraceEntry {
+                time_ms: self.time_ms(),
+                time_us: self.time_us,
+                component: source.clone(),
+                effect: Effect::Drop(DropReason::Media(reason)),
+            }),
         }
     }
 
@@ -288,8 +364,12 @@ impl<'components> Simulator<'components> {
         &self,
         component: &ComponentId,
         port: &PortId,
+        new_link_exclusive: bool,
     ) -> Result<(), SimulationError> {
-        if self.links.iter().any(|link| link.contains(component, port)) {
+        if self.links.iter().any(|link| {
+            link.contains(component, port)
+                && (new_link_exclusive || link.requires_exclusive_endpoints())
+        }) {
             Err(SimulationError::PortAlreadyConnected(endpoint_text(
                 component, port,
             )))
@@ -324,12 +404,12 @@ impl<'components> Simulator<'components> {
             })
     }
 
-    fn schedule(&mut self, time_ms: u64, event: QueuedEvent) -> Result<(), SimulationError> {
-        if time_ms == self.time_ms {
+    fn schedule(&mut self, time_us: u64, event: QueuedEvent) -> Result<(), SimulationError> {
+        if time_us == self.time_us {
             return self.enqueue_immediate(event);
         }
         let delayed = DelayedEvent {
-            time_ms,
+            time_us,
             sequence: self.next_sequence,
             event,
         };
@@ -338,7 +418,7 @@ impl<'components> Simulator<'components> {
             .delayed
             .iter()
             .position(|candidate| {
-                (candidate.time_ms, candidate.sequence) > (delayed.time_ms, delayed.sequence)
+                (candidate.time_us, candidate.sequence) > (delayed.time_us, delayed.sequence)
             })
             .unwrap_or(self.delayed.len());
         self.delayed
@@ -357,7 +437,7 @@ impl<'components> Simulator<'components> {
             return None;
         }
         let event = self.delayed.remove(0);
-        self.time_ms = event.time_ms;
+        self.time_us = event.time_us;
         Some(event.event)
     }
 

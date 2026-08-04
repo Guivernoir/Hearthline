@@ -5,31 +5,46 @@
   import ApplianceConfigView from "./lib/config/ApplianceConfigView.svelte";
   import ConnectionConfigView from "./lib/config/ConnectionConfigView.svelte";
   import OfficeEnvironmentView from "./lib/office/OfficeEnvironmentView.svelte";
+  import SecurityConsoleView from "./lib/office/SecurityConsoleView.svelte";
   import FactoryOverview from "./lib/process/FactoryOverview.svelte";
+  import HmiView from "./lib/process/hmi/HmiView.svelte";
   import ProcessAreaView from "./lib/process/ProcessAreaView.svelte";
   import ProcessCanvas from "./lib/process/canvas/ProcessCanvas.svelte";
   import LocationOverview from "./lib/shared/LocationOverview.svelte";
   import RegionMap from "./lib/shared/RegionMap.svelte";
+  import SimulationWorkspace from "./lib/simulation/SimulationWorkspace.svelte";
+  import WorkstationView from "./lib/workstation/WorkstationView.svelte";
   import {
     findAppliance,
     findConnection,
+    isInteractiveHmi,
+    isInteractiveSecurityConsole,
+    isInteractiveWorkstation,
   } from "./lib/config/appliance-config";
   import { findProcessArea } from "./lib/process/process-model";
   import type {
     EnvironmentRoute,
+    HmiRoute,
     ApplianceConfigRoute,
     ConnectionConfigRoute,
     PlaceId,
     ProcessAreaRoute,
+    SecurityConsoleRoute,
     ViewMode,
+    WorkstationRoute,
   } from "./lib/shared/types";
 
   type ArchitectureRoute = PlaceId | EnvironmentRoute | ProcessAreaRoute;
   type ConfigRoute = ApplianceConfigRoute | ConnectionConfigRoute;
-  type ActiveRoute = ArchitectureRoute | ConfigRoute | null;
+  type DetailRoute =
+    | ConfigRoute
+    | WorkstationRoute
+    | HmiRoute
+    | SecurityConsoleRoute;
+  type ActiveRoute = ArchitectureRoute | DetailRoute | "simulations" | null;
 
   let activeRoute: ActiveRoute = null;
-  let configHistory: (ArchitectureRoute | ConfigRoute)[] = [];
+  let detailHistory: (ArchitectureRoute | DetailRoute | "simulations")[] = [];
   let viewMode: ViewMode = "logical";
 
   function syncRoute() {
@@ -44,11 +59,27 @@
     const connectionId = route.startsWith("config/connections/")
       ? route.slice("config/connections/".length)
       : "";
+    const workstationId = route.startsWith("workstations/")
+      ? route.slice("workstations/".length)
+      : "";
+    const hmiId = route.startsWith("hmis/")
+      ? route.slice("hmis/".length)
+      : "";
+    const securityConsoleId = route.startsWith("security/")
+      ? route.slice("security/".length)
+      : "";
     const isApplianceConfig = applianceId !== "" && findAppliance(applianceId) !== null;
     const isConnectionConfig =
       connectionId !== "" && findConnection(connectionId) !== null;
+    const isWorkstation =
+      workstationId !== "" && isInteractiveWorkstation(workstationId);
+    const isHmi = hmiId !== "" && isInteractiveHmi(hmiId);
+    const isSecurityConsole = securityConsoleId !== "" &&
+      isInteractiveSecurityConsole(securityConsoleId);
 
-    activeRoute = route === "customer" ||
+    activeRoute = route === "simulations"
+      ? "simulations"
+      : route === "customer" ||
       route === "office" ||
       route === "factory" ||
       route === "customer/customer-lan" ||
@@ -66,7 +97,13 @@
             ? (route as ApplianceConfigRoute)
             : isConnectionConfig
               ? (route as ConnectionConfigRoute)
-        : null;
+              : isWorkstation
+                ? (route as WorkstationRoute)
+                : isHmi
+                  ? (route as HmiRoute)
+                  : isSecurityConsole
+                    ? (route as SecurityConsoleRoute)
+                  : null;
   }
 
   function enterPlace(place: PlaceId) {
@@ -77,6 +114,11 @@
   function returnToMap() {
     activeRoute = null;
     window.history.replaceState(null, "", window.location.pathname + window.location.search);
+  }
+
+  function openSimulations() {
+    activeRoute = "simulations";
+    window.location.hash = "simulations";
   }
 
   function enterCustomerEnvironment(environmentId: string) {
@@ -158,28 +200,43 @@
 
   function openApplianceConfig(applianceId: string) {
     if (!findAppliance(applianceId)) return;
-    openConfigRoute(`config/appliances/${applianceId}` as ApplianceConfigRoute);
+    openDetailRoute(`config/appliances/${applianceId}` as ApplianceConfigRoute);
   }
 
   function openConnectionConfig(connectionId: string) {
     if (!findConnection(connectionId)) return;
-    openConfigRoute(
+    openDetailRoute(
       `config/connections/${connectionId}` as ConnectionConfigRoute,
     );
   }
 
-  function openConfigRoute(route: ConfigRoute) {
+  function openWorkstation(applianceId: string) {
+    if (!isInteractiveWorkstation(applianceId)) return;
+    openDetailRoute(`workstations/${applianceId}` as WorkstationRoute);
+  }
+
+  function openHmi(applianceId: string) {
+    if (!isInteractiveHmi(applianceId)) return;
+    openDetailRoute(`hmis/${applianceId}` as HmiRoute);
+  }
+
+  function openSecurityConsole(applianceId: string) {
+    if (!isInteractiveSecurityConsole(applianceId)) return;
+    openDetailRoute(`security/${applianceId}` as SecurityConsoleRoute);
+  }
+
+  function openDetailRoute(route: DetailRoute) {
     if (activeRoute && activeRoute !== route) {
-      configHistory = [...configHistory, activeRoute];
+      detailHistory = [...detailHistory, activeRoute];
     }
     activeRoute = route;
     window.location.hash = route;
   }
 
-  function returnFromConfig() {
-    const previous = configHistory.at(-1);
+  function returnFromDetail() {
+    const previous = detailHistory.at(-1);
     if (previous) {
-      configHistory = configHistory.slice(0, -1);
+      detailHistory = detailHistory.slice(0, -1);
       activeRoute = previous;
       window.location.hash = previous;
       return;
@@ -201,19 +258,47 @@
   });
 </script>
 
+{#key activeRoute}
 {#if activeRoute === null}
-  <RegionMap bind:viewMode onEnter={enterPlace} />
+  <RegionMap
+    bind:viewMode
+    onEnter={enterPlace}
+    onOpenSimulations={openSimulations}
+  />
+{:else if activeRoute === "simulations"}
+  <SimulationWorkspace
+    onBack={returnToMap}
+    onOpenAppliance={openApplianceConfig}
+  />
 {:else if activeRoute.startsWith("config/appliances/")}
   <ApplianceConfigView
     applianceId={activeRoute.slice("config/appliances/".length)}
-    onBack={returnFromConfig}
+    onBack={returnFromDetail}
     onOpenConnection={openConnectionConfig}
   />
 {:else if activeRoute.startsWith("config/connections/")}
   <ConnectionConfigView
     connectionId={activeRoute.slice("config/connections/".length)}
-    onBack={returnFromConfig}
+    onBack={returnFromDetail}
     onOpenAppliance={openApplianceConfig}
+  />
+{:else if activeRoute.startsWith("workstations/")}
+  <WorkstationView
+    applianceId={activeRoute.slice("workstations/".length)}
+    onBack={returnFromDetail}
+    onOpenConfig={openApplianceConfig}
+  />
+{:else if activeRoute.startsWith("hmis/")}
+  <HmiView
+    applianceId={activeRoute.slice("hmis/".length)}
+    onBack={returnFromDetail}
+    onOpenConfig={openApplianceConfig}
+  />
+{:else if activeRoute.startsWith("security/")}
+  <SecurityConsoleView
+    applianceId={activeRoute.slice("security/".length)}
+    onBack={returnFromDetail}
+    onOpenConfig={openApplianceConfig}
   />
 {:else if activeRoute === "factory"}
   <FactoryOverview
@@ -234,12 +319,14 @@
     routeKey={activeRoute.slice("factory/process/".length)}
     onBack={returnToProcess}
     onOpenAppliance={openApplianceConfig}
+    onOpenHmi={openHmi}
   />
 {:else if activeRoute === "customer/customer-lan"}
   <CustomerLanView
     bind:viewMode
     onBack={returnToCustomer}
     onOpenAppliance={openApplianceConfig}
+    onOpenWorkstation={openWorkstation}
   />
 {:else if
   activeRoute === "customer/customer-edge" ||
@@ -259,6 +346,8 @@
     environment={activeRoute.slice("office/".length) as "it-dmz" | "business-it" | "operations-intelligence"}
     onBack={returnToOffice}
     onOpenAppliance={openApplianceConfig}
+    onOpenSecurityConsole={openSecurityConsole}
+    onOpenWorkstation={openWorkstation}
   />
 {:else if activeRoute === "factory/ot-dmz"}
   <OfficeEnvironmentView
@@ -267,6 +356,7 @@
     siteLabel="Factory"
     onBack={returnToFactory}
     onOpenAppliance={openApplianceConfig}
+    onOpenSecurityConsole={openSecurityConsole}
   />
 {:else if activeRoute === "office" || activeRoute === "customer"}
   <LocationOverview
@@ -278,3 +368,4 @@
       : enterCustomerEnvironment}
   />
 {/if}
+{/key}

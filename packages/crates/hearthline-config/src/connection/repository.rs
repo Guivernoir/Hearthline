@@ -5,8 +5,8 @@ use std::path::{Path, PathBuf};
 use crate::appliance::{ConfigError, ConfigRepository, source_revision};
 
 use super::{
-    ConnectionConfig, FrontendConnection, collect_yaml_paths, validate_endpoint,
-    validate_endpoint_port,
+    ConnectionConfig, FrontendConnection, collect_yaml_paths,
+    redundancy::validate_redundancy_connections, validate_endpoint, validate_endpoint_port,
 };
 
 #[derive(Clone, Debug)]
@@ -140,6 +140,7 @@ impl ConnectionRepository {
                 return Err(ConfigError::new(format!("duplicate connection id {id}")));
             }
         }
+        validate_redundancy_connections(appliances, &connections)?;
         Ok(Self { connections })
     }
 

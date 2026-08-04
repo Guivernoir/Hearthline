@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "operations-soc-console-01"
 label: "Central SOC Console-01"
 kind: "operations-console"
@@ -6,9 +6,11 @@ site: "Central Office"
 environment: "Operations Intelligence"
 zone: "Security operations console"
 role: "Security operations console"
-summary: "Managed operations endpoint used for governed monitoring and coordination workflows."
-lifecycle: "design"
-tags: []
+summary: "Managed security operations endpoint with a session-local queue for modeled detection evidence and analyst acknowledgement."
+lifecycle: "simulated"
+tags:
+  - "interactive"
+  - "security-operations"
 render:
   - view: "office/operations-intelligence"
     node: "central-soc"

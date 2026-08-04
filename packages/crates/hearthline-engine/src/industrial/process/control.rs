@@ -157,6 +157,9 @@ impl SimulatedComponent for VirtualPlc {
                     single_effect(Effect::Drop(DropReason::PolicyDenied { rule: None }))
                 }
             }
+            SimulationEvent::Ipv4Egress(_) => {
+                single_effect(Effect::Drop(DropReason::UnsupportedProtocol))
+            }
             SimulationEvent::Process(ProcessEvent::Signal(signal)) => {
                 upsert(&mut self.inputs, signal.tag.clone(), signal);
                 EffectList::new()
@@ -201,6 +204,9 @@ impl SimulatedComponent for VirtualPlc {
                 single_effect(Effect::Observe {
                     detail: runtime_text(format_args!("operational={operational}")),
                 })
+            }
+            SimulationEvent::FirewallHa(_) => {
+                single_effect(Effect::Drop(DropReason::UnsupportedProtocol))
             }
         }
     }
@@ -259,6 +265,9 @@ impl SimulatedComponent for OperatorInterface {
                     single_effect(Effect::Drop(DropReason::PolicyDenied { rule: None }))
                 }
             }
+            SimulationEvent::Ipv4Egress(_) => {
+                single_effect(Effect::Drop(DropReason::UnsupportedProtocol))
+            }
             SimulationEvent::Process(ProcessEvent::Command(command)) => {
                 if self.allowed_command_tags.contains(&command.tag) {
                     single_effect(Effect::Process(ProcessEffect::Command(command)))
@@ -299,6 +308,9 @@ impl SimulatedComponent for OperatorInterface {
                 single_effect(Effect::Observe {
                     detail: runtime_text(format_args!("operational={operational}")),
                 })
+            }
+            SimulationEvent::FirewallHa(_) => {
+                single_effect(Effect::Drop(DropReason::UnsupportedProtocol))
             }
         }
     }

@@ -1,0 +1,51 @@
+schema_version: "0.11.0"
+id: "customer-public-web-path-traversal-detected"
+label: "Customer path traversal prevented"
+summary: "Customer PC-01 sends a controlled path-traversal probe through the public HTTPS path; the DMZ web gateway rejects the request and projects defensive evidence to the session-local Central SOC queue."
+category: "security-exercise"
+participants:
+  - "customer-pc-01"
+  - "customer-sw-01"
+  - "customer-rtr-01"
+  - "customer-inet-cpe-01"
+  - "wan-01"
+  - "isp-edge-rtr-01"
+  - "wan-02a"
+  - "business-inet-cpe-01"
+  - "business-edge-rtr-01"
+  - "business-frw-01a"
+  - "business-it-dmz-sw-01"
+  - "business-web-gw-01"
+  - "business-frw-02a"
+  - "business-it-core-sw-01"
+  - "business-it-srv-sw-01"
+  - "business-it-services-01"
+source: "customer-pc-01"
+packet:
+  source_ip: "192.168.0.2"
+  destination_ip: "192.0.2.10"
+  ttl: 64
+  wire_length_bytes: 768
+  transport:
+    protocol: "tcp"
+    source_port: 55020
+    destination_port: 443
+    syn: true
+  application:
+    kind: "http-request"
+    method: "get"
+    host: "shop.hearthline.test"
+    path: "/shop?file=../../etc/passwd"
+    body_bytes: 0
+expectation:
+  component: "business-web-gw-01"
+  outcome: "dropped"
+  reason_contains: "path traversal pattern"
+security:
+  tactic: "initial-access"
+  technique: "path-traversal"
+  severity: "high"
+  detector: "business-web-gw-01"
+  defender: "operations-soc-console-01"
+  control: "reverse-proxy-waf"
+event_limit: 512

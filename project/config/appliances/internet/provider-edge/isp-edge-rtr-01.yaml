@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "isp-edge-rtr-01"
 label: "ISP EDGE-RTR-01"
 kind: "router"
@@ -19,6 +19,7 @@ render:
 interfaces:
   - id: "customer-access"
     hardware: "carrier-demarc"
+    mac_address: "02:00:00:10:01:01"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -32,6 +33,7 @@ interfaces:
     vlans: []
   - id: "provider-services"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:10:01:02"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -45,6 +47,7 @@ interfaces:
     vlans: []
   - id: "business-access"
     hardware: "carrier-demarc"
+    mac_address: "02:00:00:10:01:03"
     state:
       administrative: "up"
       initial_operational: "up"

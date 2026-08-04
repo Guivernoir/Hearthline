@@ -2,9 +2,9 @@
 
 This directory contains the static Svelte architecture application for
 Hearthline. The current implementation establishes map-first navigation,
-location and environment drill-downs, the factory process canvas, and
-Rust-generated inspection and validated local editing of canonical appliance
-and connection YAML.
+location and environment drill-downs, the factory process canvas,
+Rust-generated inspection, validated local editing of canonical appliance and
+connection YAML, and the configured simulation workspace.
 
 The current development release is `0.2.0`. Project release compatibility is
 defined in the [versioning policy](versioning.md), while frontend data
@@ -12,14 +12,43 @@ schemas retain their own independent versions.
 
 ## Current Status
 
-The application is an interactive architecture viewer, not yet an executable
-network or plant simulator. Navigation, physical and logical canvases,
-inspection, and responsive controls are implemented. Most topology records
-remain frontend bootstrap data, and no route, firewall, PLC, or process result
-is currently supplied to the browser. Rust supplies validated appliance
-identity, placement, behavior-family summaries, connection endpoints, and
-complete YAML source documents. It does not yet supply an executed topology or
-scenario result.
+The application is an interactive architecture viewer with 28 executable
+configured scenarios, not yet a general-purpose network or plant simulator.
+Navigation, physical and logical canvases, inspection, responsive controls,
+packet composition, scenario execution, and trace inspection are implemented.
+Most topology records remain frontend bootstrap data. Rust supplies validated
+appliance and connection data and executes Customer DNS, permitted public
+HTTPS, denied public management, and approved or denied factory
+operations-data scenarios. Firewall-rule, translation, application-forward,
+HTTP-response, and default-deny results are available for those selected paths.
+The Business IT availability scenario exposes effective uplink and VRRP member
+state, applies a Core-02 recovery preset, and displays the resulting secondary
+forwarding trace.
+The northbound-firewall recovery exposes active/standby ownership, HA-sync
+link status, monitored virtual interfaces, and the converged FRW-03B path.
+Its continuity variants present the injected fault, synchronized-session
+transition, sync state, last heartbeat, promotion, and deterministic
+failure-to-promotion evidence from two-packet Rust runs. The interface labels
+an expected policy drop after standby state loss as a passing fail-closed
+expectation rather than as successful traffic continuity.
+The HA-isolation contract displays synchronization loss, the single-active
+owner count, standby-fencing time, and unconfirmed peer-failure state while
+the healthy active path continues serving the retained flow.
+Three controlled security exercises send a configured traversal probe,
+disallowed DELETE request, and SQL-injection POST body from Customer PC-01,
+record distinct WAF prevention evidence, and expose all three in a session-local
+Central SOC queue.
+Customer PC-01/02 and Business IT PC-01/02/03/04 are enterable as endpoint
+sessions whose terminals and browsers invoke independent Rust paths; each browser
+renders bounded page content returned by its configured service. All ten
+process areas have Rust-backed HMI sessions with safety, alarms, YAML-derived
+instruments, equipment-specific actuator commands, audit state, and component
+traces.
+The factory local-autonomy workspace combines both failed inter-site handoffs,
+the expected historian-path drop, a seven-link local control path, safety
+reset, pump command, resulting actuator state, and six-stage control trace in
+one Rust-derived report.
+IEC 61131-3 execution and changing process results are not yet available.
 
 The rendered architecture and underlying YAML content are provisional
 placeholders, not finished network or plant definitions. The viewer accurately
@@ -55,6 +84,9 @@ and scenarios are implemented.
 - Operations Intelligence environment entry covering Central Office network
   governance, NOC and SOC functions, identity and policy, brokered production
   data, process analysis, change approval, and the encrypted Factory conduit.
+- Enterable Central SOC console with a bounded modeled-event queue, detector
+  evidence, source and destination context, all/active/acknowledged filtering,
+  analyst acknowledgement, and clear controls.
 - Factory OT DMZ environment entry covering independent northbound and southbound HA
   firewalls, redundant switching, access, exchange, and monitoring subzones,
   passive sensors, explicit service trunks, and the Level 3 engineering
@@ -78,11 +110,51 @@ and scenarios are implemented.
   without parsing YAML in the browser.
 - Appliance inspection of port hardware, administrative and initial
   operational state, configured speed, duplex, MTU, and supported media.
+- Scenario editing of effective connection state and segmented active/standby
+  controls for configured first-hop members, with one-click recovery presets.
 - Connection inspection of endpoint port state plus Rust-derived effective
   MTU, negotiated duplex, propagation delay, and medium-specific physical
   facts.
 - Local YAML editing through a Rust API with revision checks, whole-project
   validation, and atomic catalog regeneration.
+- A simulation route with a Rust-supplied scenario catalog, editable packet
+  fields and selected-link state, run and canonical reset controls, result
+  metrics, trace filtering, and microsecond per-hop effects.
+- A customer access-circuit outage whose canonical down state can be restored
+  with one command without modifying connection YAML; Rust switches from the
+  baseline drop expectation to the declared recovery delivery expectation.
+- A configured Customer DNS exchange across the customer LAN, PAT boundary,
+  provider access path, ISP router, and authoritative DNS server.
+- Configured public HTTPS request and response through customer PAT, provider
+  transit, business static NAT, both firewall boundaries, the DMZ web gateway,
+  and the internal application tier, plus public SSH denial.
+- Configuration-owned path-traversal, disallowed-method, and SQL-injection
+  request-body exercises that use workstation `curl`, reach the DMZ
+  reverse-proxy WAF through the modeled media path, are prevented by Rust
+  behavior, and emit distinct defensive evidence.
+- Configured factory operations-data delivery and denial traces through the OT
+  DMZ exchange subzone, inter-site conduit, northbound firewall, enterprise
+  core, and analytics service.
+- A composite factory autonomy run that keeps both conduit handoffs down while
+  displaying the independent local HMI-to-pump command result and its
+  safety/control-path evidence.
+- Desktop catalog navigation plus a compact mobile scenario selector.
+- Direct navigation from scenario participants and trace components to their
+  appliance configuration routes.
+- Enterable Customer PC-01 and PC-02 desktops with browsers, terminals,
+  configuration launchers, independent YAML-derived network identities,
+  command history, responsive controls, and expandable Rust trace activity.
+- Enterable Business IT PC-01 through PC-04 desktops selected from a grouped
+  office node, with scenario-derived portal homes and internal DNS and HTTPS
+  traces across both user-access switches and Core-01 VLAN 20, 30, and 80
+  SVIs.
+- Rust-backed `hostname`, `ipconfig`, `nslookup`, method- and body-aware
+  `curl`, and `ssh` terminal commands plus bounded quoted arguments, browser
+  URL parsing, DNS resolution, modeled HTTP content, and explicit policy-denial
+  presentation.
+- Enterable HMIs for all ten process areas with configured sensor values,
+  safety permissives and reset, alarm acknowledgement, equipment-specific
+  controls, operator audit, and Rust-generated command-path traces.
 - Click-to-center minimap on desktop and tablet layouts.
 - Responsive map, toolbar, inspector, location, and detailed network layouts.
 - Distinct trust-path, control-network, and material-flow representations.
@@ -92,8 +164,8 @@ still temporary view data declared in `src/lib/*.svelte`. OT process inventory
 is now read from `src/generated/process-view.json`, a versioned bootstrap
 derivative with source references for each area and component. It is not yet
 canonical or Rust-generated. Configuration is independently read from
-`src/generated/appliance-configs.json`, which Rust generates from 160
-appliance and 205 connection YAML files. The process model will later be replaced with JSON
+`src/generated/appliance-configs.json`, which Rust generates from 162
+appliance and 208 connection YAML files. The process model will later be replaced with JSON
 generated from validated area topology and IEC 61131-3 cross-references.
 
 ## Commands
@@ -110,15 +182,16 @@ npm run version:check
 The development server listens on all interfaces and normally starts at
 `http://localhost:5173`.
 
-The viewer remains usable without the API. Validated editing additionally
-requires this repository-root command:
+Architecture viewing remains usable without the API. Scenario execution and
+validated editing require this repository-root command:
 
 ```bash
 cargo run --manifest-path packages/Cargo.toml -p hearthline-api
 ```
 
 Vite proxies `/api` to `127.0.0.1:3001`. The editor disables write controls
-when that service is unavailable.
+and simulation execution reports an unavailable service when that API is not
+running.
 
 ## Canvas Controls
 
@@ -155,17 +228,20 @@ Rust as opaque text and only accepted after server-side parsing and validation.
 
 ## Planned Integration
 
-1. Display formal Rust-generated device-to-device communication traces carried
-   through the configured media layer.
-2. Replace remaining Svelte topology arrays with generated view models.
-3. Consume Rust validation diagnostics and explained connectivity results.
-4. Display scenario state, process state, alarms, and fault outcomes without
+1. Add changing sensor, alarm, permissive, and actuator effects behind the
+   ten-area HMI baseline as the plant model becomes executable.
+2. Extend the bounded autonomy proof with further deterministic outage and
+   local-control cases where they add distinct evidence.
+3. Replace remaining Svelte topology arrays with generated view models.
+4. Consume Rust validation diagnostics and explained connectivity results.
+5. Display process state, alarms, and fault outcomes without
    calculating them in Svelte.
-5. Replace provisional architecture and configuration placeholders with
+6. Replace provisional architecture and configuration placeholders with
    cross-validated definitions derived from executable requirements.
-6. Extend implemented appliance and connection provenance to policy and
+7. Extend implemented appliance and connection provenance to policy and
    control sources.
-7. Keep bootstrap compatibility explicit until all authoritative inputs exist.
+8. Extend the controlled Phase 3 WAF baseline with additional attack,
+   detection, investigation, and response workflows.
 
 ## Navigation Model
 

@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "business-web-gw-01"
 label: "Business WEB-GW-01"
 kind: "reverse-proxy-waf"
@@ -9,6 +9,7 @@ role: "Public reverse proxy, TLS termination, and WAF member"
 summary: "Terminates the public HTTPS service and proxies only named internal application dependencies."
 lifecycle: "design"
 tags: []
+default_gateway: "172.16.10.1"
 render:
   - view: "customer/public-web-path"
     node: "business-web"
@@ -27,12 +28,12 @@ interfaces:
       duplex: "full"
       mtu: 1500
     mode: "access"
-    addresses:
-      - "172.16.10.2/24"
+    addresses: []
     vlans:
       - 10
   - id: "dmz-a"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:30:01:10"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -41,8 +42,10 @@ interfaces:
       duplex: "full"
       mtu: 1500
     mode: "access"
-    addresses: []
-    vlans: []
+    addresses:
+      - "172.16.10.2/24"
+    vlans:
+      - 10
   - id: "dmz-b"
     hardware: "ethernet-rj45"
     state:
@@ -60,6 +63,28 @@ behavior:
   listeners:
     - protocol: "https"
       port: 443
+  allowed_hosts:
+    - "shop.hearthline.test"
+  allowed_methods:
+    - "get"
+    - "head"
+    - "post"
+  inspection_rules:
+    - id: "path-traversal"
+      target: "path"
+      contains: ".."
+      case_sensitive: true
+      reason: "rule path-traversal: path traversal pattern"
+    - id: "sql-injection-tautology"
+      target: "body"
+      contains: "' OR '1'='1"
+      case_sensitive: false
+      reason: "rule sql-injection-tautology: SQL injection tautology pattern"
   upstreams:
-    - "internal-application-vip"
+    - id: "business-it-services-01"
+      address: "10.10.80.10"
+  routes:
+    - destination: "10.10.80.0/24"
+      next_hop: "172.16.10.3"
+      interface: "dmz-a"
   max_request_bytes: 1048576

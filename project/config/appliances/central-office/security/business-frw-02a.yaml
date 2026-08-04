@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "business-frw-02a"
 label: "Business FRW-02A"
 kind: "firewall"
@@ -19,6 +19,7 @@ render:
 interfaces:
   - id: "outside"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:25:02:01"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -29,9 +30,11 @@ interfaces:
     mode: "routed"
     addresses:
       - "172.16.10.3/24"
-    vlans: []
+    vlans:
+      - 10
   - id: "inside"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:25:02:02"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -47,9 +50,26 @@ behavior:
   family: "stateful-firewall"
   stateful: true
   default_action: "deny"
+  zones:
+    - interface: "outside"
+      name: "public-dmz"
+    - interface: "inside"
+      name: "business-it"
+  routes:
+    - destination: "172.16.10.0/24"
+      next_hop: null
+      interface: "outside"
+    - destination: "10.255.0.4/30"
+      next_hop: null
+      interface: "inside"
+    - destination: "10.10.80.0/24"
+      next_hop: "10.255.0.5"
+      interface: "inside"
   rules:
-    - name: "permit-established-and-named-conduits"
+    - name: "permit-web-gateway-to-application-https"
       action: "permit"
-      source: "approved-sources"
-      destination: "named-destinations"
-      service: "approved-services"
+      source_zone: "public-dmz"
+      destination_zone: "business-it"
+      source: "172.16.10.2/32"
+      destination: "10.10.80.10/32"
+      service: "https"

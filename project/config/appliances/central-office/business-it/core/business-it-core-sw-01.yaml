@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "business-it-core-sw-01"
 label: "Business IT-CORE-SW-01"
 kind: "layer-3-switch"
@@ -6,9 +6,57 @@ site: "Central Office"
 environment: "Business IT"
 zone: "Network Core"
 role: "Business IT Layer 3 core member"
-summary: "One member of the redundant internal switching design."
-lifecycle: "design"
+summary: "Preferred member of the redundant internal Layer 3 switching pair."
+lifecycle: "simulated"
 tags: []
+spanning_tree:
+  protocol: "rapid-pvst"
+  bridge_priority: 24576
+  bridge_mac: "02:00:00:10:00:01"
+link_aggregation:
+  system_mac: "02:00:00:10:ff:01"
+  groups:
+    - id: "po-srv-sw-01"
+      logical_id: "business-it-srv-sw-01-uplink"
+      protocol: "lacp"
+      mode: "active"
+      minimum_active_members: 1
+      members: ["srv-sw-01"]
+    - id: "po-srv-sw-02"
+      logical_id: "business-it-srv-sw-02-uplink"
+      protocol: "lacp"
+      mode: "active"
+      minimum_active_members: 1
+      members: ["srv-sw-02"]
+    - id: "po-svc-sw-01"
+      logical_id: "business-it-svc-sw-01-uplink"
+      protocol: "lacp"
+      mode: "active"
+      minimum_active_members: 1
+      members: ["svc-sw-01"]
+    - id: "po-svc-sw-02"
+      logical_id: "business-it-svc-sw-02-uplink"
+      protocol: "lacp"
+      mode: "active"
+      minimum_active_members: 1
+      members: ["svc-sw-02"]
+    - id: "po-usr-sw-01"
+      logical_id: "business-it-usr-sw-01-uplink"
+      protocol: "lacp"
+      mode: "active"
+      minimum_active_members: 1
+      members: ["usr-sw-01"]
+    - id: "po-usr-sw-02"
+      logical_id: "business-it-usr-sw-02-uplink"
+      protocol: "lacp"
+      mode: "active"
+      minimum_active_members: 1
+      members: ["usr-sw-02"]
+multi_chassis:
+  domain: "business-it-core-pair"
+  peer: "business-it-core-sw-02"
+  peer_link: "peer-link"
+  role: "primary"
 render:
   - view: "office/business-it"
     node: "it-core"
@@ -16,11 +64,26 @@ render:
 interfaces:
   - id: "uplink"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:25:02:03"
     state:
       administrative: "up"
       initial_operational: "up"
     settings:
       speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "routed"
+    addresses:
+      - "10.255.0.5/30"
+    vlans:
+      - 1
+  - id: "peer-link"
+    hardware: "ethernet-sfp"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
       duplex: "full"
       mtu: 1500
     mode: "trunk"
@@ -34,19 +97,8 @@ interfaces:
       - 70
       - 80
       - 90
+      - 380
       - 999
-  - id: "peer-link"
-    hardware: "ethernet-sfp"
-    state:
-      administrative: "up"
-      initial_operational: "up"
-    settings:
-      speed_mbps: 10000
-      duplex: "full"
-      mtu: 1500
-    mode: "trunk"
-    addresses: []
-    vlans: []
   - id: "srv-sw-01"
     hardware: "ethernet-sfp"
     state:
@@ -58,7 +110,8 @@ interfaces:
       mtu: 1500
     mode: "trunk"
     addresses: []
-    vlans: []
+    vlans:
+      - 80
   - id: "srv-sw-02"
     hardware: "ethernet-sfp"
     state:
@@ -70,7 +123,8 @@ interfaces:
       mtu: 1500
     mode: "trunk"
     addresses: []
-    vlans: []
+    vlans:
+      - 20
   - id: "svc-sw-01"
     hardware: "ethernet-sfp"
     state:
@@ -82,7 +136,12 @@ interfaces:
       mtu: 1500
     mode: "trunk"
     addresses: []
-    vlans: []
+    vlans:
+      - 40
+      - 50
+      - 60
+      - 70
+      - 999
   - id: "svc-sw-02"
     hardware: "ethernet-sfp"
     state:
@@ -94,7 +153,12 @@ interfaces:
       mtu: 1500
     mode: "trunk"
     addresses: []
-    vlans: []
+    vlans:
+      - 40
+      - 50
+      - 60
+      - 70
+      - 999
   - id: "usr-sw-01"
     hardware: "ethernet-sfp"
     state:
@@ -106,7 +170,8 @@ interfaces:
       mtu: 1500
     mode: "trunk"
     addresses: []
-    vlans: []
+    vlans:
+      - 30
   - id: "usr-sw-02"
     hardware: "ethernet-sfp"
     state:
@@ -118,7 +183,79 @@ interfaces:
       mtu: 1500
     mode: "trunk"
     addresses: []
-    vlans: []
+    vlans:
+      - 30
+      - 70
+      - 999
+  - id: "vlan-20"
+    hardware: "virtual-nic"
+    mac_address: "02:00:00:10:20:01"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "svi"
+    addresses:
+      - "10.10.20.2/24"
+    vlans:
+      - 20
+    first_hop:
+      protocol: "vrrp"
+      group: 20
+      virtual_ip: "10.10.20.1"
+      virtual_mac: "00:00:5e:00:01:14"
+      priority: 110
+      preempt: true
+      initial_role: "active"
+  - id: "vlan-30"
+    hardware: "virtual-nic"
+    mac_address: "02:00:00:10:30:01"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "svi"
+    addresses:
+      - "10.10.30.2/24"
+    vlans:
+      - 30
+    first_hop:
+      protocol: "vrrp"
+      group: 30
+      virtual_ip: "10.10.30.1"
+      virtual_mac: "00:00:5e:00:01:1e"
+      priority: 110
+      preempt: true
+      initial_role: "active"
+  - id: "vlan-80"
+    hardware: "virtual-nic"
+    mac_address: "02:00:00:10:80:01"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "svi"
+    addresses:
+      - "10.10.80.2/24"
+    vlans:
+      - 80
+    first_hop:
+      protocol: "vrrp"
+      group: 80
+      virtual_ip: "10.10.80.1"
+      virtual_mac: "00:00:5e:00:01:50"
+      priority: 110
+      preempt: true
+      initial_role: "active"
   - id: "frw-03a"
     hardware: "ethernet-rj45"
     state:
@@ -130,14 +267,53 @@ interfaces:
       mtu: 1500
     mode: "access"
     addresses: []
-    vlans: []
+    vlans:
+      - 380
+  - id: "vlan-380"
+    hardware: "virtual-nic"
+    mac_address: "02:00:00:10:38:01"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "svi"
+    addresses:
+      - "10.255.3.4/29"
+    vlans:
+      - 380
+    first_hop:
+      protocol: "vrrp"
+      group: 38
+      virtual_ip: "10.255.3.6"
+      virtual_mac: "00:00:5e:00:01:26"
+      priority: 110
+      preempt: true
+      initial_role: "active"
 behavior:
   family: "router"
   routes:
-    - destination: "10.10.0.0/16"
+    - destination: "10.255.0.4/30"
       next_hop: null
-      interface: "internal"
-    - destination: "0.0.0.0/0"
+      interface: "uplink"
+    - destination: "172.16.10.0/24"
       next_hop: "10.255.0.6"
       interface: "uplink"
+    - destination: "10.10.20.0/24"
+      next_hop: null
+      interface: "vlan-20"
+    - destination: "10.10.30.0/24"
+      next_hop: null
+      interface: "vlan-30"
+    - destination: "10.10.80.0/24"
+      next_hop: null
+      interface: "vlan-80"
+    - destination: "10.255.3.0/29"
+      next_hop: null
+      interface: "vlan-380"
+    - destination: "172.20.52.0/24"
+      next_hop: "10.255.3.1"
+      interface: "vlan-380"
   forwarding: true

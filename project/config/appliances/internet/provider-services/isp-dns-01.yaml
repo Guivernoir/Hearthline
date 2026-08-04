@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "isp-dns-01"
 label: "ISP-DNS-01"
 kind: "dns-server"
@@ -9,6 +9,7 @@ role: "Public authoritative DNS member"
 summary: "Publishes the modeled business web-service record through a redundant authoritative role."
 lifecycle: "design"
 tags: []
+default_gateway: "198.51.100.1"
 render:
   - view: "customer/public-web-path"
     node: "isp-dns"
@@ -16,6 +17,7 @@ render:
 interfaces:
   - id: "service"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:20:01:50"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -33,3 +35,6 @@ behavior:
     - "dns-udp"
     - "dns-tcp"
   respond_to_icmp: true
+  dns_records:
+    - name: "shop.hearthline.test"
+      address: "192.0.2.10"

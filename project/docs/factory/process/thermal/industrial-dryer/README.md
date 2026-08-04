@@ -12,8 +12,15 @@ temperature, interlocks, and discharge.
 
 ## Current Representation
 
-The Svelte view renders the representative assets below from bootstrap JSON. It
-does not currently execute control logic, I/O, or process behavior.
+The architecture view renders the representative assets below from bootstrap
+JSON. `AREA-04-HMI-01` is enterable as a Rust-backed operator session assembled
+from the area appliance YAML. It displays configured temperature and airflow
+samples, requires a healthy safety reset, and exposes fan and conveyor state
+commands through the HMI, vPLC, remote I/O, and field-actuator path.
+
+This is a deterministic operator-command baseline. Dryer profiles, automatic
+sequencing, thermal and airflow dynamics, and Structured Text execution remain
+pending.
 
 | Function | Representative component |
 | --- | --- |

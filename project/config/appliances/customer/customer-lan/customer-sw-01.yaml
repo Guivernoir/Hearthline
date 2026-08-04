@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "customer-sw-01"
 label: "Customer SW-01"
 kind: "layer-2-switch"

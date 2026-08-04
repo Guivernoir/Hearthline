@@ -1,9 +1,12 @@
-use std::fmt::{self, Display, Formatter};
-
 use hearthline_model::BehaviorFamily;
 use serde::Deserialize;
 
-use super::{ConfigError, default_true, join_numbers};
+use super::{
+    ApplicationUpstreamConfig, ConfigError, DnsRecordConfig, FirewallZoneConfig,
+    HttpInspectionRuleConfig, HttpMethodConfig, HttpSiteConfig, ListenerConfig,
+    NatTranslationConfig, PolicyAction, PolicyRuleConfig, RouteConfig, application_gateway_facts,
+    default_true, join_numbers, validate_application_gateway, validate_dns_records,
+};
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(tag = "family", rename_all = "kebab-case", deny_unknown_fields)]
@@ -13,11 +16,19 @@ pub enum BehaviorConfig {
         accepted_services: Vec<String>,
         #[serde(default = "default_true")]
         respond_to_icmp: bool,
+        #[serde(default)]
+        hostname: Option<String>,
+        #[serde(default)]
+        dns_servers: Vec<String>,
     },
     ServiceHost {
         accepted_services: Vec<String>,
         #[serde(default = "default_true")]
         respond_to_icmp: bool,
+        #[serde(default)]
+        dns_records: Vec<DnsRecordConfig>,
+        #[serde(default)]
+        http_site: Option<HttpSiteConfig>,
     },
     PolicyService {
         accepted_services: Vec<String>,
@@ -58,11 +69,20 @@ pub enum BehaviorConfig {
         stateful: bool,
         default_action: PolicyAction,
         #[serde(default)]
+        zones: Vec<FirewallZoneConfig>,
+        #[serde(default)]
+        routes: Vec<RouteConfig>,
+        #[serde(default)]
         rules: Vec<PolicyRuleConfig>,
     },
     ApplicationGateway {
         listeners: Vec<ListenerConfig>,
-        upstreams: Vec<String>,
+        allowed_hosts: Vec<String>,
+        allowed_methods: Vec<HttpMethodConfig>,
+        inspection_rules: Vec<HttpInspectionRuleConfig>,
+        upstreams: Vec<ApplicationUpstreamConfig>,
+        #[serde(default)]
+        routes: Vec<RouteConfig>,
         #[serde(default)]
         max_request_bytes: Option<u64>,
     },
@@ -95,6 +115,8 @@ pub enum BehaviorConfig {
     OperatorInterface {
         controller: String,
         permissions: Vec<String>,
+        #[serde(default)]
+        command_tags: Vec<String>,
     },
     RemoteIo {
         controller: String,
@@ -105,17 +127,23 @@ pub enum BehaviorConfig {
         unit: String,
         minimum: f64,
         maximum: f64,
+        #[serde(default)]
+        initial_value: Option<f64>,
     },
     FieldActuator {
         command_tag: String,
         safe_state: String,
         #[serde(default)]
         feedback_tag: Option<String>,
+        #[serde(default)]
+        states: Vec<String>,
     },
     Safety {
         permissives: Vec<String>,
         #[serde(default = "default_true")]
         latched_trip: bool,
+        #[serde(default)]
+        initially_permissive: Vec<String>,
     },
 }
 
@@ -146,6 +174,44 @@ impl BehaviorConfig {
     }
 
     pub(super) fn validate(&self, appliance_id: &str) -> Result<(), ConfigError> {
+        crate::hmi::validate_behavior(self, appliance_id)?;
+        if let Self::ServiceHost { dns_records, .. } = self {
+            validate_dns_records(appliance_id, dns_records)?;
+        }
+        if let Self::ServiceHost {
+            accepted_services,
+            http_site: Some(site),
+            ..
+        } = self
+        {
+            if !accepted_services.iter().any(|service| service == "https") {
+                return Err(ConfigError::new(format!(
+                    "HTTP site on {appliance_id} requires the https service"
+                )));
+            }
+            site.validate(appliance_id)?;
+        }
+        if let Self::ApplicationGateway {
+            listeners,
+            allowed_hosts,
+            allowed_methods,
+            inspection_rules,
+            upstreams,
+            ..
+        } = self
+        {
+            validate_application_gateway(
+                appliance_id,
+                listeners,
+                allowed_hosts,
+                allowed_methods,
+                upstreams,
+                inspection_rules,
+            )?;
+            for upstream in upstreams {
+                upstream.validate(appliance_id)?;
+            }
+        }
         match self {
             Self::ServiceHost {
                 accepted_services, ..
@@ -175,6 +241,12 @@ impl BehaviorConfig {
                     "NAT router {appliance_id} requires inside and outside interfaces"
                 )))
             }
+            Self::ImpairedLink {
+                loss_every: Some(0),
+                ..
+            } => Err(ConfigError::new(format!(
+                "impaired link {appliance_id} loss interval must be non-zero"
+            ))),
             Self::StatefulFirewall { default_action, .. }
                 if *default_action != PolicyAction::Deny =>
             {
@@ -182,13 +254,6 @@ impl BehaviorConfig {
                     "firewall {appliance_id} must explicitly default deny"
                 )))
             }
-            Self::ApplicationGateway {
-                listeners,
-                upstreams,
-                ..
-            } if listeners.is_empty() || upstreams.is_empty() => Err(ConfigError::new(format!(
-                "application gateway {appliance_id} requires listeners and upstreams"
-            ))),
             Self::PassiveMonitor { inline: true, .. } => Err(ConfigError::new(format!(
                 "passive sensor {appliance_id} cannot be configured inline"
             ))),
@@ -209,6 +274,13 @@ impl BehaviorConfig {
                 format!("safety interface {appliance_id} requires at least one permissive"),
             )),
             _ => Ok(()),
+        }
+    }
+
+    pub(super) fn dns_records(&self) -> &[DnsRecordConfig] {
+        match self {
+            Self::ServiceHost { dns_records, .. } => dns_records,
+            _ => &[],
         }
     }
 
@@ -293,24 +365,33 @@ impl BehaviorConfig {
             Self::StatefulFirewall {
                 stateful,
                 default_action,
+                zones,
+                routes,
                 rules,
             } => vec![
                 format!("Stateful inspection: {stateful}"),
                 format!("Default action: {default_action}"),
+                format!("Security zones: {}", zones.len()),
+                format!("Routes: {}", routes.len()),
                 format!("Policy rules: {}", rules.len()),
             ],
             Self::ApplicationGateway {
                 listeners,
+                allowed_hosts,
+                allowed_methods,
+                inspection_rules,
                 upstreams,
+                routes,
                 max_request_bytes,
-            } => vec![
-                format!("Listeners: {}", listeners.len()),
-                format!("Upstreams: {}", upstreams.join(", ")),
-                format!(
-                    "Request limit: {}",
-                    max_request_bytes.map_or_else(|| "not set".into(), |value| value.to_string())
-                ),
-            ],
+            } => application_gateway_facts(
+                listeners,
+                allowed_hosts,
+                allowed_methods,
+                inspection_rules,
+                upstreams,
+                routes,
+                *max_request_bytes,
+            ),
             Self::WirelessBridge {
                 ssid,
                 client_vlan,
@@ -358,9 +439,11 @@ impl BehaviorConfig {
             Self::OperatorInterface {
                 controller,
                 permissions,
+                command_tags,
             } => vec![
                 format!("Controller: {controller}"),
                 format!("Permissions: {}", permissions.join(", ")),
+                format!("Command tags: {}", command_tags.join(", ")),
             ],
             Self::RemoteIo {
                 controller,
@@ -374,17 +457,24 @@ impl BehaviorConfig {
                 unit,
                 minimum,
                 maximum,
+                initial_value,
             } => vec![
                 format!("Signal: {signal_tag}"),
                 format!("Range: {minimum} to {maximum} {unit}"),
+                format!(
+                    "Initial value: {}",
+                    initial_value.map_or_else(|| "not set".into(), |value| value.to_string())
+                ),
             ],
             Self::FieldActuator {
                 command_tag,
                 safe_state,
                 feedback_tag,
+                states,
             } => vec![
                 format!("Command: {command_tag}"),
                 format!("Safe state: {safe_state}"),
+                format!("States: {}", states.join(", ")),
                 format!(
                     "Feedback: {}",
                     feedback_tag.clone().unwrap_or_else(|| "none".into())
@@ -393,58 +483,12 @@ impl BehaviorConfig {
             Self::Safety {
                 permissives,
                 latched_trip,
+                initially_permissive,
             } => vec![
                 format!("Permissives: {}", permissives.join(", ")),
+                format!("Initially permissive: {}", initially_permissive.join(", ")),
                 format!("Trip latched: {latched_trip}"),
             ],
         }
     }
-}
-
-#[derive(Clone, Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct RouteConfig {
-    pub destination: String,
-    pub next_hop: Option<String>,
-    pub interface: String,
-}
-
-#[derive(Clone, Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct NatTranslationConfig {
-    pub public_address: String,
-    pub private_address: String,
-}
-
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq)]
-#[serde(rename_all = "kebab-case")]
-pub enum PolicyAction {
-    Permit,
-    Deny,
-}
-
-impl Display for PolicyAction {
-    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Permit => formatter.write_str("permit"),
-            Self::Deny => formatter.write_str("deny"),
-        }
-    }
-}
-
-#[derive(Clone, Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct PolicyRuleConfig {
-    pub name: String,
-    pub action: PolicyAction,
-    pub source: String,
-    pub destination: String,
-    pub service: String,
-}
-
-#[derive(Clone, Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct ListenerConfig {
-    pub protocol: String,
-    pub port: u16,
 }

@@ -15,7 +15,10 @@
     X,
   } from "@lucide/svelte";
   import ApplianceConfigSummary from "../config/ApplianceConfigSummary.svelte";
-  import { findAppliancesForNode } from "../config/appliance-config";
+  import {
+    findAppliancesForNode,
+    isInteractiveHmi,
+  } from "../config/appliance-config";
   import PhysicalDeviceMarker from "../shared/PhysicalDeviceMarker.svelte";
   import { processIconByKey } from "./process-icons";
   import {
@@ -34,6 +37,7 @@
   export let routeKey: string;
   export let onBack: () => void = () => {};
   export let onOpenAppliance: (id: string) => void = () => {};
+  export let onOpenHmi: (id: string) => void = () => {};
   export let viewMode: ViewMode = "logical";
 
   const WORLD_WIDTH = 1280;
@@ -469,6 +473,10 @@
         <ApplianceConfigSummary
           appliances={selectedAppliances}
           onOpen={onOpenAppliance}
+          onOperate={selectedAppliances.length === 1 &&
+            isInteractiveHmi(selectedAppliances[0].id)
+            ? onOpenHmi
+            : null}
         />
       </aside>
     {/if}

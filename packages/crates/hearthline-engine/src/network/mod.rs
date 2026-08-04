@@ -1,13 +1,23 @@
 mod firewall;
+mod forwarding;
+mod host;
 mod link;
 mod nat;
-mod router;
-mod service;
 mod switch;
 
-pub use firewall::{FirewallAction, FirewallRule, StatefulFirewall};
+pub use firewall::{
+    FirewallAction, FirewallHaRuntimeConfig, FirewallHaStatus, FirewallRule, StatefulFirewall,
+};
+pub use forwarding::{
+    FirstHopAddress, NeighborEntry, NeighborState, RoutedInterface, Router, RoutingTable,
+};
+pub use host::{
+    DnsServer, HttpInspectionRule, HttpInspectionTarget, PassiveSensor, ReverseProxyWaf,
+    ServiceNode,
+};
 pub use link::{LinkAppliance, LinkMode};
-pub use nat::{NatRouter, StaticNat};
-pub use router::{Router, RoutingTable};
-pub use service::{DnsServer, PassiveSensor, ReverseProxyWaf, ServiceNode};
-pub use switch::{LearningSwitch, SwitchPort, WirelessAccessPoint};
+pub use nat::{NatRouter, StaticNat, StaticNatError};
+pub use switch::{
+    Layer3Switch, LearningSwitch, MacTableEntry, SwitchAggregationGroup, SwitchPort,
+    WirelessAccessPoint,
+};

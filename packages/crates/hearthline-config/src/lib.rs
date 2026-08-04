@@ -6,16 +6,53 @@
 
 mod appliance;
 mod connection;
+mod hmi;
+mod runtime;
+mod scenario;
+mod workstation;
 
 pub use appliance::{
-    APPLIANCE_SCHEMA_VERSION, ApplianceConfig, BehaviorConfig, ConfigError, ConfigRepository,
-    FRONTEND_CATALOG_SCHEMA_VERSION, FrontendAppliance, FrontendApplianceCatalog,
-    FrontendInterface, InterfaceConfig, InterfaceMode, Lifecycle, ListenerConfig, LoadedAppliance,
+    APPLIANCE_SCHEMA_VERSION, ApplianceConfig, ApplicationUpstreamConfig, BehaviorConfig,
+    ConfigError, ConfigRepository, DnsRecordConfig, FRONTEND_CATALOG_SCHEMA_VERSION,
+    FirewallHaConfig, FirewallHaRole, FirewallZoneConfig, FirstHopConfig, FirstHopProtocol,
+    FirstHopRole, FrontendAppliance, FrontendApplianceCatalog, FrontendFirewallHa,
+    FrontendFirstHop, FrontendInterface, FrontendLinkAggregation, FrontendLinkAggregationGroup,
+    FrontendMultiChassis, FrontendSpanningTree, HttpInspectionRuleConfig,
+    HttpInspectionTargetConfig, HttpMethodConfig, HttpSiteConfig, InterfaceConfig, InterfaceMode,
+    Lifecycle, LinkAggregationConfig, LinkAggregationGroupConfig, LinkAggregationMode,
+    LinkAggregationProtocol, ListenerConfig, LoadedAppliance, MultiChassisConfig, MultiChassisRole,
     NatTranslationConfig, PolicyAction, PolicyRuleConfig, RenderBinding, RenderMode, RouteConfig,
+    SpanningTreeConfig, SpanningTreeProtocol,
 };
 pub use connection::{
     CONNECTION_SCHEMA_VERSION, ConnectionConfig, ConnectionDirection, ConnectionEndpoint,
-    ConnectionEndpoints, ConnectionProperties, ConnectionRepository, ConnectorDropReason,
-    ConnectorPortProfile, ConnectorTransit, FrontendConnection, FrontendConnectionEndpoint,
-    LoadedConnection, SimulatedConnector, TransportKind,
+    ConnectionEndpoints, ConnectionProperties, ConnectionRepository, FrontendConnection,
+    FrontendConnectionEndpoint, LoadedConnection, TransportKind,
+};
+pub use hmi::{
+    HMI_SCHEMA_VERSION, HmiAction, HmiActionReport, HmiActionStatus, HmiActuator, HmiAlarm,
+    HmiAlarmSeverity, HmiAuditEntry, HmiPermissive, HmiSafety, HmiSession, HmiSignal, HmiSnapshot,
+    HmiTraceEntry,
+};
+pub use runtime::{ConfiguredAppliance, ConfiguredNetwork};
+pub use scenario::{
+    LoadedScenario, SCENARIO_REPORT_SCHEMA_VERSION, SCENARIO_SCHEMA_VERSION,
+    SECURITY_EVENT_SCHEMA_VERSION, ScenarioApplicationConfig, ScenarioConfig,
+    ScenarioConnectionOverride, ScenarioConnectionState, ScenarioContinuityConfig,
+    ScenarioContinuityFault, ScenarioContinuityReport, ScenarioExpectation,
+    ScenarioExpectationMode, ScenarioExpectedOutcome, ScenarioFirewallHaOverride,
+    ScenarioFirewallHaState, ScenarioFirstHopOverride, ScenarioFirstHopState,
+    ScenarioHaIsolationConfig, ScenarioHaIsolationReport, ScenarioHttpDocument, ScenarioHttpMethod,
+    ScenarioHttpResponse, ScenarioLinkAggregationState, ScenarioLocalAutonomyConfig,
+    ScenarioLocalAutonomyReport, ScenarioPacketConfig, ScenarioRecoveryConfig, ScenarioReport,
+    ScenarioRepository, ScenarioSecurityConfig, ScenarioSecurityEvent, ScenarioSpanningTreeState,
+    ScenarioStatistics, ScenarioStatus, ScenarioSummary, ScenarioTraceEntry, ScenarioTraceKind,
+    ScenarioTransportConfig, SecurityDisposition, SecuritySeverity, SpanningTreePortRole,
+    SpanningTreePortState, run_scenario, run_scenario_with_overrides,
+    run_scenario_with_state_overrides,
+};
+pub use workstation::{
+    BrowserNavigation, WORKSTATION_SCHEMA_VERSION, WorkstationAction, WorkstationActionKind,
+    WorkstationActionReport, WorkstationActionStatus, WorkstationInterface, WorkstationProfile,
+    run_workstation_action, workstation_profile,
 };

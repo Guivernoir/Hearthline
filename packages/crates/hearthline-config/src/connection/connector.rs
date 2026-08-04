@@ -1,159 +1,36 @@
-use hearthline_model::{ComponentId, EthernetFrame};
-
-use crate::appliance::{ConfigError, ConfigRepository, InterfaceConfig};
-use hearthline_engine::{ConnectionMedium, MediumKind, PortDuplex, PortState};
-
-use super::{
-    ConnectionConfig, ConnectionEndpoint, ConnectionEndpoints, ConnectionProperties,
-    ConnectorPortProfile,
+use hearthline_engine::{
+    LinkDirection, LinkEndpoint, MediaLink, MediaLinkConfig, MediumKind, PortDuplex, SimulatedPort,
 };
+use hearthline_model::{ComponentId, PortId};
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ConnectorDropReason {
-    Down,
-    SourcePortDown,
-    DestinationPortDown,
-    InvalidEndpoint,
-    MtuExceeded { frame_bytes: u32, mtu: u32 },
-    ModeledLoss,
-}
+use crate::appliance::{ConfigError, ConfigRepository, InterfaceConfig, InterfaceMode};
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct ConnectorTransit {
-    pub delay_ms: u64,
-    pub physical_delay_us: u64,
-}
+use super::{ConnectionConfig, ConnectionDirection, ConnectionEndpoint};
 
-#[derive(Clone, Debug)]
-pub struct SimulatedConnector {
-    id: ComponentId,
-    endpoints: ConnectionEndpoints,
-    properties: ConnectionProperties,
-    endpoint_a: ConnectorPortProfile,
-    endpoint_b: ConnectorPortProfile,
-    effective_mtu: u32,
-    physical_delay_us: u64,
-    frame_count: u64,
-}
-
-impl SimulatedConnector {
-    pub fn new(
-        id: ComponentId,
-        endpoints: ConnectionEndpoints,
-        properties: ConnectionProperties,
-    ) -> Result<Self, ConfigError> {
-        if endpoints.a == endpoints.b {
-            return Err(ConfigError::new("connector endpoints must differ"));
-        }
-        Ok(Self {
-            id,
-            endpoints,
-            properties,
-            endpoint_a: ConnectorPortProfile::default(),
-            endpoint_b: ConnectorPortProfile::default(),
-            effective_mtu: 1_500,
-            physical_delay_us: 0,
-            frame_count: 0,
-        })
-    }
-
-    pub fn new_configured(
-        id: ComponentId,
-        endpoints: ConnectionEndpoints,
-        properties: ConnectionProperties,
-        medium: ConnectionMedium,
-        endpoint_a: ConnectorPortProfile,
-        endpoint_b: ConnectorPortProfile,
-    ) -> Result<Self, ConfigError> {
-        if endpoints.a == endpoints.b {
-            return Err(ConfigError::new("connector endpoints must differ"));
-        }
-        Ok(Self {
-            id,
-            endpoints,
-            properties,
-            endpoint_a,
-            endpoint_b,
-            effective_mtu: endpoint_a.mtu.min(endpoint_b.mtu),
-            physical_delay_us: medium.propagation_delay_us(),
-            frame_count: 0,
-        })
-    }
-
-    pub fn id(&self) -> &ComponentId {
-        &self.id
-    }
-
-    pub fn set_operational(&mut self, operational: bool) {
-        self.properties.operational = operational;
-    }
-
-    pub fn set_port_operational(
-        &mut self,
-        endpoint: &ConnectionEndpoint,
-        operational: PortState,
-    ) -> Result<(), ConnectorDropReason> {
-        if endpoint == &self.endpoints.a {
-            self.endpoint_a.state.initial_operational = operational;
-        } else if endpoint == &self.endpoints.b {
-            self.endpoint_b.state.initial_operational = operational;
-        } else {
-            return Err(ConnectorDropReason::InvalidEndpoint);
-        }
-        Ok(())
-    }
-
-    pub fn transmit(
-        &mut self,
-        source: &ConnectionEndpoint,
-        frame: &EthernetFrame,
-        frame_bytes: u32,
-    ) -> Result<(&ConnectionEndpoint, ConnectorTransit), ConnectorDropReason> {
-        if !self.properties.operational {
-            return Err(ConnectorDropReason::Down);
-        }
-        let (destination, source_port, destination_port) =
-            if source == &self.endpoints.a && self.properties.direction.permits_a_to_b() {
-                (&self.endpoints.b, self.endpoint_a, self.endpoint_b)
-            } else if source == &self.endpoints.b && self.properties.direction.permits_b_to_a() {
-                (&self.endpoints.a, self.endpoint_b, self.endpoint_a)
-            } else {
-                return Err(ConnectorDropReason::InvalidEndpoint);
-            };
-        if !source_port.state.initially_usable() {
-            return Err(ConnectorDropReason::SourcePortDown);
-        }
-        if !destination_port.state.initially_usable() {
-            return Err(ConnectorDropReason::DestinationPortDown);
-        }
-        if frame_bytes > self.effective_mtu {
-            return Err(ConnectorDropReason::MtuExceeded {
-                frame_bytes,
-                mtu: self.effective_mtu,
-            });
-        }
-        self.frame_count += 1;
-        if self
-            .properties
-            .loss_every
-            .is_some_and(|interval| self.frame_count.is_multiple_of(interval))
-        {
-            return Err(ConnectorDropReason::ModeledLoss);
-        }
-        let _ = frame;
-        let serialization_ms = u64::from(frame_bytes)
-            .saturating_mul(8)
-            .div_ceil(self.properties.capacity_mbps.saturating_mul(1_000));
-        Ok((
-            destination,
-            ConnectorTransit {
-                delay_ms: self.properties.latency_ms
-                    + serialization_ms
-                    + self.physical_delay_us.div_ceil(1_000),
-                physical_delay_us: self.physical_delay_us,
+pub(super) fn build_media_link(
+    connection: &ConnectionConfig,
+    appliances: &ConfigRepository,
+) -> Result<MediaLink, ConfigError> {
+    let endpoint_a = runtime_endpoint(appliances, &connection.endpoints.a)?;
+    let endpoint_b = runtime_endpoint(appliances, &connection.endpoints.b)?;
+    MediaLink::new(
+        ComponentId::new(&connection.id).map_err(|error| ConfigError::new(error.to_string()))?,
+        endpoint_a,
+        endpoint_b,
+        MediaLinkConfig {
+            capacity_mbps: connection.properties.capacity_mbps,
+            latency_ms: connection.properties.latency_ms,
+            loss_every: connection.properties.loss_every,
+            direction: match connection.properties.direction {
+                ConnectionDirection::Bidirectional => LinkDirection::Bidirectional,
+                ConnectionDirection::AToB => LinkDirection::AToB,
+                ConnectionDirection::BToA => LinkDirection::BToA,
             },
-        ))
-    }
+            operational: connection.properties.operational,
+        },
+        connection.medium.clone(),
+    )
+    .map_err(|error| ConfigError::new(format!("connection {}: {error}", connection.id)))
 }
 
 pub(super) fn validate_endpoint(
@@ -187,6 +64,12 @@ pub(super) fn validate_endpoint_port(
 ) -> Result<(), ConfigError> {
     for endpoint in [&connection.endpoints.a, &connection.endpoints.b] {
         let interface = endpoint_port(appliances, endpoint)?;
+        if interface.mode == InterfaceMode::Svi {
+            return Err(ConfigError::new(format!(
+                "connection {} cannot terminate media on virtual SVI {}:{}",
+                connection.id, endpoint.appliance, endpoint.interface
+            )));
+        }
         if !interface.hardware.supports(connection.medium.kind()) {
             return Err(ConfigError::new(format!(
                 "connection {} {} medium is not supported by {} port {} on {}",
@@ -238,4 +121,22 @@ pub(super) fn negotiated_duplex(a: PortDuplex, b: PortDuplex, medium: MediumKind
     } else {
         PortDuplex::Full
     }
+}
+
+fn runtime_endpoint(
+    appliances: &ConfigRepository,
+    endpoint: &ConnectionEndpoint,
+) -> Result<LinkEndpoint, ConfigError> {
+    let interface = endpoint_port(appliances, endpoint)?;
+    Ok(LinkEndpoint {
+        component: ComponentId::new(&endpoint.appliance)
+            .map_err(|error| ConfigError::new(error.to_string()))?,
+        port: PortId::new(&endpoint.interface)
+            .map_err(|error| ConfigError::new(error.to_string()))?,
+        profile: SimulatedPort {
+            hardware: interface.hardware,
+            state: interface.state,
+            settings: interface.settings,
+        },
+    })
 }

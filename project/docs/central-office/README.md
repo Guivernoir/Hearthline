@@ -13,7 +13,14 @@ The campus overview and all three environment routes are implemented in Svelte.
 The rendered roles and trust boundaries describe the target architecture;
 per-appliance YAML now supplies validated identities and behavior baselines.
 Identity integration, complete policy enforcement, monitoring behavior,
-analytics behavior, and configured topology execution remain future work.
+and broad HA behavior remain future work. Two selected path families are executable:
+customer HTTPS crosses the public DMZ and named downstream policy to an
+internal application response while public SSH is denied, and the Factory OT
+DMZ historian replica reaches Central Office analytics over HTTPS through
+`Business FRW-03A` while SSH is denied by default policy.
+The northbound pair additionally supports one bounded, protocol-timed session
+continuity case through `Business FRW-03B`; this does not establish vendor HA
+conformance or production recovery performance.
 
 ## Environments
 
@@ -35,5 +42,6 @@ the operations center. The logical view preserves their distinct trust and
 information-flow boundaries.
 
 Planned implementation will move the remaining site and conduit relationships
-into canonical inputs, construct the configured topology, and expose
-Rust-validated network, policy, and availability scenarios in the same views.
+into canonical inputs, expand configured topology construction, and expose
+additional Rust-validated network, policy, and availability scenarios in the
+same views.

@@ -13,13 +13,23 @@ permissive role.
 
 The ordered process canvas and ten process-area views are implemented. Each area
 uses bootstrap JSON for representative equipment and relationships. The Rust
-workspace now has provisional controller-scan, I/O, sensor, actuator, HMI,
-safety, and connector primitives plus parsed YAML for all 90 area components,
-both physical vPLC hosts, and the Level 3 aggregation pair. Per-connection YAML
-records redundant cell uplinks, virtual runtime attachment, HMI and remote I/O
-Ethernet, and individual field channels. These records are not yet connected
-to running component instances, and no area-specific program, plant state,
-material flow, or fault scenario executes.
+workspace has provisional controller-scan, I/O, sensor, actuator, HMI, safety,
+and connector primitives plus parsed YAML for all 90 area components, both
+physical vPLC hosts, and the Level 3 aggregation pair. Body Preparation now has
+an executable operator session together with the other nine areas. Every local
+HMI is assembled from its area YAML with two configured samples, one safety
+interface, two commandable field outputs, alarm and audit state, and a command
+path executed through the HMI, vPLC, remote I/O, and actuator primitives.
+The first composite resilience scenario also disables both factory-facing
+inter-site handoffs while the Body Preparation HMI resets its healthy safety
+circuit and starts the transfer pump over an independently validated local
+path. IEC 61131-3 programs, automatic sequences, plant dynamics, and material
+flow are not yet executable.
+
+![Factory local autonomy simulation](local-autonomy-screenshot.png)
+
+The screenshot is command-level evidence: it does not claim that a PLC program
+continued scanning or that material state advanced during the outage.
 
 ## Process Sequence
 

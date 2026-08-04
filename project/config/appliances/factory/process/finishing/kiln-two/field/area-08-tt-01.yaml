@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "area-08-tt-01"
 label: "AREA-08-TT-01"
 kind: "field-sensor"
@@ -34,3 +34,4 @@ behavior:
   unit: "celsius"
   minimum: 0
   maximum: 1300
+  initial_value: 1040

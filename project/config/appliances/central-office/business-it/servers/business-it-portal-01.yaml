@@ -1,0 +1,42 @@
+schema_version: "0.9.0"
+id: "business-it-portal-01"
+label: "Business IT-PORTAL-01"
+kind: "web-server"
+site: "Central Office"
+environment: "Business IT"
+zone: "Application Services"
+role: "Managed employee portal"
+summary: "Provides the modeled internal employee application over HTTPS."
+lifecycle: "simulated"
+tags: []
+default_gateway: "10.10.80.1"
+render:
+  - view: "office/business-it"
+    node: "server-fleet"
+    mode: "any"
+interfaces:
+  - id: "service"
+    hardware: "ethernet-rj45"
+    mac_address: "02:00:00:10:80:20"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 1000
+      duplex: "full"
+      mtu: 1500
+    mode: "access"
+    addresses:
+      - "10.10.80.20/24"
+    vlans:
+      - 80
+behavior:
+  family: "service-host"
+  accepted_services:
+    - "https"
+  respond_to_icmp: true
+  http_site:
+    host: "portal.hearthline.test"
+    title: "Hearthline Employee Portal"
+    heading: "Operations workspace"
+    body: "The modeled internal application is available to managed Business IT users."

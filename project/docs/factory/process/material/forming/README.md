@@ -12,8 +12,15 @@ and machine safety.
 
 ## Current Representation
 
-The Svelte view renders the representative assets below from bootstrap JSON. It
-does not currently execute control logic, I/O, or process behavior.
+The architecture view renders the representative assets below from bootstrap
+JSON. `AREA-02-HMI-01` is enterable as a Rust-backed operator session assembled
+from the area appliance YAML. It displays the configured part-presence and
+pressure samples, starts with `AREA-02-SAFE-01` latched, and exposes the press
+and conveyor state domains after an authorized safety reset. Accepted commands
+traverse the HMI, vPLC, remote I/O, and selected field actuator.
+
+This is a deterministic operator-command baseline. Structured Text execution,
+machine sequencing, pressure dynamics, and material movement remain pending.
 
 | Function | Representative component |
 | --- | --- |

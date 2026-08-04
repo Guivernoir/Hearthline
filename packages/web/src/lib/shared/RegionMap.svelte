@@ -5,6 +5,7 @@
     ArrowRight,
     Building2,
     Factory,
+    FlaskConical,
     Globe2,
     Grid2X2,
     House,
@@ -35,6 +36,7 @@
   }
 
   export let onEnter: (place: PlaceId) => void = () => {};
+  export let onOpenSimulations: () => void = () => {};
   export let viewMode: ViewMode = "logical";
 
   const WORLD_WIDTH = 1400;
@@ -252,6 +254,10 @@
     </div>
 
     <div class="toolbar" aria-label="Map tools">
+      <button type="button" aria-label="Open simulations" title="Simulations" onclick={onOpenSimulations}>
+        <FlaskConical size={17} strokeWidth={1.9} />
+      </button>
+      <span class="toolbar-divider"></span>
       <div class="view-mode-control" aria-label="Architecture view">
         <button
           type="button"

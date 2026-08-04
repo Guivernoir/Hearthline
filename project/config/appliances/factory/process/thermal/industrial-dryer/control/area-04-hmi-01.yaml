@@ -1,4 +1,4 @@
-schema_version: "0.3.0"
+schema_version: "0.9.0"
 id: "area-04-hmi-01"
 label: "AREA-04-HMI-01"
 kind: "hmi"
@@ -7,10 +7,11 @@ environment: "Industrial Dryer"
 zone: "OT-AREA-04"
 role: "Dryer operator HMI"
 summary: "Profile and alarm display."
-lifecycle: "design"
+lifecycle: "simulated"
 tags:
   - "ot-area-04"
   - "operator interface"
+  - "interactive"
 render:
   - view: "factory/process/industrial-dryer"
     node: "area-04-hmi-01"
@@ -36,3 +37,7 @@ behavior:
     - "observe"
     - "acknowledge-alarms"
     - "authorized-command"
+    - "reset-safety"
+  command_tags:
+    - "area-04-fan-01-command"
+    - "area-04-cv-01-command"

@@ -1,0 +1,62 @@
+@media (max-width: 860px) {
+  .security-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .security-overview > header {
+    min-height: 48px;
+    border-right: 0;
+    border-bottom: 1px solid #d4dad5;
+  }
+
+  .security-overview dl {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .security-overview dl div:last-child {
+    display: none;
+  }
+
+  .security-console-layout {
+    height: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .security-event-queue {
+    min-height: 220px;
+    max-height: 300px;
+  }
+
+  .security-investigation {
+    min-height: 430px;
+  }
+}
+
+@media (max-width: 620px) {
+  .security-workspace {
+    padding: 8px;
+  }
+
+  .security-overview dl div {
+    padding: 8px;
+  }
+
+  .security-console-layout {
+    margin-top: 8px;
+    gap: 8px;
+  }
+
+  .security-evidence {
+    grid-template-columns: 1fr;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .security-investigation > footer {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .security-investigation > footer > span:nth-child(2) {
+    display: none;
+  }
+}

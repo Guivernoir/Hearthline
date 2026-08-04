@@ -1,0 +1,31 @@
+schema_version: "0.11.0"
+id: "customer-pc-02-dns-lookup"
+label: "Customer PC-02 DNS lookup"
+summary: "Customer PC-02 resolves the modeled public business service through its own access link, the customer edge, and the ISP DNS path."
+category: "network"
+participants:
+  - "customer-pc-02"
+  - "customer-sw-01"
+  - "customer-rtr-01"
+  - "customer-inet-cpe-01"
+  - "wan-01"
+  - "isp-edge-rtr-01"
+  - "isp-dns-01"
+source: "customer-pc-02"
+packet:
+  source_ip: "192.168.0.3"
+  destination_ip: "198.51.100.50"
+  ttl: 64
+  wire_length_bytes: 96
+  transport:
+    protocol: "udp"
+    source_port: 53100
+    destination_port: 53
+  application:
+    kind: "dns-query"
+    name: "shop.hearthline.test"
+expectation:
+  component: "customer-pc-02"
+  outcome: "delivered"
+  service: "dns"
+event_limit: 128

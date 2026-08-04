@@ -8,6 +8,8 @@ const maxEntries = 7;
 const ignoredDirectories = new Set([
   ".git",
   ".svelte-kit",
+  "artifacts",
+  "corpus",
   "dist",
   "node_modules",
   "target",

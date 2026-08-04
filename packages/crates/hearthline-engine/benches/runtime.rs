@@ -1,10 +1,15 @@
 use core::net::Ipv4Addr;
 
 use criterion::{BatchSize, Criterion, black_box, criterion_group, criterion_main};
-use hearthline_engine::{LinkAppliance, LinkMode, RoutingTable, ServiceNode, Simulator};
+use hearthline_engine::{
+    ConnectionMedium, CopperCategory, CopperMedium, CopperWiring, LinkAppliance, LinkEndpoint,
+    LinkMode, MediaLink, MediaLinkConfig, PortDuplex, PortHardwareKind, PortSettings, PortState,
+    PortStateConfig, RoutedInterface, RoutingTable, ServiceNode, SimulatedPort, Simulator,
+};
 use hearthline_model::{
-    ApplicationData, ComponentId, ComponentKind, EthernetFrame, Ipv4Cidr, Ipv4Packet, MacAddress,
-    NetworkPayload, PortId, Route, ServiceKind, TcpFlags, TcpSegment, Transport, VlanId,
+    ApplicationData, ComponentId, ComponentKind, EthernetFrame, Ipv4Cidr, Ipv4InterfaceAddress,
+    Ipv4Packet, MacAddress, NetworkPayload, PortId, Route, ServiceKind, TcpFlags, TcpSegment,
+    Transport, VlanId,
 };
 
 fn id(value: &str) -> ComponentId {
@@ -13,6 +18,25 @@ fn id(value: &str) -> ComponentId {
 
 fn port(value: &str) -> PortId {
     PortId::new(value).expect("benchmark port")
+}
+
+fn endpoint(component: &ComponentId, port_id: &str) -> LinkEndpoint {
+    LinkEndpoint {
+        component: component.clone(),
+        port: port(port_id),
+        profile: SimulatedPort {
+            hardware: PortHardwareKind::EthernetRj45,
+            state: PortStateConfig {
+                administrative: PortState::Up,
+                initial_operational: PortState::Up,
+            },
+            settings: PortSettings {
+                speed_mbps: 1_000,
+                duplex: PortDuplex::Full,
+                mtu: 1_500,
+            },
+        },
+    }
 }
 
 fn benchmark_routes(criterion: &mut Criterion) {
@@ -60,6 +84,7 @@ fn demo_frame() -> EthernetFrame {
             }),
             application: ApplicationData::Service(ServiceKind::Https),
         }),
+        wire_len_bytes: 64,
     }
 }
 
@@ -76,24 +101,37 @@ fn benchmark_traversal(criterion: &mut Criterion) {
                 let service = ServiceNode::new(
                     id("public-service-01"),
                     ComponentKind::ServiceCluster,
-                    [port("network")],
-                    [Ipv4Addr::new(192, 0, 2, 10)],
+                    [RoutedInterface::new(
+                        port("network"),
+                        MacAddress::new([0, 1, 2, 3, 4, 6]),
+                        [Ipv4InterfaceAddress::new(Ipv4Addr::new(192, 0, 2, 10), 24)
+                            .expect("interface address")],
+                        VlanId::new(10).expect("VLAN"),
+                        1_500,
+                    )],
                     [ServiceKind::Https],
                 );
-                (cpe, service, demo_frame())
+                let connection = MediaLink::new(
+                    id("cpe-to-service"),
+                    endpoint(&id("customer-inet-cpe-01"), "access"),
+                    endpoint(&id("public-service-01"), "network"),
+                    MediaLinkConfig::default(),
+                    ConnectionMedium::Copper {
+                        config: CopperMedium {
+                            wiring: CopperWiring::StraightThrough,
+                            category: CopperCategory::Cat6a,
+                            length_m: 10.0,
+                        },
+                    },
+                )
+                .expect("benchmark media link");
+                (cpe, service, connection, demo_frame())
             },
-            |(mut cpe, mut service, frame)| {
+            |(mut cpe, mut service, mut connection, frame)| {
                 let mut simulator = Simulator::new();
                 simulator.add(&mut cpe).expect("CPE registry slot");
                 simulator.add(&mut service).expect("service registry slot");
-                simulator
-                    .connect(
-                        &id("customer-inet-cpe-01"),
-                        &port("access"),
-                        &id("public-service-01"),
-                        &port("network"),
-                    )
-                    .expect("benchmark link");
+                simulator.add_link(&mut connection).expect("benchmark link");
                 simulator
                     .inject_network(&id("customer-inet-cpe-01"), &port("customer"), frame)
                     .expect("benchmark event");
