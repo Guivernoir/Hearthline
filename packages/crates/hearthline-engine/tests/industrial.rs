@@ -134,15 +134,16 @@ fn forming_cycle_keeps_release_assist_separate_from_mould_cleaning() {
 
     process.tick(750);
     assert_eq!(process.phase(), FormingPhase::PressureDwell);
-    process.tick(2_500);
-    assert_eq!(process.phase(), FormingPhase::Draining);
-    assert_eq!(process.outputs().slip, "draining");
-    assert_eq!(process.outputs().air, "pressurizing");
 
-    process.tick(1_000);
+    process.tick(2_500);
     assert_eq!(process.phase(), FormingPhase::Depressurizing);
     assert_eq!(process.outputs().air, "isolated");
+
     process.tick(500);
+    assert_eq!(process.phase(), FormingPhase::Draining);
+    assert_eq!(process.outputs().slip, "draining");
+
+    process.tick(1000);
     assert_eq!(process.phase(), FormingPhase::ReleaseWater);
     assert_eq!(process.outputs().water, "release-wet");
     process.tick(400);

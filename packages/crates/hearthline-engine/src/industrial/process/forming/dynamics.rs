@@ -21,7 +21,6 @@ impl FormingProcess {
             FormingPhase::Draining => FormingOutputs {
                 slip: "draining",
                 mould: "closed",
-                air: "pressurizing",
                 ..FormingOutputs::safe()
             },
             FormingPhase::ReleaseWater => FormingOutputs {
@@ -92,12 +91,11 @@ impl FormingProcess {
                 self.measurements.mould_pressure_bar = 6.0 * progress;
             }
             FormingPhase::PressureDwell => self.measurements.mould_pressure_bar = 6.0,
-            FormingPhase::Draining => {
-                self.measurements.mould_pressure_bar = 6.0;
-                self.measurements.excess_slip_drain_flow_l_min = 70.0 * (1.0 - progress);
-            }
             FormingPhase::Depressurizing => {
                 self.measurements.mould_pressure_bar = 6.0 * (1.0 - progress);
+            }
+            FormingPhase::Draining => {
+                self.measurements.excess_slip_drain_flow_l_min = 70.0 * (1.0 - progress);
             }
             FormingPhase::ReleaseWater => {
                 self.measurements.mould_pressure_bar = 0.0;
