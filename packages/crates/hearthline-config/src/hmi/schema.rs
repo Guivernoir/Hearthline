@@ -92,12 +92,12 @@ pub(super) const FORMING_PHASES: [HmiProcessPhase; 15] = [
         label: "Pressure hold",
     },
     HmiProcessPhase {
-        key: "excess-slip-drain",
-        label: "Drain slip",
-    },
-    HmiProcessPhase {
         key: "depressurizing",
         label: "Depressurize",
+    },
+    HmiProcessPhase {
+        key: "excess-slip-drain",
+        label: "Drain slip",
     },
     HmiProcessPhase {
         key: "release-water",

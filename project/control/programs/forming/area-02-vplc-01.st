@@ -85,17 +85,17 @@ CASE Step OF
     VacuumCommand := 0;
     RobotCommand := 1;
     StepTimer(IN := TRUE, PT := T#500ms);
-    IF StepTimer.Q THEN Step := 60; END_IF;
+    IF StepTimer.Q THEN Step := 50; END_IF;
 50:
     PhaseCode := 50;
     SlipCommand := 3;
     MouldCommand := 1;
     WaterCommand := 0;
-    AirCommand := 1;
+    AirCommand := 0;
     VacuumCommand := 0;
     RobotCommand := 1;
     StepTimer(IN := TRUE, PT := T#1000ms);
-    IF StepTimer.Q THEN Step := 50; END_IF;
+    IF StepTimer.Q THEN Step := 60; END_IF;
 60:
     PhaseCode := 60;
     SlipCommand := 0;
