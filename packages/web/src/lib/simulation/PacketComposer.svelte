@@ -13,6 +13,8 @@
     packet.application.kind === "http-request" ? packet.application : null;
   $: serviceApplication =
     packet.application.kind === "service" ? packet.application : null;
+  $: telemetryApplication =
+    packet.application.kind === "telemetry" ? packet.application : null;
 
   function updateHttpBody(value: string) {
     if (packet.application.kind !== "http-request") return;
@@ -89,6 +91,14 @@
         <textarea maxlength="256" spellcheck="false" value={httpRequest.body ?? ""} oninput={(event) => updateHttpBody(event.currentTarget.value)}></textarea>
       </label>
       <label><span>Body bytes</span><input type="number" min="0" disabled={httpRequest.body !== null} bind:value={httpRequest.body_bytes} /></label>
+    </fieldset>
+  {:else if telemetryApplication}
+    <fieldset disabled={locked}>
+      <legend>Process telemetry</legend>
+      <label><span>Service</span><input type="text" bind:value={telemetryApplication.service} spellcheck="false" /></label>
+      <label><span>Source controller</span><input type="text" bind:value={telemetryApplication.source} spellcheck="false" /></label>
+      <label><span>Sequence</span><input type="number" min="0" bind:value={telemetryApplication.sequence} /></label>
+      <label><span>Payload</span><textarea maxlength="256" spellcheck="false" bind:value={telemetryApplication.payload}></textarea></label>
     </fieldset>
   {:else if serviceApplication}
     <fieldset disabled={locked}>

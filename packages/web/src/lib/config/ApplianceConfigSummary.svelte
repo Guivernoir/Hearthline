@@ -8,6 +8,7 @@
 
   function operationLabel(kind: string) {
     if (kind === "hmi") return "Open HMI";
+    if (kind === "scada-workstation") return "Open SCADA";
     if (kind === "operations-console") return "Open SOC console";
     return "Open workstation";
   }

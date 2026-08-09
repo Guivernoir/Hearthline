@@ -7,7 +7,7 @@ management systems, voice, printers, and isolated guest access.
 
 ![Business IT logical view](logical-screenshot.png)
 
-![Business IT workstation and internal portal](workstation-screenshot.png)
+![Business IT workstation session network state](workstation-screenshot.png)
 
 ![Business IT Core-02 failover simulation](failover-screenshot.png)
 
@@ -24,7 +24,21 @@ grouped user node. Each desktop exposes a terminal, browser, and canonical
 configuration. Terminal `nslookup` and browser or `curl` HTTPS requests execute
 in Rust through independent scenario records. The browser home is selected
 from the workstation's compatible HTTPS scenario rather than embedded in
-Svelte.
+Svelte. The same terminals can resolve and `ping` the internal DNS or portal
+addresses with up to four dynamically constructed ICMP probes, using the
+matching configured service path as their validated topology template.
+Each workstation has an isolated API-session DNS cache with a deterministic
+60-second TTL. Browser, `curl`, `ping`, and SSH actions reuse cached answers;
+`nslookup` remains an explicit server query, and `ipconfig /displaydns` or
+`ipconfig /flushdns` inspects or clears client state. The terminal's `arp -a`
+reads the endpoint neighbor table retained by the workstation's compatible
+baseline network session.
+The Network State application exposes the same session runtime as structured,
+capability-scoped CAM, neighbor, PAT, and firewall-session tables. A bounded
+read-only simulator console delegates supported `show` commands to Rust and a
+configuration action opens the selected appliance YAML. This is diagnostic
+instrumentation for one workstation session, not privileged in-band access to
+the modeled appliances or a shared enterprise management plane.
 
 The normal internal paths use the preferred Core-01 member:
 
@@ -42,6 +56,13 @@ crosses to infrastructure VLAN 20 and resolves
 `portal.hearthline.test` to `10.10.80.20`. HTTPS then crosses to applications
 VLAN 80 and returns the configured employee-portal document. The trace records
 ARP, switching, routing, media timing, service response, and client delivery.
+On a cache hit, the DNS scenario is omitted and the action report identifies
+`client-cache` as the resolution source. DNS and portal actions reuse the same
+endpoint, access switch, routed core, service nodes, and media instances, so
+the gateway ARP entry survives between them. The internal path correctly
+reports zero PAT translations. Configuration updates or API restart clear the
+session; controlled resilience scenarios continue to execute in isolated
+fresh runtimes.
 
 The selected public-service scenario executes `Business FRW-02A`, the core,
 server access switching, and `Business IT Services-01` for a configured HTTP

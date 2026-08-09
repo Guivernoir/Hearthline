@@ -1,7 +1,7 @@
 use axum::Json;
 use axum::extract::{Path as RoutePath, State};
 use axum::http::StatusCode;
-use hearthline_config::{HmiAction, HmiActionReport, HmiSession, HmiSnapshot};
+use hearthline_config::{HmiAction, HmiActionReport, HmiControlProgramDocument, HmiSnapshot};
 
 use crate::{ApiError, AppState};
 
@@ -12,16 +12,10 @@ pub(super) async fn profile(
     let (appliances, _) = state.paths.load()?;
     require_appliance(&appliances, &id)?;
     let mut sessions = state.hmi_sessions.lock().await;
-    if !sessions.contains_key(&id) {
-        let session =
-            HmiSession::from_repository(&appliances, &id).map_err(ApiError::validation)?;
-        sessions.insert(id.clone(), session);
-    }
     Ok(Json(
         sessions
-            .get(&id)
-            .expect("HMI session was inserted")
-            .snapshot(),
+            .profile(&appliances, &id)
+            .map_err(ApiError::validation)?,
     ))
 }
 
@@ -33,20 +27,33 @@ pub(super) async fn action(
     let (appliances, _) = state.paths.load()?;
     require_appliance(&appliances, &id)?;
     let mut sessions = state.hmi_sessions.lock().await;
-    if !sessions.contains_key(&id) {
-        let session =
-            HmiSession::from_repository(&appliances, &id).map_err(ApiError::validation)?;
-        sessions.insert(id.clone(), session);
-    }
     Ok(Json(
         sessions
-            .get_mut(&id)
-            .expect("HMI session was inserted")
-            .execute(action),
+            .execute(&appliances, &id, action)
+            .map_err(ApiError::validation)?,
     ))
 }
 
-fn require_appliance(
+pub(super) async fn control_program(
+    RoutePath(id): RoutePath<String>,
+    State(state): State<AppState>,
+) -> Result<Json<HmiControlProgramDocument>, ApiError> {
+    let (appliances, _) = state.paths.load()?;
+    require_appliance(&appliances, &id)?;
+    let mut sessions = state.hmi_sessions.lock().await;
+    let document = sessions
+        .control_program(&appliances, &id)
+        .map_err(ApiError::validation)?
+        .ok_or_else(|| {
+            ApiError::new(
+                StatusCode::NOT_FOUND,
+                format!("HMI {id} has no executable control source"),
+            )
+        })?;
+    Ok(Json(document))
+}
+
+pub(super) fn require_appliance(
     appliances: &hearthline_config::ConfigRepository,
     id: &str,
 ) -> Result<(), ApiError> {

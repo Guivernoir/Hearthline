@@ -121,7 +121,7 @@ simulation state, or scenario outcomes have been validated.
 
 The appliance configuration catalog is
 [`packages/web/src/generated/appliance-configs.json`](../../../packages/web/src/generated/appliance-configs.json).
-Rust generates it from 162 parsed per-appliance and 208 per-connection YAML
+Rust generates it from 185 parsed per-appliance and 231 per-connection YAML
 files. It provides stable IDs, typed kind and behavior-family metadata,
 resolved connection endpoints, lifecycle state, source revisions, full source
 text, and environment-scoped render bindings. Svelte uses this derivative
@@ -150,9 +150,10 @@ policy, connectors, DNS, services, web gateways, controller scans, media
 compatibility, and safety behavior. Selected endpoint, switch, router, NAT
 router, stateful firewall, DNS, web-server, web-gateway, HMI, virtual-PLC,
 remote-I/O, field-device, safety-interface, and link components are now
-constructed from YAML. Twenty-eight versioned end-to-end scenarios cover
+constructed from YAML. Thirty versioned end-to-end scenarios cover
 independent customer public paths, Business IT PC-01 through PC-04 internal DNS
-and HTTPS, approved or denied factory operations-data transfer, three
+and HTTPS, approved or denied factory operations-data transfer, Forming
+controller-to-Level-3 collection, Level-3-to-DMZ replication, three
 WAF-prevented path-traversal, disallowed-method, and SQL-injection request-body
 exercises, a customer access-circuit outage with a declared restored-state
 DNS-delivery expectation, a Business IT core recovery that transfers three
@@ -160,11 +161,11 @@ VRRP groups and Rust-computed Rapid-PVST forwarding roles to Core-02, and a
 converged northbound-firewall recovery that transfers active ownership to the
 validated standby, plus a protocol-timed variant that carries one session and
 heartbeats over the HA medium before validating a reverse ACK. Rust also
-executes three bounded fault variants: an HA-medium outage after successful
+executes four bounded fault variants: an HA-medium outage after successful
 state replication, standby session-state loss that must fail closed after
 promotion, retained state that expires after the modeled TCP idle timer, and
 sync-path isolation that fences the standby while peer failure is unconfirmed.
-The twenty-eighth scenario drops both factory-facing conduit handoffs while an
+A composite scenario drops both factory-facing conduit handoffs while an
 independent Body Preparation HMI, vPLC, remote-I/O, safety, and pump path
 remains operational; passing requires the expected historian-path failure and
 the configured local pump command. Rust exposes each trace through the local API and
@@ -178,7 +179,7 @@ scenarios remain pending.
 
 ## YAML Scope
 
-Appliance schema `0.9.0` currently covers:
+Appliance schema `0.10.0` currently covers:
 
 - One stable file and ID per appliance.
 - Appliance kind, typed behavior family, placement, role, summary, lifecycle,
@@ -200,7 +201,8 @@ Appliance schema `0.9.0` currently covers:
   validated heartbeat and failure-hold timers.
 - Family-specific baselines for links, switching, routing, NAT, firewalls,
   application gateways, service endpoints, wireless, monitoring, control
-  compute, vPLCs, HMIs, remote I/O, field devices, and safety interfaces.
+  compute, vPLCs, HMIs/SCADA with optional signal scope, remote I/O, field
+  devices, and safety interfaces.
 
 Connection schema `0.2.0` covers:
 
@@ -294,11 +296,11 @@ packet emulator or substitute for qualified hardware testing.
 |   |-- fuzz
 |   `-- web
 |-- project
+|   |-- control
 |   |-- config
 |   |-- docs
 |   |-- scripts
-|   |-- standards
-|   `-- control [planned]
+|   `-- standards
 `-- README.md
 ```
 
@@ -312,19 +314,41 @@ operations-data delivery/denial pair are complete. The bounded factory
 conduit-outage/local-command autonomy proof is also complete. Customer PC-01/02 and
 Business IT PC-01/02/03/04 are enterable and invoke independent Rust-backed
 paths from terminals and browsers. Their browsers render configured content
-returned through the selected public or internal path. Complete topology
+returned through the selected public or internal path. Customer endpoints can
+also resolve a target and run bounded repeated ICMP probes through a compatible
+configured route template, with YAML-controlled echo response and full media
+traces. A deterministic API-session cache now retains successful DNS answers
+for 60 seconds per workstation across browser, `curl`, `ping`, and SSH actions;
+`nslookup` remains an explicit DNS-server query. This is the first retained
+endpoint resolver state. A compatible scenario-session runner now follows it:
+each workstation owns a union baseline topology with monotonic simulator time,
+retained endpoint ARP and customer PAT state, and action-relative reports.
+Controlled resilience contracts remain isolated by design. Broader inspection,
+mutation, and formal contracts for switch, router, firewall, and connector
+session state remain planned. Complete topology
 construction and deeper network cross-validation follow; later steps remain
 unimplemented unless stated otherwise in the repository-level README.
 
-All ten process areas have configured HMI sessions. Rust validates operator
-permission and sends each accepted command through HMI, vPLC, remote I/O, and
-actuator primitives while preserving safety, alarm, actuator, and audit state.
-This does not yet execute the referenced Structured Text programs or simulate
-changing plant material and energy state.
+All ten process areas have configured operator sessions. Forming includes one
+cell-wide SCADA scope and four module-local HMI scopes. Rust validates operator
+permission and sends each accepted command through the operator interface,
+vPLC, remote I/O, and actuator primitives while preserving safety, alarm,
+actuator, and audit state. Forming additionally gives its five operator
+interfaces one shared deterministic process. A bounded Structured Text source
+owns normal sequence steps and requested outputs through an explicit YAML I/O
+map; Rust advances plant measurements and independently raises modeled trips
+across 20-millisecond scans.
+The authorized Forming SCADA scope can capture that shared state into a typed,
+bounded telemetry packet and execute the existing brokered historian-replica
+path to Central Office analytics. The returned scenario report keeps the live
+process sequence, payload, network policy result, media timing, and delivery
+trace in one operator workflow.
+This is not a general IEC 61131-3 runtime and does not provide a
+production-fidelity material, pressure, drying, or robot model.
 
 1. Maintain the navigable Svelte architecture and synchronized documentation.
-2. Add changing process state, alarm, permissive, and actuator outcomes across
-   deterministic scans and plant-model steps.
+2. Refine the implemented Forming I/O and control-program contract with
+   reviewed process conditions and parameters.
 3. Add further exact Phase 1 failover, isolation, and outage scenarios.
 4. Extend structural validation with address, VLAN, route, policy, and HA
    reference rules.
@@ -337,8 +361,11 @@ changing plant material and energy state.
 9. Add positive and negative network scenarios.
 10. Replace provisional configuration and architecture content with
     scenario-derived, cross-validated engineering definitions.
-11. Select supported control-language editions and interchange formats.
-12. Implement control parsing and I/O cross-reference validation.
-13. Integrate virtual PLC execution with the Rust plant model.
-14. Add process state, accelerated time, material tracking, and fault injection.
+11. Select formal control-language compatibility targets and Ladder
+    interchange formats before broadening the implemented Forming subset.
+12. Extend control parsing and I/O cross-reference validation to selected
+    constructs and additional process areas.
+13. Extend source-driven virtual PLC execution beyond Forming.
+14. Extend process state, accelerated time, material tracking, and fault
+    injection beyond the first Forming implementation.
 15. Add vendor-specific rendering only as a separate tested capability.

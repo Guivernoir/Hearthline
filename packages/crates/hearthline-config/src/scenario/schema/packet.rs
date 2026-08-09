@@ -1,8 +1,8 @@
 use std::net::Ipv4Addr;
 
 use hearthline_model::{
-    ApplicationData, HttpMethod, IcmpMessage, Ipv4Packet, TcpFlags, TcpSegment, Text, Transport,
-    UdpDatagram,
+    ApplicationData, ComponentId, HttpMethod, IcmpMessage, Ipv4Packet, TcpFlags, TcpSegment, Text,
+    Transport, UdpDatagram,
 };
 use serde::{Deserialize, Serialize};
 
@@ -174,6 +174,12 @@ pub enum ScenarioApplicationConfig {
         body: Option<String>,
         body_bytes: usize,
     },
+    Telemetry {
+        service: String,
+        source: String,
+        sequence: u64,
+        payload: String,
+    },
     Service {
         service: String,
     },
@@ -187,6 +193,18 @@ impl ScenarioApplicationConfig {
         }
         if let Self::Service { service } = self {
             parse_service_kind(service)?;
+        }
+        if let Self::Telemetry {
+            service,
+            source,
+            payload,
+            ..
+        } = self
+        {
+            parse_service_kind(service)?;
+            ComponentId::new(source).map_err(|error| ConfigError::new(error.to_string()))?;
+            require_value("telemetry payload", payload)?;
+            Text::<256>::try_new(payload).map_err(|error| ConfigError::new(error.to_string()))?;
         }
         if let Self::HttpRequest {
             host,
@@ -237,6 +255,19 @@ impl ScenarioApplicationConfig {
                     .transpose()
                     .map_err(|error| ConfigError::new(error.to_string()))?,
                 body_bytes: *body_bytes,
+            }),
+            Self::Telemetry {
+                service,
+                source,
+                sequence,
+                payload,
+            } => Ok(ApplicationData::Telemetry {
+                service: parse_service_kind(service)?,
+                source: ComponentId::new(source)
+                    .map_err(|error| ConfigError::new(error.to_string()))?,
+                sequence: *sequence,
+                payload: Text::try_new(payload)
+                    .map_err(|error| ConfigError::new(error.to_string()))?,
             }),
             Self::Service { service } => Ok(ApplicationData::Service(parse_service_kind(service)?)),
         }

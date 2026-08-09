@@ -1,6 +1,6 @@
 use core::net::Ipv4Addr;
 
-use crate::{ServiceKind, Text};
+use crate::{ComponentId, ServiceKind, Text};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum HttpMethod {
@@ -42,6 +42,12 @@ pub enum ApplicationData {
     HttpResponse {
         status: u16,
         document: Option<HttpDocument>,
+    },
+    Telemetry {
+        service: ServiceKind,
+        source: ComponentId,
+        sequence: u64,
+        payload: Text<256>,
     },
     Service(ServiceKind),
 }

@@ -1,4 +1,4 @@
-schema_version: "0.9.0"
+schema_version: "0.10.0"
 id: "ot-frw-01a"
 label: "OT FRW-01A"
 kind: "firewall"
@@ -16,6 +16,7 @@ render:
 interfaces:
   - id: "dmz"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:35:fe:04"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -24,10 +25,13 @@ interfaces:
       duplex: "full"
       mtu: 1500
     mode: "routed"
-    addresses: []
-    vlans: []
+    addresses:
+      - "172.20.52.4/24"
+    vlans:
+      - 352
   - id: "level-three"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:20:fe:01"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -36,15 +40,33 @@ interfaces:
       duplex: "full"
       mtu: 1500
     mode: "routed"
-    addresses: []
+    addresses:
+      - "10.20.254.1/30"
     vlans: []
 behavior:
   family: "stateful-firewall"
   stateful: true
   default_action: "deny"
+  zones:
+    - interface: "level-three"
+      name: "level-three"
+    - interface: "dmz"
+      name: "ot-dmz"
+  routes:
+    - destination: "10.20.254.0/30"
+      next_hop: null
+      interface: "level-three"
+    - destination: "10.20.0.0/24"
+      next_hop: "10.20.254.2"
+      interface: "level-three"
+    - destination: "172.20.52.0/24"
+      next_hop: null
+      interface: "dmz"
   rules:
-    - name: "permit-established-and-named-conduits"
+    - name: "permit-local-historian-to-dmz-replica"
       action: "permit"
-      source: "approved-sources"
-      destination: "named-destinations"
-      service: "approved-services"
+      source_zone: "level-three"
+      destination_zone: "ot-dmz"
+      source: "10.20.0.20/32"
+      destination: "172.20.52.10/32"
+      service: "historian-replication"

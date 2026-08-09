@@ -14,28 +14,33 @@ folder represents a documented application view and contains a local
 The documentation currently covers all 22 documented application views with
 matching physical and logical captures. It documents the rendered Svelte model,
 the parsed appliance and connection YAML baseline, the bootstrap process
-contract, and target engineering requirements. Captures were revalidated
-against release `0.2.0` on 2026-07-30. Reference pages also document the
-28 current configured scenarios, including Business IT internal
+contract, and target engineering requirements. Captures and supporting
+evidence track development release `0.3.0`; the Forming SCADA capture was
+refreshed on 2026-08-09. Reference pages also document the
+30 current configured scenarios, including Business IT internal
 service paths, deterministic Core-02 gateway and Rapid-PVST recovery,
 converged and protocol-timed northbound-firewall recovery, and the customer
 access-circuit outage and restoration expectation. The set also includes one
 composite factory case that proves the expected conduit-path drop and an
-independent local HMI-to-pump command path. Complete topology,
+independent local HMI-to-pump command path, plus Forming historian collection
+and OT DMZ replication. Complete topology,
 controller-program, plant-process, and vendor-protocol HA validation do not
 yet exist.
 
 Customer LAN documentation also includes a representative interactive
-appliance capture: Customer PC-01 running its Rust-backed browser path. Both
-customer PCs now expose the same class of endpoint session through independent
-configuration and scenario records. This endpoint view supplements the
-physical and logical architecture captures without changing the count of
-documented architecture routes.
+appliance capture. Both customer PCs expose the same class of endpoint session
+through independent configuration and scenario records, including repeated
+Rust-backed ICMP probes, isolated 60-second DNS client caches, and retained
+baseline-network ARP/PAT state. The capture shows a cached storefront request
+with the live session counts. This endpoint view supplements the physical and
+logical architecture captures without changing the count of documented
+architecture routes.
 
 Business IT documentation includes an additional workstation capture showing
 PC-01 rendering the internal employee portal after Rust executes its configured
-DNS and HTTPS paths. PC-02 through PC-04 expose independent paths with the same
-interaction contract across both user-access switches.
+DNS and HTTPS paths. PC-02 through PC-04 expose independent paths and DNS-cache
+state with the same interaction contract across both user-access switches. The
+capture also records the expected gateway ARP entry and zero internal PAT.
 
 Business IT also includes a recovery-workflow capture showing Core-01 uplink
 failure, VLAN 20/30/80 VRRP role transfer, Rapid-PVST port-role evidence, a

@@ -1,4 +1,4 @@
-schema_version: "0.9.0"
+schema_version: "0.10.0"
 id: "business-it-core-sw-01"
 label: "Business IT-CORE-SW-01"
 kind: "layer-3-switch"

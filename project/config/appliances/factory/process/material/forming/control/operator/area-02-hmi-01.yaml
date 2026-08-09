@@ -1,0 +1,40 @@
+schema_version: "0.10.0"
+id: "area-02-hmi-01"
+label: "AREA-02-HMI-01"
+kind: "hmi"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Ceramic-slip supply module HMI"
+summary: "Local operator panel for slip level, density, viscosity, temperature, flow, feed pressure, and filling or drain commands through the forming PLC."
+lifecycle: "simulated"
+tags:
+  - "ot-area-02"
+  - "module-slip-supply"
+  - "operator interface"
+  - "interactive"
+render:
+  - view: "factory/process/forming"
+    node: "area-02-hmi-01"
+    mode: "any"
+interfaces:
+  - id: "cell-network"
+    hardware: "ethernet-rj45"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }
+    mode: "access"
+    addresses: []
+    vlans: [102]
+behavior:
+  family: "operator-interface"
+  controller: "area-02-vplc-01"
+  permissions: ["observe", "acknowledge-alarms", "authorized-command"]
+  signal_tags:
+    - "area-02-lt-01"
+    - "area-02-dt-01"
+    - "area-02-vis-01"
+    - "area-02-tt-01"
+    - "area-02-ft-01"
+    - "area-02-pt-01"
+  command_tags:
+    - "area-02-slip-01-command"

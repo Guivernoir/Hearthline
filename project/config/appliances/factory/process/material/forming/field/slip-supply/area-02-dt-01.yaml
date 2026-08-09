@@ -1,0 +1,28 @@
+schema_version: "0.10.0"
+id: "area-02-dt-01"
+label: "AREA-02-DT-01"
+kind: "field-sensor"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Ceramic-slip density transmitter"
+summary: "Measures slip density as a representative material-consistency input before mould filling."
+lifecycle: "simulated"
+tags: ["ot-area-02", "sensor", "module-slip-supply", "material", "slip", "density"]
+render:
+  - { view: "factory/process/forming", node: "area-02-dt-01", mode: "any" }
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "field-sensor"
+  signal_tag: "area-02-dt-01"
+  unit: "gram-per-cubic-centimetre"
+  minimum: 1
+  maximum: 2.5
+  initial_value: 1.82

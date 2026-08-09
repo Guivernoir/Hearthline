@@ -18,7 +18,7 @@ pub use resilience::{
 };
 pub use summary::ScenarioSummary;
 
-pub const SCENARIO_SCHEMA_VERSION: &str = "0.11.0";
+pub const SCENARIO_SCHEMA_VERSION: &str = "0.12.0";
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]

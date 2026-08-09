@@ -16,15 +16,19 @@ pub use catalog::{
     ApplianceContract, RENDERED_ROLE_CONTRACTS, RenderedRoleContract, appliance_contracts,
 };
 pub use industrial::{
-    Actuator, Comparison, FieldSensor, IoDirection, LogicRule, OperatorInterface, RemoteIo,
-    SafetyInterface, VirtualPlc,
+    Actuator, Comparison, FieldSensor, FormingFault, FormingMeasurements, FormingOutputs,
+    FormingPhase, FormingProcess, FormingStartError, FormingTick, FormingTrip, HistorianBuffer,
+    IoDirection, LogicRule, OperatorInterface, RemoteIo, SEQUENCE_OUTPUT_CAPACITY,
+    SEQUENCE_STEP_CAPACITY, SafetyInterface, SequenceAssignment, SequenceCondition, SequenceInputs,
+    SequenceProgram, SequenceRuntime, SequenceScan, SequenceStep, SequenceTransition, VirtualPlc,
 };
 pub use network::{
     DnsServer, FirewallAction, FirewallHaRuntimeConfig, FirewallHaStatus, FirewallRule,
-    FirstHopAddress, HttpInspectionRule, HttpInspectionTarget, Layer3Switch, LearningSwitch,
-    LinkAppliance, LinkMode, MacTableEntry, NatRouter, NeighborEntry, NeighborState, PassiveSensor,
-    ReverseProxyWaf, RoutedInterface, Router, RoutingTable, ServiceNode, StatefulFirewall,
-    StaticNat, StaticNatError, SwitchAggregationGroup, SwitchPort, WirelessAccessPoint,
+    FirewallSessionSnapshot, FirstHopAddress, HttpInspectionRule, HttpInspectionTarget,
+    Layer3Switch, LearningSwitch, LinkAppliance, LinkMode, MacTableEntry, NatRouter, NeighborEntry,
+    NeighborState, PassiveSensor, PatTranslation, ReverseProxyWaf, RoutedInterface, Router,
+    RoutingTable, ServiceNode, StatefulFirewall, StaticNat, StaticNatError, SwitchAggregationGroup,
+    SwitchPort, WirelessAccessPoint,
 };
 pub use physical::{
     CarrierMedium, ConnectionMedium, CopperCategory, CopperMedium, CopperWiring, FiberMedium,

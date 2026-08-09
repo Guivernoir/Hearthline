@@ -14,7 +14,12 @@ Customer LAN and the provider-facing access network.
 The edge topology and boundary intent are rendered in Svelte. Selected A-side
 DNS and public-service scenarios instantiate the customer router, transparent
 CPE, provider access, routing, and PAT behavior from canonical YAML. A
-customer-WAN outage scenario now marks the residential access connection down
+customer workstation's compatible baseline actions reuse those mutable
+components, so DNS and HTTPS mappings coexist in the same bounded PAT table
+until their protocol timers expire. The action contract exposes the active
+translation count without presenting router administration controls on the
+customer PC. Separately, a customer-WAN outage scenario marks the residential
+access connection down
 for one run and verifies that provider-bound ARP is dropped at
 `Customer INET-CPE-01`. Its YAML recovery contract restores that circuit and
 requires the original DNS response to reach `Customer PC-01`; both outcomes

@@ -3,19 +3,22 @@ use core::net::Ipv4Addr;
 use heapless::Vec as FixedList;
 
 use hearthline_model::{
-    ApplicationData, ComponentId, ComponentKind, HttpDocument, IcmpMessage, NetworkPayload, PortId,
-    ServiceKind, Text, Transport,
+    ApplicationData, ComponentId, ComponentKind, EthernetFrame, HttpDocument, IcmpMessage,
+    NetworkPayload, PortId, ServiceKind, Text, Transport,
 };
 
 use crate::runtime::{collect_fixed, runtime_text, single_effect};
-use crate::{DropReason, Effect, EffectList, SimulatedComponent, SimulationEvent};
+use crate::{DropReason, Effect, EffectList, NeighborEntry, SimulatedComponent, SimulationEvent};
 
 use super::stack::{EndpointReceive, EndpointStack, response_frame};
 use crate::RoutedInterface;
 
 fn inferred_service(packet: &hearthline_model::Ipv4Packet) -> Option<ServiceKind> {
-    if let ApplicationData::Service(service) = &packet.application {
-        return Some(*service);
+    match &packet.application {
+        ApplicationData::Service(service) | ApplicationData::Telemetry { service, .. } => {
+            return Some(*service);
+        }
+        _ => {}
     }
     match (
         packet.transport.protocol(),
@@ -37,6 +40,51 @@ fn inferred_service(packet: &hearthline_model::Ipv4Packet) -> Option<ServiceKind
     }
 }
 
+#[allow(clippy::large_enum_variant)]
+enum IcmpHandling {
+    NotIcmp(EthernetFrame),
+    Handled(EffectList),
+}
+
+fn handle_icmp(
+    interface: &RoutedInterface,
+    frame: EthernetFrame,
+    respond_to_icmp: bool,
+) -> IcmpHandling {
+    let message = match &frame.payload {
+        NetworkPayload::Ipv4(packet) => match packet.transport {
+            Transport::Icmp(message) => message,
+            _ => return IcmpHandling::NotIcmp(frame),
+        },
+        _ => return IcmpHandling::NotIcmp(frame),
+    };
+    match message {
+        IcmpMessage::EchoRequest { .. } if respond_to_icmp => {
+            IcmpHandling::Handled(single_effect(Effect::Transmit {
+                egress: interface.id.clone(),
+                next_hop: None,
+                frame: response_frame(interface, frame, ApplicationData::None),
+                delay_ms: 0,
+            }))
+        }
+        IcmpMessage::EchoRequest { .. } => IcmpHandling::Handled(single_effect(Effect::Drop(
+            DropReason::ServiceUnavailable(ServiceKind::IcmpEcho),
+        ))),
+        IcmpMessage::EchoReply {
+            identifier,
+            sequence,
+        } => IcmpHandling::Handled(single_effect(Effect::Deliver {
+            service: ServiceKind::IcmpEcho,
+            detail: runtime_text(format_args!(
+                "ICMP echo reply identifier {identifier} sequence {sequence}"
+            )),
+        })),
+        message => IcmpHandling::Handled(single_effect(Effect::Observe {
+            detail: runtime_text(format_args!("received ICMP {message:?}")),
+        })),
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct ServiceNode {
     id: ComponentId,
@@ -44,6 +92,7 @@ pub struct ServiceNode {
     network: EndpointStack,
     services: FixedList<ServiceKind, 16>,
     http_site: Option<(Text<128>, HttpDocument)>,
+    respond_to_icmp: bool,
     operational: bool,
 }
 
@@ -95,12 +144,21 @@ impl ServiceNode {
             network,
             services: collect_fixed(services),
             http_site: None,
+            respond_to_icmp: true,
             operational: true,
         }
     }
 
+    pub fn set_respond_to_icmp(&mut self, enabled: bool) {
+        self.respond_to_icmp = enabled;
+    }
+
     pub fn set_http_site(&mut self, host: Text<128>, document: HttpDocument) {
         self.http_site = Some((host, document));
+    }
+
+    pub fn neighbors(&self, now_us: u64) -> impl Iterator<Item = &NeighborEntry> {
+        self.network.neighbors(now_us)
     }
 }
 
@@ -127,25 +185,13 @@ impl SimulatedComponent for ServiceNode {
                     EndpointReceive::Handled(effects) => return effects,
                     EndpointReceive::Ipv4 { interface, frame } => (interface, frame),
                 };
+                let frame = match handle_icmp(&interface, frame, self.respond_to_icmp) {
+                    IcmpHandling::NotIcmp(frame) => frame,
+                    IcmpHandling::Handled(effects) => return effects,
+                };
                 let NetworkPayload::Ipv4(packet) = &frame.payload else {
                     return single_effect(Effect::Drop(DropReason::UnsupportedProtocol));
                 };
-                if matches!(
-                    packet.transport,
-                    Transport::Icmp(IcmpMessage::EchoRequest { .. })
-                ) {
-                    return single_effect(Effect::Transmit {
-                        egress: interface.id.clone(),
-                        next_hop: None,
-                        frame: response_frame(&interface, frame, ApplicationData::None),
-                        delay_ms: 0,
-                    });
-                }
-                if let Transport::Icmp(message) = packet.transport {
-                    return single_effect(Effect::Observe {
-                        detail: runtime_text(format_args!("{} received ICMP {message:?}", self.id)),
-                    });
-                }
                 if let ApplicationData::DnsAnswer { name, address } = &packet.application {
                     let detail = match address {
                         Some(address) => {
@@ -193,6 +239,27 @@ impl SimulatedComponent for ServiceNode {
                         delay_ms: 0,
                     });
                 }
+                if let ApplicationData::Telemetry {
+                    service,
+                    source,
+                    sequence,
+                    payload,
+                } = &packet.application
+                {
+                    if self.services.contains(service) {
+                        return single_effect(Effect::Deliver {
+                            service: *service,
+                            detail: runtime_text(format_args!(
+                                "{} accepted telemetry from {} sequence {} ({} bytes)",
+                                self.id,
+                                source,
+                                sequence,
+                                payload.len()
+                            )),
+                        });
+                    }
+                    return single_effect(Effect::Drop(DropReason::ServiceUnavailable(*service)));
+                }
                 let Some(service) = inferred_service(packet) else {
                     return single_effect(Effect::Drop(DropReason::UnsupportedProtocol));
                 };
@@ -227,6 +294,7 @@ pub struct DnsServer {
     id: ComponentId,
     network: EndpointStack,
     records: FixedList<(Text<128>, Ipv4Addr), 8>,
+    respond_to_icmp: bool,
     operational: bool,
 }
 
@@ -261,8 +329,13 @@ impl DnsServer {
             id,
             network,
             records: collect_fixed(records),
+            respond_to_icmp: true,
             operational: true,
         }
+    }
+
+    pub fn set_respond_to_icmp(&mut self, enabled: bool) {
+        self.respond_to_icmp = enabled;
     }
 }
 
@@ -288,6 +361,10 @@ impl SimulatedComponent for DnsServer {
                 let (interface, frame) = match self.network.receive(ingress) {
                     EndpointReceive::Handled(effects) => return effects,
                     EndpointReceive::Ipv4 { interface, frame } => (interface, frame),
+                };
+                let frame = match handle_icmp(&interface, frame, self.respond_to_icmp) {
+                    IcmpHandling::NotIcmp(frame) => frame,
+                    IcmpHandling::Handled(effects) => return effects,
                 };
                 let NetworkPayload::Ipv4(packet) = &frame.payload else {
                     return single_effect(Effect::Drop(DropReason::UnsupportedProtocol));

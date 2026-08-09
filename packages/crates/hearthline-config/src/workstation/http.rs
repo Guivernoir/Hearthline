@@ -2,14 +2,14 @@ use url::Url;
 
 use crate::scenario::{
     ScenarioApplicationConfig, ScenarioHttpMethod, ScenarioReport, ScenarioRepository,
-    ScenarioTraceKind, run_scenario,
+    ScenarioTraceKind,
 };
 use crate::{ConfigError, ConfigRepository, ConnectionRepository};
 
-use super::executor::run_dns_query;
+use super::executor::resolve_host;
 use super::schema::{
     BrowserNavigation, WorkstationActionKind, WorkstationActionReport, WorkstationActionStatus,
-    WorkstationProfile,
+    WorkstationProfile, WorkstationSession,
 };
 use super::support::{
     final_failure, find_http_scenario, network_report, network_status, simulation_summary,
@@ -41,6 +41,7 @@ struct ResolvedRequest {
     method: ScenarioHttpMethod,
     body: Option<String>,
     resolved_address: String,
+    resolution_source: &'static str,
 }
 
 pub(super) fn navigate(
@@ -49,6 +50,7 @@ pub(super) fn navigate(
     scenarios: &ScenarioRepository,
     profile: &WorkstationProfile,
     request: NavigationRequest<'_>,
+    session: &mut WorkstationSession,
 ) -> Result<WorkstationActionReport, ConfigError> {
     if request.url.len() > 2_048 {
         return Err(ConfigError::new("browser URL exceeds 2048 bytes"));
@@ -83,15 +85,11 @@ pub(super) fn navigate(
         .to_ascii_lowercase();
     let path = request_path(&url);
     let mut simulations = Vec::new();
-    let resolved_address = resolve_host(
-        appliances,
-        connections,
-        scenarios,
-        profile,
-        &host,
-        &mut simulations,
-    )?;
-    let Some(resolved_address) = resolved_address else {
+    let resolution = resolve_host(appliances, connections, scenarios, profile, &host, session)?;
+    if let Some(dns) = resolution.simulation {
+        simulations.push(dns);
+    }
+    let Some(resolved_address) = resolution.address else {
         return Ok(name_resolution_failure(
             profile,
             request,
@@ -114,8 +112,10 @@ pub(super) fn navigate(
             method: request.method,
             body: request.body.map(str::to_owned),
             resolved_address,
+            resolution_source: resolution.source,
         },
         simulations,
+        session,
     )
 }
 
@@ -126,6 +126,7 @@ fn run_https(
     profile: &WorkstationProfile,
     request: ResolvedRequest,
     mut simulations: Vec<ScenarioReport>,
+    session: &mut WorkstationSession,
 ) -> Result<WorkstationActionReport, ConfigError> {
     let scenario = find_http_scenario(
         scenarios,
@@ -149,7 +150,14 @@ fn run_https(
         body_bytes: request.body.as_ref().map_or(0, String::len),
         body: request.body.clone(),
     };
-    let simulation = run_scenario(appliances, connections, &scenario.config, Some(packet))?;
+    let simulation = session.run_scenario(
+        appliances,
+        connections,
+        scenarios,
+        &profile.id,
+        &scenario.config,
+        Some(packet),
+    )?;
     let status = network_status(&simulation);
     let handoff = simulation
         .trace
@@ -171,6 +179,12 @@ fn run_https(
         "failed"
     };
     let mut output = vec![format!("{} {}", request.method.as_str(), request.url)];
+    if request.resolution_source == "client-cache" {
+        output.push(format!(
+            "DNS cache: {} -> {}",
+            request.host, request.resolved_address
+        ));
+    }
     output.push(match (&response, &forwarded_to) {
         (Some(response), Some(target)) => {
             format!(
@@ -211,6 +225,7 @@ fn run_https(
             host: request.host,
             path: request.path,
             resolved_address: Some(request.resolved_address),
+            resolution_source: request.resolution_source,
             gateway,
             forwarded_to,
             response,
@@ -218,23 +233,6 @@ fn run_https(
         }),
         simulations,
     ))
-}
-
-fn resolve_host(
-    appliances: &ConfigRepository,
-    connections: &ConnectionRepository,
-    scenarios: &ScenarioRepository,
-    profile: &WorkstationProfile,
-    host: &str,
-    simulations: &mut Vec<ScenarioReport>,
-) -> Result<Option<String>, ConfigError> {
-    if host.parse::<std::net::Ipv4Addr>().is_ok() {
-        return Ok(Some(host.into()));
-    }
-    let (dns, answer) = run_dns_query(appliances, connections, scenarios, profile, host)?;
-    let succeeded = dns.expectation_met;
-    simulations.push(dns);
-    Ok(succeeded.then_some(answer).flatten())
 }
 
 fn name_resolution_failure(
@@ -258,6 +256,7 @@ fn name_resolution_failure(
             host,
             path,
             resolved_address: None,
+            resolution_source: "dns-query",
             gateway: None,
             forwarded_to: None,
             response: None,

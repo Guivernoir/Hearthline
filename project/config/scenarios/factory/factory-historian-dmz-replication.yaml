@@ -1,0 +1,33 @@
+schema_version: "0.12.0"
+id: "factory-historian-dmz-replication"
+label: "Historian DMZ replication"
+summary: "The factory-local historian replicates a bounded telemetry record through the named OT firewall conduit to the business-facing DMZ replica."
+category: "industrial-data"
+participants:
+  - "ot-operations-services-01"
+  - "ot-level3-core-sw-01"
+  - "ot-frw-01a"
+  - "ot-dmz-sw-01"
+  - "ot-dmz-hist-replica-01"
+source: "ot-operations-services-01"
+packet:
+  source_ip: "10.20.0.20"
+  destination_ip: "172.20.52.10"
+  ttl: 64
+  wire_length_bytes: 512
+  transport:
+    protocol: "tcp"
+    source_port: 45000
+    destination_port: 443
+    syn: true
+  application:
+    kind: "telemetry"
+    service: "historian-replication"
+    source: "area-02-vplc-01"
+    sequence: 0
+    payload: '{"cell":"OT-AREA-02","phase":"idle","cycle":0}'
+expectation:
+  component: "ot-dmz-hist-replica-01"
+  outcome: "delivered"
+  service: "historian-replication"
+event_limit: 128

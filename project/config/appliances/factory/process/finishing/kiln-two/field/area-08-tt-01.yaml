@@ -1,4 +1,4 @@
-schema_version: "0.9.0"
+schema_version: "0.10.0"
 id: "area-08-tt-01"
 label: "AREA-08-TT-01"
 kind: "field-sensor"

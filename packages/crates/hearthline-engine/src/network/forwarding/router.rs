@@ -77,6 +77,10 @@ impl Router {
         self.plane.neighbor(address, port, now_us)
     }
 
+    pub fn neighbors(&self, now_us: u64) -> impl Iterator<Item = &NeighborEntry> {
+        self.plane.neighbors(now_us)
+    }
+
     pub fn set_first_hop_active(&mut self, port: &PortId, address: Ipv4Addr, active: bool) -> bool {
         self.plane.set_first_hop_active(port, address, active)
     }

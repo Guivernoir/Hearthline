@@ -29,7 +29,7 @@ pub fn appliance_contracts() -> impl Iterator<Item = ApplianceContract> {
 /// instances. Sites, zones, environment handoffs, and process-area boundaries
 /// are intentionally excluded because they are topology concepts, not
 /// appliances.
-pub const RENDERED_ROLE_CONTRACTS: [RenderedRoleContract; 43] = [
+pub const RENDERED_ROLE_CONTRACTS: [RenderedRoleContract; 44] = [
     RenderedRoleContract {
         rendered_role: "Customer PC-*",
         kind: ComponentKind::Workstation,
@@ -181,6 +181,10 @@ pub const RENDERED_ROLE_CONTRACTS: [RenderedRoleContract; 43] = [
     RenderedRoleContract {
         rendered_role: "AREA-*-vPLC-*",
         kind: ComponentKind::VirtualPlc,
+    },
+    RenderedRoleContract {
+        rendered_role: "AREA-*-SCADA-*",
+        kind: ComponentKind::ScadaWorkstation,
     },
     RenderedRoleContract {
         rendered_role: "AREA-*-HMI-*",

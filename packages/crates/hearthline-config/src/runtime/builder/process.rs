@@ -6,7 +6,7 @@ use hearthline_model::{ProcessEvent, ProcessSignal, SignalValue, Text};
 
 use crate::appliance::{ApplianceConfig, BehaviorConfig, ConfigError, ConfigRepository};
 
-use super::{component_id, port_id};
+use super::{component_id, parse_ipv4, port_id, routed_interfaces};
 use crate::runtime::ConfiguredAppliance;
 
 pub(super) fn build_process_appliance(
@@ -22,20 +22,34 @@ pub(super) fn build_process_appliance(
     match &config.behavior {
         BehaviorConfig::VirtualController {
             scan_interval_ms, ..
-        } => Ok(ConfiguredAppliance::VirtualPlc(Box::new(VirtualPlc::new(
-            id,
-            ports,
-            *scan_interval_ms,
-            [],
-        )))),
+        } => {
+            let interfaces = routed_interfaces(config)?;
+            let controller = if interfaces.is_empty() {
+                VirtualPlc::new(id, ports, *scan_interval_ms, [])
+            } else {
+                VirtualPlc::with_network(
+                    id,
+                    ports,
+                    *scan_interval_ms,
+                    [],
+                    interfaces,
+                    config
+                        .default_gateway
+                        .as_deref()
+                        .map(|gateway| parse_ipv4(gateway, "default gateway"))
+                        .transpose()?,
+                )
+            };
+            Ok(ConfiguredAppliance::VirtualPlc(Box::new(controller)))
+        }
         BehaviorConfig::OperatorInterface { command_tags, .. } => {
             let tags = command_tags
                 .iter()
                 .map(|tag| Text::try_new(tag).map_err(|error| ConfigError::new(error.to_string())))
                 .collect::<Result<Vec<_>, _>>()?;
-            Ok(ConfiguredAppliance::Hmi(Box::new(OperatorInterface::new(
-                id, ports, tags,
-            ))))
+            Ok(ConfiguredAppliance::Hmi(Box::new(
+                OperatorInterface::with_kind(id, config.kind, ports, tags),
+            )))
         }
         BehaviorConfig::RemoteIo { channels, .. } => {
             let channels = channels

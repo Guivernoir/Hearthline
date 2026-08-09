@@ -29,11 +29,11 @@ to reproduce vendor firmware or every byte exchanged by a production protocol.
 | Typed ports | Appliance capability, port hardware, administrative and initial operational state, configured speed, duplex, MTU, logical mode, addressing, and VLAN metadata |
 | Physical media | Separate copper, fiber, radio, carrier, virtual, field-wiring, and telephone modules with type-specific validation, capacity limits, physical facts, and propagation delay |
 | Typed connectors | Actual frame transit, endpoint direction, combined port/link state, effective MTU, negotiated duplex, capacity serialization and queue delay, fixed and physical latency, deterministic loss, and transport/medium validation |
-| Services | Explicit service acceptance, ICMP echo response, authoritative test-record DNS responses, configured bounded HTTP documents, and operational state |
+| Services | Explicit service acceptance, ICMP echo response, authoritative test-record DNS responses, configured bounded HTTP documents, typed bounded process telemetry, and operational state |
 | Web gateway | HTTP redirect, published-host validation, configuration-owned method allowlists and path/body inspection rules, body limits, configured static routing, bounded request correlation, upstream request origination, and response relay |
 | Monitoring | Passive frame observation without forwarding |
-| OT control | Periodic virtual-controller scans using deterministic provisional rules |
-| HMI | Allowed-tag command submission and process-state observation |
+| OT control | Periodic virtual-controller scans, a bounded Structured Text sequence parser/runtime, explicit Forming I/O binding validation, and Rust-owned Forming plant dynamics and trips |
+| Operator interface | HMI/SCADA allowed-tag command submission, scoped observation, shared Forming cell state, automatic-cycle control, fault injection, alarm handling, and audit history |
 | Distributed I/O | Declared input and output channels, channel validation, and output effects |
 | Field devices | Scaled sensor samples, actuator commands, failures, and safe-state handling |
 | Safety interface | Required permissives, latched trips, safe denial, and authorized reset |
@@ -44,14 +44,14 @@ to reproduce vendor firmware or every byte exchanged by a production protocol.
 The `hearthline-model` and `hearthline-engine` crates compile independently as
 `no_std` code and use fixed-capacity storage. Host allocation, filesystem
 access, YAML parsing, generated projection, HTTP, and CLI concerns are isolated
-in adapter crates. The workspace currently contains 36 appliance kinds and 43
+in adapter crates. The workspace currently contains 37 appliance kinds and 44
 rendered-role contracts. The manually maintained coverage register records a
 Rust kind for every currently identified rendered appliance role, and external
 integration tests ensure those kinds exist in the catalog. It cannot
 independently discover Svelte inventory drift and does not prove that every
 node is instantiated in a running topology.
 
-The configuration repositories discover 162 per-appliance and 208
+The configuration repositories discover 185 per-appliance and 231
 per-connection YAML documents. They dispatch appliance behavior, validate
 render bindings, resolve connection endpoints and ports, enforce appliance
 port capabilities, port-to-medium compatibility, endpoint speed and medium
@@ -60,11 +60,12 @@ catalog. Every appliance participates in at least one connection. This
 improves topology coverage. The host adapter now constructs selected endpoint,
 DNS, web-server, switch, router, NAT-router, stateful-firewall, web-gateway,
 HMI, virtual-PLC, remote-I/O, field-device, safety-interface, and link
-subgraphs directly from these records. Twenty-eight versioned scenarios are
+subgraphs directly from these records. Thirty versioned scenarios are
 executable: independent Customer PC-01 and PC-02 variants cover public paths;
 Business IT PC-01 through PC-04 each cover internal DNS and HTTPS through two
-user-access switches and Core-01 SVIs; two Factory variants cover approved and
-denied operations data; and three Customer PC-01 exercises cover WAF-denied
+user-access switches and Core-01 SVIs; Factory variants cover approved and
+denied operations data, Forming historian collection, and OT DMZ replication;
+and three Customer PC-01 exercises cover WAF-denied
 path traversal, a disallowed HTTP method, and a SQL-injection request body. A
 customer availability scenario uses the same seven-appliance DNS topology with
 its access circuit operationally down and declares a restored-state DNS
@@ -81,11 +82,26 @@ policies, host and path validation, internal application delivery, HTTP
 response relay, reverse NAT, and final client delivery. Each denial counterpart
 uses 12 appliances and 11 links to prove default-denied public SSH. The factory
 pair uses a separate seven-appliance, six-link subgraph to prove named HTTPS
-delivery from the OT DMZ historian replica to Central Office analytics and
-default-denied SSH at the northbound firewall. Each Business IT path uses five
+delivery of a typed telemetry frame from the OT DMZ historian replica to
+Central Office analytics and default-denied SSH at the northbound firewall.
+Forming SCADA can replace the canonical payload with its current process phase,
+controller scan sequence, and selected live measurements for one
+request-scoped run. Each Business IT path uses five
 appliances and four links to prove user VLAN access, Core-01 inter-VLAN routing,
 internal DNS or HTTPS response, and return delivery. Complete-project graph
 construction remains unfinished.
+
+Forming is the first area-specific plant-process implementation. One shared
+Rust session supplies its SCADA workstation and four module HMIs. A bounded
+Structured Text sequence with 14 seconds of timer presets advances mould filling, pressurization and
+dwell, excess-slip drainage, depressurization, sequential release water and
+air, mould opening, robot pickup and operator handoff, mould wash, air purge,
+vacuum drying, and mould closure. Seventeen measurements and six outputs change
+with phase. Five injected disturbances produce bounded trips; mould
+overpressure also latches the separate machine-safety state. Timer completion
+is observed on 20-millisecond scan boundaries. This is a tested Hearthline
+subset, not ceramic-process physics, complete IEC 61131-3 conformance, or a
+vendor-equivalent runtime.
 
 The factory local-autonomy scenario combines two independent execution roots.
 Both factory-facing inter-site handoffs are down, and the historian HTTPS
@@ -144,7 +160,7 @@ quorum, witness, or arbitrary network-partition algorithm.
 
 Each security exercise uses 16 selected appliances and 15 links, but execution
 stops at `business-web-gw-01` when its Rust WAF behavior rejects the configured
-path, method, or body. Scenario report schema `0.14.0` projects the active
+path, method, or body. Scenario report schema `0.15.0` projects the active
 baseline, recovery, continuity, isolation, or autonomy expectation, link,
 gateway, LACP, spanning-tree, detector, security, and local-control evidence.
 The API stores each event for the configured defender in a bounded local
@@ -167,8 +183,26 @@ The workstation adapter projects
 configured endpoint identity and network settings, parses a bounded
 shell-like argument grammar and browser URLs, carries supported `curl` method
 and data options into HTTP packets, selects compatible security scenarios by
-source, method, path, and body, and returns the resulting reports without
-moving network decisions into Svelte.
+source, method, path, and body, and constructs repeated ICMP echo packets for
+`ping` over a compatible validated route template. Echo handling honors each
+endpoint or DNS server's YAML `respond_to_icmp` policy and returns a typed
+delivery for reply verification. A deterministic workstation session retains
+successful DNS answers for 60 seconds, independently by workstation. Browser,
+`curl`, `ping`, and SSH resolution consult that cache; `nslookup` always runs
+the authoritative configured DNS path. Reports distinguish `dns-query`,
+`client-cache`, and `literal-address` resolution without moving network
+decisions into Svelte. Each workstation session also constructs one union of
+all compatible baseline scenarios for that source and reuses its mutable
+appliances and links. Runs use monotonic absolute simulator time for table and
+media timers, then normalize projected traces back to action-relative time.
+Endpoint ARP, VLAN-scoped switch CAM, routed-neighbor, active PAT, and stateful
+firewall-session tables are projected as typed snapshots with remaining
+lifetimes and regression-tested expiry. Capability-gated inspection actions
+format those same snapshots for a bounded read-only simulator console; they do
+not model device authentication, management transport, or a vendor CLI.
+Controlled fault, recovery, continuity, HA-isolation, and local-autonomy
+contracts are rejected by this runner and retain their existing fresh-runtime
+semantics.
 
 ## Event Model
 
@@ -233,11 +267,19 @@ The current engine does not yet implement:
 - Service-specific behavior for DHCP, PKI, identity, voice, historian,
   monitoring, printing, or managed transfer beyond explicit service
   acceptance.
-- IEC 61131-3 parsing or production-equivalent virtual PLC execution.
-- A ceramics plant model, material state, process dynamics, or area-specific
-  control programs.
-- Automatic propagation of process effects between sensors, remote I/O,
-  controllers, HMIs, safety interfaces, actuators, and the future plant model.
+- Durable historian persistence, telemetry subscriptions, authentication,
+  encryption, or production OPC UA, MQTT, Sparkplug, or vendor historian
+  protocols. The current Forming workflow samples compact typed records into
+  two bounded API-session stores and retries only the modeled DMZ path.
+- General IEC 61131-3 parsing or production-equivalent virtual PLC execution;
+  only the declared Forming sequence subset is executable.
+- Plant models, material state, and area-specific dynamics beyond the bounded
+  Forming sequence.
+- Area-specific control programs beyond Forming or production-equivalent
+  virtual PLC task execution.
+- General propagation of process effects between sensors, remote I/O,
+  controllers, HMIs, safety interfaces, and actuators outside the Forming
+  session adapter.
 - Functional-safety, burner-management, deterministic timing, or deployment
   certification.
 
@@ -286,19 +328,45 @@ returns the scenario catalog and `POST /api/simulations/{id}/run` executes a
 canonical or packet-overridden scenario. CI also executes bounded identifier
 and appliance-YAML fuzz campaigns. `GET /api/workstations/{id}` returns an
 eligible endpoint profile; `POST /api/workstations/{id}/actions` executes a
-supported terminal command or browser navigation.
-`GET /api/hmis/{id}` returns a configured operator snapshot, while
+supported terminal command, browser navigation, or read-only runtime
+inspection. Terminal actions currently
+include local identity/configuration, DNS, bounded repeated ICMP echo, HTTPS,
+controlled SSH attempts, DNS-cache inspection and flushing, and `arp -a`. The
+API advances each workstation's DNS cache and compatible network runtime on its
+local 250-millisecond clock; configuration edits and process restart clear both.
+The action report projects endpoint ARP and aggregate PAT summaries plus typed
+per-appliance CAM, neighbor, PAT, and firewall-session tables. The workstation
+schema is `0.10.0`; supported runtime `show` commands are capability-gated and
+operate only on that workstation session's compatible baseline topology.
+Interactive ICMP requires an existing configured flow to the
+destination as its validated topology template; it is not yet an arbitrary
+route-discovery engine. Runtime mutation, connector inspection, privileged
+management protocols, and arbitrary topology discovery remain planned.
+`GET /api/hmis/{id}` returns a configured HMI or SCADA snapshot, while
 `POST /api/hmis/{id}/actions` executes permission, safety-reset,
-acknowledgement, and actuator-command behavior against a persistent local HMI
-session.
+acknowledgement, actuator-command, Forming-cycle, and Forming-fault behavior
+against persistent shared cell state. A background API task advances active
+Forming sessions while any authorized interface may observe them.
+`GET /api/hmis/{id}/historian` is restricted to the authorized Forming SCADA
+and returns bounded Level 3 and OT DMZ stores, pending and dropped counts, and
+the latest collection, replication, and publication reports. The background
+task samples once per simulated second and retries one pending replication
+every 250 milliseconds.
+`POST /api/hmis/{id}/telemetry` is restricted to an explicitly permitted SCADA
+session. It requires a DMZ replica record, retargets that retained source,
+sequence, and payload to the canonical historian-replica-to-analytics
+scenario, and returns the standard scenario report.
+`GET /api/hmis/{id}/program` returns the validated Forming Structured Text and
+I/O-binding documents plus their task identity and combined source revision.
 `GET /api/security/consoles/{id}` returns the current modeled event queue;
 event acknowledgement and queue clearing affect only the running local API
 session.
 
 ## Next Milestones
 
-1. Make local process state, alarms, permissives, and actuator outcomes evolve
-   across deterministic controller scans and plant-model steps.
+1. Extend the Forming control contract with reviewed process-condition
+   transitions, recipes, retries, quality handling, and cross-area slip-tank
+   replenishment while preserving the Rust plant/control boundary.
 2. Add further exact positive, negative, failover, isolation, and outage
    scenarios for
    routing, NAT, policy, and services.
@@ -308,14 +376,14 @@ session.
    constructed from canonical configuration.
 5. Expand configured construction to the remaining behavior families as their
    placeholder YAML is replaced with executable values.
-6. Extend the current HMI surfaces with process-state transitions as executable
-   industrial behavior becomes available.
+6. Extend process-state transitions and shared HMI behavior to the remaining
+   areas as executable industrial models become available.
 7. Extend protocol and service fidelity only where a documented scenario
    requires it.
 8. Replace provisional configuration and architecture content with values and
    relationships proven by executable scenarios.
-9. Add the IEC 61131-3 and plant-model layers after network configuration and
-    scenario execution are stable.
+9. Select a formal IEC 61131-3 compatibility target before extending the
+   bounded Structured Text subset or adding a Ladder interchange format.
 10. Extend the controlled WAF baseline with additional offensive and
     defensive paths only where the relevant interactive and policy baselines
     are deterministic and tested.

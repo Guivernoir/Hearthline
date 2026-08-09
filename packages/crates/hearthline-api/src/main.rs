@@ -1,4 +1,3 @@
-use std::collections::BTreeMap;
 use std::ffi::OsString;
 use std::fs;
 use std::net::{Ipv4Addr, SocketAddr};
@@ -11,11 +10,11 @@ use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post, put};
 use axum::{Json, Router};
 use hearthline_config::{
-    ConfigRepository, ConnectionRepository, FrontendApplianceCatalog, HmiSession,
+    ConfigRepository, ConnectionRepository, FrontendApplianceCatalog, HmiSessionStore,
     ScenarioRepository,
 };
 use serde::{Deserialize, Serialize};
-use tokio::sync::Mutex;
+use tokio::sync::{Mutex, RwLock};
 
 const DEFAULT_PORT: u16 = 3001;
 
@@ -23,8 +22,17 @@ const DEFAULT_PORT: u16 = 3001;
 struct AppState {
     paths: Arc<ProjectPaths>,
     write_lock: Arc<Mutex<()>>,
-    hmi_sessions: Arc<Mutex<BTreeMap<String, HmiSession>>>,
+    workstation_sessions: Arc<Mutex<workstation::WorkstationSessionStore>>,
+    hmi_sessions: Arc<Mutex<HmiSessionStore>>,
+    historian: Arc<Mutex<historian::HistorianStore>>,
+    runtime_catalog: Arc<RwLock<RuntimeCatalog>>,
     security_events: Arc<Mutex<security::SecurityEventStore>>,
+}
+
+struct RuntimeCatalog {
+    appliances: ConfigRepository,
+    connections: ConnectionRepository,
+    scenarios: ScenarioRepository,
 }
 
 struct ProjectPaths {
@@ -132,16 +140,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .canonicalize()?;
     let paths = ProjectPaths::from_project_root(&project_root);
     let (appliances, connections) = paths.load().map_err(|error| error.message)?;
-    paths
+    let scenarios = paths
         .load_scenarios(&appliances, &connections)
         .map_err(|error| error.message)?;
 
     let state = AppState {
         paths: Arc::new(paths),
         write_lock: Arc::new(Mutex::new(())),
-        hmi_sessions: Arc::new(Mutex::new(BTreeMap::new())),
+        workstation_sessions: Arc::new(Mutex::new(workstation::WorkstationSessionStore::default())),
+        hmi_sessions: Arc::new(Mutex::new(HmiSessionStore::default())),
+        historian: Arc::new(Mutex::new(historian::HistorianStore::default())),
+        runtime_catalog: Arc::new(RwLock::new(RuntimeCatalog {
+            appliances,
+            connections,
+            scenarios,
+        })),
         security_events: Arc::new(Mutex::new(security::SecurityEventStore::default())),
     };
+    start_process_clock(state.clone());
     let app = Router::new()
         .route("/api/health", get(health))
         .route("/api/config/catalog", get(catalog))
@@ -150,7 +166,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/api/simulations", get(simulation::catalog))
         .route("/api/simulations/{id}/run", post(simulation::run))
         .route("/api/hmis/{id}", get(hmi::profile))
+        .route("/api/hmis/{id}/program", get(hmi::control_program))
         .route("/api/hmis/{id}/actions", post(hmi::action))
+        .route("/api/hmis/{id}/historian", get(historian::status))
+        .route("/api/hmis/{id}/telemetry", post(historian::publish))
         .route("/api/workstations/{id}", get(workstation::profile))
         .route("/api/workstations/{id}/actions", post(workstation::action))
         .route("/api/security/consoles/{id}", get(security::console))
@@ -172,6 +191,33 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_graceful_shutdown(shutdown_signal())
         .await?;
     Ok(())
+}
+
+fn start_process_clock(state: AppState) {
+    tokio::spawn(async move {
+        const TICK_MS: u64 = 250;
+        let mut clock = tokio::time::interval(std::time::Duration::from_millis(TICK_MS));
+        clock.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+        loop {
+            clock.tick().await;
+            state.workstation_sessions.lock().await.tick(TICK_MS);
+            let catalog = state.runtime_catalog.read().await;
+            let snapshot = {
+                let mut sessions = state.hmi_sessions.lock().await;
+                sessions.tick(TICK_MS);
+                sessions.profile(&catalog.appliances, historian::FORMING_SCADA_ID)
+            };
+            if let Ok(snapshot) = snapshot {
+                state.historian.lock().await.tick(
+                    TICK_MS,
+                    &snapshot,
+                    &catalog.appliances,
+                    &catalog.connections,
+                    &catalog.scenarios,
+                );
+            }
+        }
+    });
 }
 
 async fn shutdown_signal() {
@@ -225,6 +271,9 @@ async fn update_appliance(
         &catalog,
     )?;
     state.hmi_sessions.lock().await.clear();
+    state.workstation_sessions.lock().await.clear();
+    refresh_runtime(&state).await?;
+    state.historian.lock().await.clear();
     state.security_events.lock().await.clear();
     Ok(Json(catalog))
 }
@@ -259,8 +308,22 @@ async fn update_connection(
         &catalog,
     )?;
     state.hmi_sessions.lock().await.clear();
+    state.workstation_sessions.lock().await.clear();
+    refresh_runtime(&state).await?;
+    state.historian.lock().await.clear();
     state.security_events.lock().await.clear();
     Ok(Json(catalog))
+}
+
+async fn refresh_runtime(state: &AppState) -> Result<(), ApiError> {
+    let (appliances, connections) = state.paths.load()?;
+    let scenarios = state.paths.load_scenarios(&appliances, &connections)?;
+    *state.runtime_catalog.write().await = RuntimeCatalog {
+        appliances,
+        connections,
+        scenarios,
+    };
+    Ok(())
 }
 
 fn require_revision(expected: &str, current: &str) -> Result<(), ApiError> {
@@ -312,6 +375,7 @@ fn temporary_path(path: &Path) -> PathBuf {
     name.push(".hearthline.tmp");
     PathBuf::from(name)
 }
+mod historian;
 mod hmi;
 mod security;
 mod simulation;

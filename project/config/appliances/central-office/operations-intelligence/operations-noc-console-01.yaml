@@ -1,4 +1,4 @@
-schema_version: "0.9.0"
+schema_version: "0.10.0"
 id: "operations-noc-console-01"
 label: "Central NOC Console-01"
 kind: "operations-console"

@@ -1,4 +1,4 @@
-schema_version: "0.9.0"
+schema_version: "0.10.0"
 id: "ot-level3-core-sw-01"
 label: "OT-L3-CORE-SW-01"
 kind: "layer-3-switch"
@@ -19,6 +19,7 @@ render:
 interfaces:
   - id: "firewall"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:20:fe:02"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -27,7 +28,8 @@ interfaces:
       duplex: "full"
       mtu: 1500
     mode: "routed"
-    addresses: []
+    addresses:
+      - "10.20.254.2/30"
     vlans: []
   - id: "peer-link"
     hardware: "ethernet-sfp"
@@ -54,6 +56,7 @@ interfaces:
       - 399
   - id: "operations-services"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:20:00:01"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -62,7 +65,8 @@ interfaces:
       duplex: "full"
       mtu: 1500
     mode: "routed"
-    addresses: []
+    addresses:
+      - "10.20.0.1/24"
     vlans: []
   - id: "vplc-host-01"
     hardware: "ethernet-sfp"
@@ -135,6 +139,21 @@ interfaces:
     addresses: []
     vlans:
       - 102
+      - 302
+  - id: "area-02-svi"
+    hardware: "virtual-nic"
+    mac_address: "02:00:00:30:02:01"
+    state:
+      administrative: "up"
+      initial_operational: "up"
+    settings:
+      speed_mbps: 10000
+      duplex: "full"
+      mtu: 1500
+    mode: "svi"
+    addresses:
+      - "10.30.2.1/24"
+    vlans:
       - 302
   - id: "area-03"
     hardware: "ethernet-sfp"
@@ -251,13 +270,19 @@ interfaces:
 behavior:
   family: "router"
   routes:
-    - destination: "10.20.0.0/16"
+    - destination: "10.20.0.0/24"
       next_hop: null
       interface: "operations-services"
+    - destination: "10.20.254.0/30"
+      next_hop: null
+      interface: "firewall"
+    - destination: "10.30.2.0/24"
+      next_hop: null
+      interface: "area-02-svi"
     - destination: "10.30.0.0/16"
       next_hop: null
       interface: "area-01"
     - destination: "0.0.0.0/0"
-      next_hop: null
+      next_hop: "10.20.254.1"
       interface: "firewall"
   forwarding: true

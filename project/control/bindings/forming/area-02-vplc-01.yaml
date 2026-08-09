@@ -1,0 +1,120 @@
+schema_version: "0.1.0"
+controller: "area-02-vplc-01"
+language: "structured-text"
+program: "FormingSequence"
+task:
+  name: "FormingSequenceTask"
+  interval_ms: 20
+  watchdog_ms: 100
+sequence:
+  step_variable: "Step"
+  timer_variable: "StepTimer"
+  idle_step: 0
+  start_step: 10
+  fault_step: 900
+  start_input: "StartCycle"
+  safety_input: "SafetyReady"
+  reset_input: "ResetCycle"
+  trip_input: "TripActive"
+phase:
+  variable: "PhaseCode"
+  values:
+    0: "idle"
+    10: "mould-filling"
+    20: "air-pressurizing"
+    30: "pressure-dwell"
+    40: "depressurizing"
+    50: "excess-slip-drain"
+    60: "release-water"
+    70: "release-air"
+    80: "mould-opening"
+    90: "robot-pickup"
+    100: "operator-delivery"
+    110: "mould-wash"
+    120: "cleaning-air-purge"
+    130: "vacuum-dry"
+    140: "mould-closing"
+    900: "faulted"
+inputs:
+  - variable: "StartCycle"
+    data_type: "bool"
+    source: { kind: "start-request" }
+  - variable: "SafetyReady"
+    data_type: "bool"
+    source: { kind: "safety-ready" }
+  - variable: "ResetCycle"
+    data_type: "bool"
+    source: { kind: "reset-request" }
+  - variable: "TripActive"
+    data_type: "bool"
+    source: { kind: "trip-active" }
+  - variable: "SlipTankLevel"
+    data_type: "real"
+    source: { kind: "signal", tag: "area-02-lt-01" }
+  - variable: "SlipDensity"
+    data_type: "real"
+    source: { kind: "signal", tag: "area-02-dt-01" }
+  - variable: "SlipViscosity"
+    data_type: "real"
+    source: { kind: "signal", tag: "area-02-vis-01" }
+  - variable: "SlipTemperature"
+    data_type: "real"
+    source: { kind: "signal", tag: "area-02-tt-01" }
+  - variable: "SlipFeedFlow"
+    data_type: "real"
+    source: { kind: "signal", tag: "area-02-ft-01" }
+  - variable: "SlipFeedPressure"
+    data_type: "real"
+    source: { kind: "signal", tag: "area-02-pt-01" }
+  - variable: "MouldPressure"
+    data_type: "real"
+    source: { kind: "signal", tag: "area-02-pt-02" }
+  - variable: "MouldTemperature"
+    data_type: "real"
+    source: { kind: "signal", tag: "area-02-tt-02" }
+  - variable: "FillHeadPosition"
+    data_type: "real"
+    source: { kind: "signal", tag: "area-02-pos-01" }
+  - variable: "MouldPosition"
+    data_type: "real"
+    source: { kind: "signal", tag: "area-02-pos-02" }
+  - variable: "WaterFlow"
+    data_type: "real"
+    source: { kind: "signal", tag: "area-02-ft-02" }
+  - variable: "ExcessSlipDrainFlow"
+    data_type: "real"
+    source: { kind: "signal", tag: "area-02-ft-03" }
+  - variable: "MouldMoisture"
+    data_type: "real"
+    source: { kind: "signal", tag: "area-02-mt-02" }
+  - variable: "CompressedAirPressure"
+    data_type: "real"
+    source: { kind: "signal", tag: "area-02-pt-04" }
+  - variable: "VacuumPressure"
+    data_type: "real"
+    source: { kind: "signal", tag: "area-02-vt-01" }
+  - variable: "RobotPosition"
+    data_type: "real"
+    source: { kind: "signal", tag: "area-02-pos-03" }
+  - variable: "PieceGripped"
+    data_type: "bool"
+    source: { kind: "signal", tag: "area-02-pe-01" }
+outputs:
+  - variable: "SlipCommand"
+    command_tag: "area-02-slip-01-command"
+    states: { 0: "isolated", 1: "recirculating", 2: "filling", 3: "draining" }
+  - variable: "MouldCommand"
+    command_tag: "area-02-mould-01-command"
+    states: { 0: "stopped", 1: "closed", 2: "opening", 3: "open", 4: "closing" }
+  - variable: "WaterCommand"
+    command_tag: "area-02-water-01-command"
+    states: { 0: "isolated", 1: "release-wet", 2: "mould-wash" }
+  - variable: "AirCommand"
+    command_tag: "area-02-air-01-command"
+    states: { 0: "isolated", 1: "pressurizing", 2: "release-assist", 3: "cleaning-purge" }
+  - variable: "VacuumCommand"
+    command_tag: "area-02-vac-01-command"
+    states: { 0: "stopped", 1: "vacuum-drying", 2: "venting" }
+  - variable: "RobotCommand"
+    command_tag: "area-02-robot-01-command"
+    states: { 0: "stopped", 1: "home", 2: "approaching", 3: "gripping", 4: "delivering", 5: "releasing", 6: "returning" }

@@ -1,4 +1,4 @@
-schema_version: "0.9.0"
+schema_version: "0.10.0"
 id: "customer-rtr-01"
 label: "Customer RTR-01"
 kind: "nat-router"

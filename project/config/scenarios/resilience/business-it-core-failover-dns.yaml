@@ -1,4 +1,4 @@
-schema_version: "0.11.0"
+schema_version: "0.12.0"
 id: "business-it-core-failover-dns"
 label: "Business IT core failover"
 summary: "Business IT PC-03 resolves the internal portal through the preferred core, then repeats the same request after the primary user and server uplinks fail and the VRRP gateway groups converge on Core-02."

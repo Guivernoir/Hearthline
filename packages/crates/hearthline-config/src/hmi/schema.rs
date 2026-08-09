@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub const HMI_SCHEMA_VERSION: &str = "0.1.0";
+pub const HMI_SCHEMA_VERSION: &str = "0.4.0";
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -11,16 +11,131 @@ pub struct HmiSnapshot {
     pub environment: String,
     pub zone: String,
     pub role: String,
+    pub interface_kind: String,
     pub controller: String,
     pub remote_io: String,
     pub permissions: Vec<String>,
     pub sequence: u64,
+    pub control_program: Option<HmiControlProgramState>,
+    pub process: Option<HmiProcessState>,
     pub signals: Vec<HmiSignal>,
     pub actuators: Vec<HmiActuator>,
     pub safety: Vec<HmiSafety>,
     pub alarms: Vec<HmiAlarm>,
     pub audit: Vec<HmiAuditEntry>,
 }
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HmiControlProgramState {
+    pub language: &'static str,
+    pub program: String,
+    pub task: String,
+    pub source_path: String,
+    pub binding_path: String,
+    pub revision: String,
+    pub current_step: i64,
+    pub scan_interval_ms: u64,
+    pub watchdog_ms: u64,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HmiControlProgramDocument {
+    pub schema_version: &'static str,
+    pub controller: String,
+    pub language: &'static str,
+    pub program: String,
+    pub task: String,
+    pub source_path: String,
+    pub binding_path: String,
+    pub revision: String,
+    pub source: String,
+    pub binding_yaml: String,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HmiProcessState {
+    pub model: &'static str,
+    pub phase: &'static str,
+    pub running: bool,
+    pub phase_elapsed_ms: u64,
+    pub scan_count: u64,
+    pub cycle_count: u64,
+    pub fault: Option<&'static str>,
+    pub phases: &'static [HmiProcessPhase],
+}
+
+#[derive(Clone, Copy, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HmiProcessPhase {
+    pub key: &'static str,
+    pub label: &'static str,
+}
+
+pub(super) const FORMING_PHASES: [HmiProcessPhase; 15] = [
+    HmiProcessPhase {
+        key: "idle",
+        label: "Ready",
+    },
+    HmiProcessPhase {
+        key: "mould-filling",
+        label: "Fill",
+    },
+    HmiProcessPhase {
+        key: "air-pressurizing",
+        label: "Apply air pressure",
+    },
+    HmiProcessPhase {
+        key: "pressure-dwell",
+        label: "Pressure hold",
+    },
+    HmiProcessPhase {
+        key: "excess-slip-drain",
+        label: "Drain slip",
+    },
+    HmiProcessPhase {
+        key: "depressurizing",
+        label: "Depressurize",
+    },
+    HmiProcessPhase {
+        key: "release-water",
+        label: "Release water",
+    },
+    HmiProcessPhase {
+        key: "release-air",
+        label: "Release air",
+    },
+    HmiProcessPhase {
+        key: "mould-opening",
+        label: "Open mould",
+    },
+    HmiProcessPhase {
+        key: "robot-pickup",
+        label: "Robot pickup",
+    },
+    HmiProcessPhase {
+        key: "operator-delivery",
+        label: "Operator handoff",
+    },
+    HmiProcessPhase {
+        key: "mould-wash",
+        label: "Wash",
+    },
+    HmiProcessPhase {
+        key: "cleaning-air-purge",
+        label: "Cleaning air",
+    },
+    HmiProcessPhase {
+        key: "vacuum-dry",
+        label: "Vacuum dry",
+    },
+    HmiProcessPhase {
+        key: "mould-closing",
+        label: "Close mould",
+    },
+];
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -101,9 +216,32 @@ pub struct HmiAuditEntry {
     deny_unknown_fields
 )]
 pub enum HmiAction {
-    Command { tag: String, value: String },
-    ResetSafety { safety_id: String },
-    AcknowledgeAlarm { alarm_id: String },
+    Command {
+        tag: String,
+        value: String,
+    },
+    StartProcess,
+    ResetProcess,
+    SetProcessFault {
+        fault: HmiProcessFault,
+        active: bool,
+    },
+    ResetSafety {
+        safety_id: String,
+    },
+    AcknowledgeAlarm {
+        alarm_id: String,
+    },
+}
+
+#[derive(Clone, Copy, Debug, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum HmiProcessFault {
+    SlipSupplyLoss,
+    CompressedAirLoss,
+    MouldOverpressure,
+    VacuumLoss,
+    RobotPickupFailure,
 }
 
 #[derive(Clone, Copy, Debug, Serialize)]

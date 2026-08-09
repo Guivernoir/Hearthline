@@ -1,0 +1,28 @@
+schema_version: "0.10.0"
+id: "area-02-lt-01"
+label: "AREA-02-LT-01"
+kind: "field-sensor"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Ceramic-slip buffer-tank level transmitter"
+summary: "Measures the prepared ceramic slip available from Body Preparation before a casting cycle starts."
+lifecycle: "simulated"
+tags: ["ot-area-02", "sensor", "module-slip-supply", "material", "slip"]
+render:
+  - { view: "factory/process/forming", node: "area-02-lt-01", mode: "any" }
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "field-sensor"
+  signal_tag: "area-02-lt-01"
+  unit: "percent"
+  minimum: 0
+  maximum: 100
+  initial_value: 72

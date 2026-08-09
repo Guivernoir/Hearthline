@@ -76,6 +76,12 @@ impl NeighborCache {
         })
     }
 
+    pub fn entries(&self, now_us: u64) -> impl Iterator<Item = &NeighborEntry> {
+        self.entries
+            .iter()
+            .filter(move |entry| entry.expires_at_us > now_us)
+    }
+
     fn expire(&mut self, now_us: u64) {
         let mut index = 0;
         while index < self.entries.len() {

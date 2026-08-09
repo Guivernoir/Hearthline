@@ -76,6 +76,10 @@ impl ForwardingPlane {
         self.neighbors.entry(address, port, now_us)
     }
 
+    pub fn neighbors(&self, now_us: u64) -> impl Iterator<Item = &NeighborEntry> {
+        self.neighbors.entries(now_us)
+    }
+
     pub fn route(&self, destination: Ipv4Addr) -> Option<&Route> {
         self.routes.lookup(destination)
     }

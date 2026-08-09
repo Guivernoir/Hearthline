@@ -2,15 +2,15 @@ use std::collections::BTreeSet;
 use std::net::Ipv4Addr;
 
 use hearthline_engine::{
-    FirewallHaStatus, MediaLink, SimulatedComponent, SimulationError, SimulationEvent, Simulator,
-    TraceEntry,
+    FirewallHaStatus, MediaLink, NeighborEntry, SimulatedComponent, SimulationError,
+    SimulationEvent, Simulator, TraceEntry,
 };
 use hearthline_model::{ComponentId, EthernetFrame, Ipv4Packet, PortId, VlanId};
 
 use crate::appliance::{ConfigError, ConfigRepository, InterfaceMode};
 use crate::connection::ConnectionRepository;
 
-use super::{ConfiguredAppliance, build_appliance};
+use super::{ConfiguredAppliance, RuntimeDeviceSnapshot, build_appliance};
 
 #[derive(Clone, Debug)]
 pub struct ConfiguredNetwork {
@@ -93,6 +93,41 @@ impl ConfiguredNetwork {
 
     pub fn link_count(&self) -> usize {
         self.links.len()
+    }
+
+    pub fn endpoint_neighbors(
+        &self,
+        appliance_id: &str,
+        now_us: u64,
+    ) -> Result<Vec<NeighborEntry>, ConfigError> {
+        let appliance = self
+            .appliances
+            .iter()
+            .find(|appliance| appliance.id().as_str() == appliance_id)
+            .ok_or_else(|| {
+                ConfigError::new(format!(
+                    "selected network does not contain appliance {appliance_id}"
+                ))
+            })?;
+        appliance.endpoint_neighbors(now_us).ok_or_else(|| {
+            ConfigError::new(format!(
+                "appliance {appliance_id} does not expose an endpoint neighbor cache"
+            ))
+        })
+    }
+
+    pub fn active_pat_translation_count(&self, now_us: u64) -> usize {
+        self.appliances
+            .iter()
+            .map(|appliance| appliance.active_pat_translation_count(now_us))
+            .sum()
+    }
+
+    pub fn runtime_snapshot(&self, now_us: u64) -> Vec<RuntimeDeviceSnapshot> {
+        self.appliances
+            .iter()
+            .filter_map(|appliance| appliance.runtime_snapshot(now_us))
+            .collect()
     }
 
     pub fn set_connection_operational(

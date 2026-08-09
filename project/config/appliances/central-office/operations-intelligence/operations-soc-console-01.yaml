@@ -1,4 +1,4 @@
-schema_version: "0.9.0"
+schema_version: "0.10.0"
 id: "operations-soc-console-01"
 label: "Central SOC Console-01"
 kind: "operations-console"

@@ -20,7 +20,7 @@ pub use resilience::{
     ScenarioContinuityReport, ScenarioHaIsolationReport, ScenarioLocalAutonomyReport,
 };
 
-pub const SCENARIO_REPORT_SCHEMA_VERSION: &str = "0.14.0";
+pub const SCENARIO_REPORT_SCHEMA_VERSION: &str = "0.15.0";
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "kebab-case")]

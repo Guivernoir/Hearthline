@@ -15,6 +15,10 @@ YAML and tested end to end in Rust. It covers DNS, customer PAT, provider
 routing, business static destination NAT, named perimeter HTTPS policy, web
 gateway host and path validation, named downstream firewall policy, internal
 application delivery, HTTP response relay, and reverse NAT to the customer.
+Interactive customer actions reuse one compatible A-side runtime, preserving
+ARP, forwarding, firewall, NAT, and media object state between requests; ARP
+and active PAT counts are the currently projected and regression-tested parts
+of that state. Controlled outage and recovery scenarios remain isolated runs.
 The gateway's GET, HEAD, and POST allowlist is configuration-owned and
 validated before Rust constructs the selected path. Its bounded path and body
 inspection signatures are configuration-owned as well. TLS cryptography, full

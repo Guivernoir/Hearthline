@@ -5,16 +5,67 @@ export interface HmiSnapshot {
   environment: string;
   zone: string;
   role: string;
+  interfaceKind: "hmi" | "scada-workstation";
   controller: string;
   remoteIo: string;
   permissions: string[];
   sequence: number;
+  controlProgram: HmiControlProgramState | null;
+  process: HmiProcessState | null;
   signals: HmiSignal[];
   actuators: HmiActuator[];
   safety: HmiSafety[];
   alarms: HmiAlarm[];
   audit: HmiAuditEntry[];
 }
+
+export interface HmiControlProgramState {
+  language: "structured-text";
+  program: string;
+  task: string;
+  sourcePath: string;
+  bindingPath: string;
+  revision: string;
+  currentStep: number;
+  scanIntervalMs: number;
+  watchdogMs: number;
+}
+
+export interface HmiControlProgramDocument {
+  schemaVersion: string;
+  controller: string;
+  language: "structured-text";
+  program: string;
+  task: string;
+  sourcePath: string;
+  bindingPath: string;
+  revision: string;
+  source: string;
+  bindingYaml: string;
+}
+
+export interface HmiProcessState {
+  model: string;
+  phase: string;
+  running: boolean;
+  phaseElapsedMs: number;
+  scanCount: number;
+  cycleCount: number;
+  fault: HmiProcessFault | null;
+  phases: HmiProcessPhase[];
+}
+
+export interface HmiProcessPhase {
+  key: string;
+  label: string;
+}
+
+export type HmiProcessFault =
+  | "slip-supply-loss"
+  | "compressed-air-loss"
+  | "mould-overpressure"
+  | "vacuum-loss"
+  | "robot-pickup-failure";
 
 export interface HmiSignal {
   componentId: string;
@@ -75,8 +126,42 @@ export interface HmiTraceEntry {
   detail: string;
 }
 
+export interface HistorianRecord {
+  source: string;
+  sequence: number;
+  capturedAtMs: number;
+  phase: string;
+  cycle: number;
+  payload: string;
+  wireLengthBytes: number;
+}
+
+export interface HistorianTierStatus {
+  applianceId: string;
+  storedRecords: number;
+  capacity: number;
+  latest: HistorianRecord | null;
+}
+
+export interface HistorianStatus {
+  schemaVersion: string;
+  sampleIntervalMs: number;
+  local: HistorianTierStatus;
+  replica: HistorianTierStatus;
+  pendingRecords: number;
+  droppedUnreplicated: number;
+  replicationAttempts: number;
+  lastError: string | null;
+  lastCollection: ScenarioReport | null;
+  lastReplication: ScenarioReport | null;
+  lastPublication: ScenarioReport | null;
+}
+
 export type HmiAction =
   | { kind: "command"; tag: string; value: string }
+  | { kind: "start-process" }
+  | { kind: "reset-process" }
+  | { kind: "set-process-fault"; fault: HmiProcessFault; active: boolean }
   | { kind: "reset-safety"; safetyId: string }
   | { kind: "acknowledge-alarm"; alarmId: string };
 
@@ -96,6 +181,12 @@ export function loadHmiSnapshot(id: string): Promise<HmiSnapshot> {
   return requestJson(`/api/hmis/${encodeURIComponent(id)}`);
 }
 
+export function loadHmiControlProgram(
+  id: string,
+): Promise<HmiControlProgramDocument> {
+  return requestJson(`/api/hmis/${encodeURIComponent(id)}/program`);
+}
+
 export function runHmiAction(
   id: string,
   action: HmiAction,
@@ -108,6 +199,17 @@ export function runHmiAction(
     },
     body: JSON.stringify(action),
   });
+}
+
+export function publishHmiTelemetry(id: string): Promise<ScenarioReport> {
+  return requestJson(`/api/hmis/${encodeURIComponent(id)}/telemetry`, {
+    method: "POST",
+    headers: { Accept: "application/json" },
+  });
+}
+
+export function loadHistorianStatus(id: string): Promise<HistorianStatus> {
+  return requestJson(`/api/hmis/${encodeURIComponent(id)}/historian`);
 }
 
 async function requestJson<T>(
@@ -130,3 +232,4 @@ async function requestJson<T>(
   }
   return (await response.json()) as T;
 }
+import type { ScenarioReport } from "../../simulation/simulation-api";

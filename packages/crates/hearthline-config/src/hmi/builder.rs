@@ -1,10 +1,12 @@
 use hearthline_engine::{
-    Effect, FieldSensor, IoDirection, ProcessEffect, SimulatedComponent, SimulationEvent,
+    Effect, FieldSensor, FormingMeasurements, FormingProcess, IoDirection, ProcessEffect,
+    SimulatedComponent, SimulationEvent,
 };
 use hearthline_model::{ProcessEvent, ProcessSignal, SignalValue, Text};
 
 use crate::{BehaviorConfig, ConfigError, ConfigRepository};
 
+use super::actions::process::load_control_program;
 use super::state::{ControllerRuntime, HmiSession, RemoteIoRuntime};
 use super::support::component_id;
 use super::{HmiActuator, HmiAlarm, HmiAlarmSeverity, HmiPermissive, HmiSafety, HmiSignal};
@@ -17,6 +19,7 @@ impl HmiSession {
         let BehaviorConfig::OperatorInterface {
             controller,
             permissions,
+            signal_tags,
             command_tags,
         } = &loaded.config.behavior
         else {
@@ -45,15 +48,17 @@ impl HmiSession {
                     minimum,
                     maximum,
                     initial_value: Some(initial_value),
-                } => signals.push(sample_signal(
-                    &candidate.config.id,
-                    &candidate.config.label,
-                    signal_tag,
-                    unit,
-                    *minimum,
-                    *maximum,
-                    *initial_value,
-                )?),
+                } if signal_tags.is_empty() || signal_tags.contains(signal_tag) => {
+                    signals.push(sample_signal(
+                        &candidate.config.id,
+                        &candidate.config.label,
+                        signal_tag,
+                        unit,
+                        *minimum,
+                        *maximum,
+                        *initial_value,
+                    )?)
+                }
                 BehaviorConfig::FieldActuator {
                     command_tag,
                     safe_state,
@@ -90,6 +95,14 @@ impl HmiSession {
         if signals.is_empty() {
             return Err(ConfigError::new(format!(
                 "interactive HMI {id} has no configured field signals"
+            )));
+        }
+        if let Some(signal_tag) = signal_tags
+            .iter()
+            .find(|signal_tag| !signals.iter().any(|signal| signal.tag == **signal_tag))
+        {
+            return Err(ConfigError::new(format!(
+                "interactive operator interface {id} references unknown area signal {signal_tag}"
             )));
         }
         if command_tags.is_empty() {
@@ -141,12 +154,19 @@ impl HmiSession {
             })
             .collect();
 
+        let process = controller_runtime
+            .program
+            .is_some()
+            .then(|| forming_process(appliances, &loaded.config.environment, &loaded.config.zone))
+            .transpose()?;
+
         Ok(Self {
             id: loaded.config.id.clone(),
             label: loaded.config.label.clone(),
             environment: loaded.config.environment.clone(),
             zone: loaded.config.zone.clone(),
             role: loaded.config.role.clone(),
+            kind: loaded.config.kind,
             controller: controller_runtime,
             remote_io,
             permissions: permissions.clone(),
@@ -163,6 +183,7 @@ impl HmiSession {
             alarms,
             audit: Vec::new(),
             sequence: 0,
+            process,
         })
     }
 }
@@ -176,12 +197,13 @@ fn controller_runtime(
         .ok_or_else(|| ConfigError::new(format!("HMI references unknown controller {id}")))?;
     let BehaviorConfig::VirtualController {
         scan_interval_ms, ..
-    } = controller.config.behavior
+    } = &controller.config.behavior
     else {
         return Err(ConfigError::new(format!(
             "HMI controller {id} is not a virtual controller"
         )));
     };
+    let program = load_control_program(appliances, id)?;
     Ok(ControllerRuntime {
         id: id.into(),
         ports: controller
@@ -190,8 +212,62 @@ fn controller_runtime(
             .iter()
             .map(|interface| interface.id.clone())
             .collect(),
-        scan_interval_ms,
+        scan_interval_ms: *scan_interval_ms,
+        program,
     })
+}
+
+fn forming_process(
+    appliances: &ConfigRepository,
+    environment: &str,
+    zone: &str,
+) -> Result<FormingProcess, ConfigError> {
+    let value = |tag| forming_initial_value(appliances, environment, zone, tag);
+    Ok(FormingProcess::new(FormingMeasurements {
+        slip_tank_level_percent: value("area-02-lt-01")?,
+        slip_density_g_cm3: value("area-02-dt-01")?,
+        slip_viscosity_mpa_s: value("area-02-vis-01")?,
+        slip_temperature_c: value("area-02-tt-01")?,
+        slip_feed_flow_l_min: value("area-02-ft-01")?,
+        slip_feed_pressure_bar: value("area-02-pt-01")?,
+        mould_pressure_bar: value("area-02-pt-02")?,
+        mould_temperature_c: value("area-02-tt-02")?,
+        fill_head_position_mm: value("area-02-pos-01")?,
+        mould_position_mm: value("area-02-pos-02")?,
+        water_flow_l_min: value("area-02-ft-02")?,
+        excess_slip_drain_flow_l_min: value("area-02-ft-03")?,
+        mould_moisture_percent: value("area-02-mt-02")?,
+        compressed_air_pressure_bar: value("area-02-pt-04")?,
+        vacuum_pressure_kpa: value("area-02-vt-01")?,
+        robot_position_mm: value("area-02-pos-03")?,
+        piece_gripped: value("area-02-pe-01")? >= 0.5,
+    }))
+}
+
+fn forming_initial_value(
+    appliances: &ConfigRepository,
+    environment: &str,
+    zone: &str,
+    tag: &str,
+) -> Result<f64, ConfigError> {
+    appliances
+        .appliances()
+        .find_map(|candidate| {
+            if candidate.config.environment != environment || candidate.config.zone != zone {
+                return None;
+            }
+            let BehaviorConfig::FieldSensor {
+                signal_tag,
+                initial_value,
+                ..
+            } = &candidate.config.behavior
+            else {
+                return None;
+            };
+            (signal_tag == tag).then_some(*initial_value)
+        })
+        .flatten()
+        .ok_or_else(|| ConfigError::new(format!("forming process requires initial signal {tag}")))
 }
 
 fn remote_io_runtime(

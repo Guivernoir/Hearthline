@@ -1,4 +1,4 @@
-schema_version: "0.11.0"
+schema_version: "0.12.0"
 id: "business-northbound-firewall-ha-sync-loss"
 label: "Northbound firewall HA sync loss"
 summary: "An approved historian TCP session reaches both firewall members before the HA link fails; member B promotes from its last heartbeat and permits the reverse ACK from the previously synchronized state."

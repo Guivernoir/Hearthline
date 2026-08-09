@@ -6,10 +6,13 @@
     ArrowLeft,
     Check,
     CircleGauge,
+    Code2,
     FileText,
+    FlaskConical,
     Gauge,
     LoaderCircle,
     Network,
+    Play,
     RotateCcw,
     ShieldAlert,
     ShieldCheck,
@@ -22,7 +25,10 @@
     type HmiActionReport,
     type HmiSignal,
     type HmiSnapshot,
+    type HmiProcessFault,
   } from "./hmi-api";
+  import HistorianPanel from "./HistorianPanel.svelte";
+  import ControlProgramPanel from "./ControlProgramPanel.svelte";
 
   export let applianceId: string;
   export let onBack: () => void = () => {};
@@ -33,19 +39,42 @@
   let loading = true;
   let busyTarget = "";
   let error = "";
+  let showControlProgram = false;
+
+  const processFaults: { id: HmiProcessFault; label: string }[] = [
+    { id: "slip-supply-loss", label: "Slip supply" },
+    { id: "compressed-air-loss", label: "Compressed air" },
+    { id: "mould-overpressure", label: "Mould pressure" },
+    { id: "vacuum-loss", label: "Vacuum" },
+    { id: "robot-pickup-failure", label: "Robot pickup" },
+  ];
 
   $: activeAlarms = snapshot?.alarms.filter((alarm) => alarm.active) ?? [];
   $: safetyTripped = snapshot?.safety.some((safety) => safety.tripLatched) ?? true;
+  $: process = snapshot?.process ?? null;
+  $: processFaulted = process?.phase === "faulted";
+  $: canRunProcess = snapshot?.permissions.includes("run-sequence") ?? false;
+  $: canInjectFaults = snapshot?.permissions.includes("inject-faults") ?? false;
+  $: canPublishTelemetry = snapshot?.permissions.includes("publish-telemetry") ?? false;
+  $: activePhaseIndex = process?.phases.findIndex((phase) => phase.key === process?.phase) ?? -1;
 
-  onMount(async () => {
+  onMount(() => {
+    void refreshSnapshot(true);
+    const poll = window.setInterval(() => void refreshSnapshot(false), 500);
+    return () => window.clearInterval(poll);
+  });
+
+  async function refreshSnapshot(initial: boolean) {
+    if (busyTarget) return;
     try {
       snapshot = await loadHmiSnapshot(applianceId);
+      if (!initial) error = "";
     } catch (cause) {
       error = cause instanceof Error ? cause.message : "Cannot load HMI";
     } finally {
-      loading = false;
+      if (initial) loading = false;
     }
-  });
+  }
 
   async function execute(action: HmiAction, target: string) {
     if (busyTarget) return;
@@ -89,19 +118,24 @@
   <title>{snapshot?.label ?? "HMI"} | Hearthline</title>
 </svelte:head>
 
-<div class="app-shell hmi-shell">
+<div class:scada-workstation={snapshot?.interfaceKind === "scada-workstation"} class="app-shell hmi-shell">
   <header class="topbar">
     <div class="brand-block">
       <button type="button" class="brand-back" aria-label="Back to process area" title="Back to process area" onclick={onBack}>
         <ArrowLeft size={18} strokeWidth={1.9} />
       </button>
       <span class="brand-mark hmi-mark" aria-hidden="true"><Activity size={20} /></span>
-      <div class="brand-copy"><strong>{snapshot?.label ?? applianceId}</strong><span>Operator interface</span></div>
+      <div class="brand-copy"><strong>{snapshot?.label ?? applianceId}</strong><span>{snapshot?.interfaceKind === "scada-workstation" ? "SCADA workstation" : "Module HMI"}</span></div>
     </div>
     <div class="view-context" aria-label="Current process area">
       <span>{snapshot?.environment ?? "Process area"}</span><Network size={14} /><strong>{snapshot?.zone ?? applianceId}</strong>
     </div>
     <div class="toolbar" aria-label="HMI tools">
+      {#if snapshot?.controlProgram}
+        <button type="button" aria-label="View executing control source" title="Control source" onclick={() => (showControlProgram = true)}>
+          <Code2 size={17} />
+        </button>
+      {/if}
       <button type="button" aria-label="View configuration" title="View configuration" onclick={() => onOpenConfig(applianceId)}>
         <FileText size={17} />
       </button>
@@ -114,17 +148,18 @@
     {:else if error && !snapshot}
       <div class="hmi-loading error"><ShieldAlert size={28} /><strong>HMI unavailable</strong><span>{error}</span></div>
     {:else if snapshot}
-      <header class:tripped={safetyTripped} class="hmi-runtime-header">
+      <header class:tripped={safetyTripped || processFaulted} class="hmi-runtime-header">
         <div>
           <span class="hmi-state-icon">
-            {#if safetyTripped}<ShieldAlert size={20} />{:else}<ShieldCheck size={20} />{/if}
+            {#if safetyTripped || processFaulted}<ShieldAlert size={20} />{:else}<ShieldCheck size={20} />{/if}
           </span>
-          <span><small>Process state</small><strong>{safetyTripped ? "Safety trip latched" : "Ready for operation"}</strong></span>
+          <span><small>Process state</small><strong>{safetyTripped ? "Safety trip latched" : processFaulted ? "Process faulted" : process ? displayName(process.phase) : "Ready for operation"}</strong></span>
         </div>
         <dl>
           <div><dt>Controller</dt><dd>{snapshot.controller}</dd></div>
           <div><dt>Remote I/O</dt><dd>{snapshot.remoteIo}</dd></div>
-          <div><dt>Sequence</dt><dd>{snapshot.sequence}</dd></div>
+          <div><dt>PLC scans</dt><dd>{process?.scanCount ?? snapshot.sequence}</dd></div>
+          <div><dt>Cycles</dt><dd>{process?.cycleCount ?? "-"}</dd></div>
         </dl>
       </header>
 
@@ -136,7 +171,67 @@
 
       <div class="hmi-layout">
         <section class="hmi-process-panel" aria-label="Process overview">
-          <header><span><Waves size={17} />Process overview</span><small>{snapshot.role}</small></header>
+          <header><span><Waves size={17} />{snapshot.interfaceKind === "scada-workstation" ? "Cell overview" : "Module overview"}</span><small>{snapshot.role}</small></header>
+
+          {#if process}
+            <section class:tripped={process.phase === "faulted"} class="hmi-cycle-section" aria-label="Automatic forming cycle">
+              <header>
+                <span><Activity size={16} />Automatic cycle</span>
+                <div class="hmi-cycle-actions">
+                  {#if canRunProcess}
+                    <button
+                      type="button"
+                      disabled={process.running || process.phase === "faulted" || safetyTripped || Boolean(busyTarget)}
+                      onclick={() => void execute({ kind: "start-process" }, "start-process")}
+                    >
+                      {#if busyTarget === "start-process"}<LoaderCircle class="spin" size={14} />{:else}<Play size={14} />{/if}
+                      Start
+                    </button>
+                    <button
+                      type="button"
+                      disabled={process.phase !== "faulted" || Boolean(process.fault) || safetyTripped || Boolean(busyTarget)}
+                      onclick={() => void execute({ kind: "reset-process" }, "reset-process")}
+                    >
+                      {#if busyTarget === "reset-process"}<LoaderCircle class="spin" size={14} />{:else}<RotateCcw size={14} />{/if}
+                      Reset
+                    </button>
+                  {/if}
+                </div>
+              </header>
+              <ol class="hmi-cycle-track">
+                {#each process.phases as phase, index}
+                  <li
+                    class:active={phase.key === process.phase}
+                    class:complete={process.running && index > 0 && index < activePhaseIndex}
+                  >
+                    <i>{index + 1}</i><span>{phase.label}</span>
+                  </li>
+                {/each}
+              </ol>
+              {#if canInjectFaults}
+                <div class="hmi-fault-controls">
+                  <span><FlaskConical size={15} />Simulation disturbances</span>
+                  <div>
+                    {#each processFaults as fault}
+                      <button
+                        type="button"
+                        class:active={process.fault === fault.id}
+                        disabled={Boolean(busyTarget)}
+                        aria-pressed={process.fault === fault.id}
+                        onclick={() => void execute(
+                          { kind: "set-process-fault", fault: fault.id, active: process.fault !== fault.id },
+                          `fault-${fault.id}`,
+                        )}
+                      >
+                        {#if busyTarget === `fault-${fault.id}`}<LoaderCircle class="spin" size={13} />{/if}
+                        {fault.label}
+                      </button>
+                    {/each}
+                  </div>
+                </div>
+              {/if}
+            </section>
+          {/if}
 
           <div class="hmi-signal-grid">
             {#each snapshot.signals as signal}
@@ -165,7 +260,7 @@
           </div>
 
           <section class="hmi-actuator-section" aria-label="Actuator controls">
-            <header><span><CircleGauge size={16} />Field outputs</span><small>{safetyTripped ? "Inhibited" : "Command enabled"}</small></header>
+            <header><span><CircleGauge size={16} />Field outputs</span><small>{safetyTripped ? "Inhibited" : process?.running ? "Automatic sequence" : "Command enabled"}</small></header>
             <div class="hmi-actuator-grid">
               {#each snapshot.actuators as actuator}
                 <article class="hmi-actuator">
@@ -180,7 +275,7 @@
                         type="button"
                         class:active={state === actuator.currentState}
                         aria-pressed={state === actuator.currentState}
-                        disabled={safetyTripped || Boolean(busyTarget) || state === actuator.currentState}
+                        disabled={safetyTripped || Boolean(process?.running) || Boolean(busyTarget) || state === actuator.currentState}
                         onclick={() => void execute({ kind: "command", tag: actuator.commandTag, value: state }, actuator.commandTag)}
                       >
                         {#if busyTarget === actuator.commandTag}<LoaderCircle class="spin" size={13} />{/if}
@@ -243,6 +338,10 @@
             {/if}
           </section>
 
+          {#if canPublishTelemetry}
+            <HistorianPanel {applianceId} />
+          {/if}
+
           <section class="hmi-trace">
             <header><span><Network size={16} />Last command path</span><strong class:denied={report?.status === "denied"}>{report?.status ?? "idle"}</strong></header>
             {#if report?.trace.length}
@@ -274,3 +373,7 @@
     <span>{activeAlarms.length} active alarm{activeAlarms.length === 1 ? "" : "s"}</span>
   </footer>
 </div>
+
+{#if showControlProgram && snapshot?.controlProgram}
+  <ControlProgramPanel {applianceId} runtime={snapshot.controlProgram} onClose={() => (showControlProgram = false)} />
+{/if}

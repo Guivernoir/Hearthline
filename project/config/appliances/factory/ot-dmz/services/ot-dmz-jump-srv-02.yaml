@@ -1,4 +1,4 @@
-schema_version: "0.9.0"
+schema_version: "0.10.0"
 id: "ot-dmz-jump-srv-02"
 label: "OT-DMZ-JUMP-SRV-02"
 kind: "jump-host"

@@ -97,6 +97,10 @@
     display: none;
   }
 
+  .process-area-grid-toggle {
+    display: none !important;
+  }
+
   .brand-back {
     margin-right: 0;
   }

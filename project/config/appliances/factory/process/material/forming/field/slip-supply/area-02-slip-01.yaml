@@ -1,0 +1,27 @@
+schema_version: "0.10.0"
+id: "area-02-slip-01"
+label: "AREA-02-SLIP-01"
+kind: "field-actuator"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Ceramic-slip tank outlet and recovery module"
+summary: "Controls isolation, tank recirculation, mould filling, and excess-slip recovery downstream of the Body Preparation feed."
+lifecycle: "simulated"
+tags: ["ot-area-02", "actuator", "module-slip-supply", "material", "slip"]
+render:
+  - { view: "factory/process/forming", node: "area-02-slip-01", mode: "any" }
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "field-actuator"
+  command_tag: "area-02-slip-01-command"
+  safe_state: "isolated"
+  feedback_tag: "area-02-slip-01-feedback"
+  states: ["isolated", "recirculating", "filling", "draining"]

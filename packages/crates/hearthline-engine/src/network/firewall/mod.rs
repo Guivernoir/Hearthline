@@ -77,6 +77,12 @@ struct FirewallSession {
     expires_at_us: u64,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct FirewallSessionSnapshot {
+    pub flow: FlowKey,
+    pub expires_at_us: u64,
+}
+
 impl FirewallSession {
     fn new(flow: FlowKey, now_us: u64) -> Self {
         Self {
@@ -156,6 +162,23 @@ impl StatefulFirewall {
 
     pub fn session_count(&self) -> usize {
         self.sessions.len()
+    }
+
+    pub fn active_sessions(
+        &self,
+        now_us: u64,
+    ) -> impl Iterator<Item = FirewallSessionSnapshot> + '_ {
+        self.sessions
+            .iter()
+            .filter(move |session| session.expires_at_us > now_us)
+            .map(|session| FirewallSessionSnapshot {
+                flow: session.forward,
+                expires_at_us: session.expires_at_us,
+            })
+    }
+
+    pub fn neighbors(&self, now_us: u64) -> impl Iterator<Item = &super::NeighborEntry> {
+        self.plane.neighbors(now_us)
     }
 
     pub fn set_first_hop_active(

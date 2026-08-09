@@ -12,7 +12,11 @@ pub use report::{
     ScenarioTraceEntry, ScenarioTraceKind,
 };
 pub use repository::{LoadedScenario, ScenarioRepository};
-pub use runner::{run_scenario, run_scenario_with_overrides, run_scenario_with_state_overrides};
+pub(crate) use runner::is_interactive_scenario;
+pub use runner::{
+    InteractiveScenarioSession, run_scenario, run_scenario_with_overrides,
+    run_scenario_with_state_overrides,
+};
 pub use schema::{
     SCENARIO_SCHEMA_VERSION, ScenarioApplicationConfig, ScenarioConfig, ScenarioContinuityConfig,
     ScenarioContinuityFault, ScenarioExpectation, ScenarioExpectedOutcome,

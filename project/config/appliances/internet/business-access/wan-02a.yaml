@@ -1,4 +1,4 @@
-schema_version: "0.9.0"
+schema_version: "0.10.0"
 id: "wan-02a"
 label: "WAN-02A"
 kind: "wan-circuit"

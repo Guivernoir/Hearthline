@@ -1,0 +1,32 @@
+schema_version: "0.12.0"
+id: "factory-forming-historian-collection"
+label: "Forming historian collection"
+summary: "The Forming controller sends a bounded process-telemetry sample through its virtual host and the Level 3 core to the factory-local historian."
+category: "industrial-data"
+participants:
+  - "area-02-vplc-01"
+  - "ot-vplc-host-01"
+  - "ot-level3-core-sw-01"
+  - "ot-operations-services-01"
+source: "area-02-vplc-01"
+packet:
+  source_ip: "10.30.2.20"
+  destination_ip: "10.20.0.20"
+  ttl: 64
+  wire_length_bytes: 512
+  transport:
+    protocol: "tcp"
+    source_port: 44818
+    destination_port: 4840
+    syn: true
+  application:
+    kind: "telemetry"
+    service: "historian"
+    source: "area-02-vplc-01"
+    sequence: 0
+    payload: '{"cell":"OT-AREA-02","phase":"idle","cycle":0}'
+expectation:
+  component: "ot-operations-services-01"
+  outcome: "delivered"
+  service: "historian-replication"
+event_limit: 128

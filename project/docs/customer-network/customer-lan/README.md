@@ -7,7 +7,7 @@ premises. It owns the endpoints, access switch, and router inside interface.
 
 ![Customer LAN logical view](logical-screenshot.png)
 
-![Representative Customer PC-01 workstation view](workstation-screenshot.png)
+![Customer PC-01 session network state](workstation-screenshot.png)
 
 ## Implementation Status
 
@@ -16,8 +16,26 @@ per-appliance interfaces are now represented in parsed YAML and available from
 each device inspector. Customer PC-01 and PC-02 are enterable as responsive
 workstations whose profiles, terminals, browsers, and activity traces are
 supplied by the local Rust API. Each endpoint has independent DNS, public
-HTTPS, and perimeter-denied SSH scenarios. Complete LAN-only reachability
-remains unimplemented. Customer PC-01 can also run configured traversal,
+HTTPS, and perimeter-denied SSH scenarios. Both can also run `ping` against a
+destination covered by one of their validated route templates; the terminal
+resolves names when required, constructs up to four ICMP probes in Rust, and
+reports verified replies, loss, timing, and per-probe traces. Arbitrary
+topology discovery remains unimplemented. The local API now retains a separate
+DNS client cache for each workstation, expires entries after 60 seconds of
+deterministic session time, and exposes `ipconfig /displaydns` and
+`ipconfig /flushdns`. Browser, `curl`, `ping`, and SSH resolution consult this
+cache; `nslookup` intentionally queries the configured DNS server every time.
+Each API workstation also owns one mutable union of its compatible baseline
+scenario appliances and media. DNS, HTTPS, ICMP, and SSH therefore reuse the
+same endpoint ARP cache and customer-edge PAT table. Browser details expose ARP
+and PAT counts, while terminal `arp -a` reads the actual simulated endpoint
+table. The workstation Network State application enumerates the appliances in
+that isolated compatible runtime and presents their active switch CAM,
+neighbor, PAT, and firewall-session tables. Its capability-gated simulator
+console executes bounded read-only `show` commands in Rust. This interface is
+session instrumentation; it does not grant the customer endpoint privileged
+device access and does not represent a global management plane.
+Customer PC-01 can also run configured traversal,
 disallowed-method, and SQL-injection request-body probes with `curl`; all three
 are prevented by the business DMZ WAF and create distinct defensive evidence
 for the Central SOC session.
@@ -70,7 +88,15 @@ from canonical YAML. The selected DNS and public-service scenarios construct
 the originating workstation, access switch, and router from those records and
 exercise their selected links. PC-01 and PC-02 terminal and browser actions
 use independent source addresses and scenario documents for `nslookup`,
-HTTPS, and denied SSH. LAN-only reachability scenarios remain planned.
+HTTPS, and denied SSH. Interactive `ping` replaces a compatible path's
+application packet with ICMP while retaining its validated participants and
+media; the endpoint and DNS-server YAML `respond_to_icmp` value controls
+whether Rust emits an echo reply. LAN-only reachability scenarios remain
+planned. The DNS cache is local API-session state: it is isolated by
+workstation and reset by configuration changes or API restart. The same reset
+boundary applies to the retained network runtime. Controlled outage, recovery,
+continuity, HA-isolation, and autonomy scenarios remain fresh simulation
+workspace runs and cannot be inserted into an interactive workstation session.
 
 PC-01 additionally selects a security exercise only for its exact configured
 method, path, and request body. `curl -I` follows the normal configured HTTPS

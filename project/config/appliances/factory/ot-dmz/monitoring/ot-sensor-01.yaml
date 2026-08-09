@@ -1,4 +1,4 @@
-schema_version: "0.9.0"
+schema_version: "0.10.0"
 id: "ot-sensor-01"
 label: "OT-SENSOR-01"
 kind: "passive-network-sensor"

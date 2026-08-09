@@ -1,4 +1,4 @@
-schema_version: "0.9.0"
+schema_version: "0.10.0"
 id: "area-09-rej-01"
 label: "AREA-09-REJ-01"
 kind: "field-actuator"

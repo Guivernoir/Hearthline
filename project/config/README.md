@@ -6,21 +6,24 @@ scenario before configuration or simulation results reach Svelte.
 
 ## Current Status
 
-`appliances/` contains 162 schema `0.9.0` documents: 72 customer, provider,
-enterprise, DMZ, operations, conduit, Level 3, and control-host records plus 90
-process-area records. `connections/` contains 208 schema `0.2.0` documents
+`appliances/` contains 185 schema `0.10.0` documents: 72 customer, provider,
+enterprise, DMZ, operations, conduit, Level 3, and control-host records plus 113
+process-area records. `connections/` contains 231 schema `0.2.0` documents
 covering copper, fiber, radio, carrier, virtual, and field-wiring
 relationships. File names and stable IDs are identical.
-`scenarios/` currently contains 28 schema `0.11.0` simulations: independent
+`scenarios/` currently contains 30 schema `0.12.0` simulations: independent
 Customer PC-01 and PC-02 public paths, independent Business IT PC-01 through
 PC-04 internal DNS and HTTPS paths, approved and denied factory
-operations-data transfer, and three controlled public-web security exercises.
+operations-data transfer, Forming-to-Level-3 historian collection,
+Level-3-to-DMZ replication, and three controlled public-web security
+exercises. Factory data uses typed telemetry packets with a bounded payload,
+controller source, and sequence.
 Availability coverage adds a customer WAN restoration contract, a Business IT
 core failover with explicit link and VRRP role transitions, and six
 northbound-firewall contracts for converged ownership transfer, media-carried
 session continuity, HA-sync loss after replication, fail-closed standby
 session-state loss, idle-session expiry, and fenced sync-path isolation.
-The twenty-eighth scenario combines both failed factory-facing conduit
+A composite scenario combines both failed factory-facing conduit
 handoffs with an independently validated Body Preparation control path and a
 configured HMI safety-reset plus actuator command.
 
@@ -40,6 +43,8 @@ Rust currently validates:
 - Appliance-kind to behavior-family compatibility.
 - Optional endpoint hostnames and DNS-server addresses used by interactive
   workstation profiles.
+- Endpoint and service-host `respond_to_icmp` policy used by the Rust echo
+  responder and interactive workstation diagnostics.
 - Required family constraints such as switch VLANs, NAT inside/outside roles,
   default-deny firewalls, application-gateway HTTP method allowlists and
   bounded inspection rules, non-inline passive sensors, valid sensor ranges,
@@ -99,18 +104,22 @@ medium.
 Validation does not yet prove project-wide address uniqueness, VLAN and route
 consistency, general NAT or policy correctness, vendor HA behavior, or every possible
 scenario outcome. Selected appliance and connection subgraphs are executable;
-the complete 162-appliance graph is not assembled as one running topology.
+the complete 185-appliance graph is not assembled as one running topology.
 
 The customer scenarios carry a DNS request and response through the customer
 edge and provider network, then exercise the selected public-service path.
 HTTPS to `shop.hearthline.test` is translated from `192.0.2.10` to the DMZ web
 gateway, admitted by a named perimeter rule, and forwarded to an abstract
 application VIP; public SSH is dropped by default policy. The factory pair
-carries selected historian-replica data across VLAN 352 and the governed
+carries a typed historian-replica telemetry frame across VLAN 352 and the governed
 inter-site conduit to the Applications VLAN: TCP 443 matches a named firewall
 rule and reaches analytics, while TCP 22 is dropped by default policy. Each run
 emits deterministic per-hop transit, policy, delivery, forwarding, or drop
-results.
+results. Two preceding scenarios carry a current Forming scan from the
+addressed vPLC through its virtual host to the Level 3 historian, then through
+the southbound OT firewall into the DMZ replica. The API samples this path once
+per simulated second and retains bounded volatile records. Forming SCADA
+publishes the latest replicated record without modifying scenario YAML.
 
 The local-autonomy case expands that factory baseline into two independently
 evaluated execution domains. Both factory-facing conduit handoffs are down, so
@@ -265,6 +274,8 @@ project/config
 |   |   |-- customer-public-web-management-denied.yaml
 |   |   `-- customer-public-web-request.yaml
 |   |-- factory
+|   |   |-- factory-forming-historian-collection.yaml
+|   |   |-- factory-historian-dmz-replication.yaml
 |   |   |-- factory-operations-data.yaml
 |   |   |-- factory-operations-data-denied.yaml
 |   |   `-- resilience
@@ -308,6 +319,8 @@ cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run 
 cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run business-it-user-pc-01-portal
 cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run factory-operations-data
 cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run factory-operations-data-denied
+cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run factory-forming-historian-collection
+cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run factory-historian-dmz-replication
 cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run factory-local-autonomy-conduit-outage
 cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run business-northbound-firewall-session-continuity
 cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run business-northbound-firewall-ha-sync-loss
@@ -340,9 +353,20 @@ recovery state, Rust evaluates the recovery expectation instead of the
 baseline expectation.
 `GET /api/workstations/{id}` projects a configured endpoint profile and
 `POST /api/workstations/{id}/actions` executes supported terminal or browser
-actions through compatible scenarios. `GET /api/security/consoles/{id}`
+actions through compatible scenarios, including bounded dynamic ICMP probes
+over matching validated route templates. The API retains successful DNS
+answers for 60 seconds of local session time per workstation; browser, `curl`,
+`ping`, and SSH reuse them, while `nslookup` bypasses the client cache.
+`ipconfig /displaydns` and `ipconfig /flushdns` expose that state. Configuration
+updates and API restart clear it. Compatible baseline actions also share one
+mutable union network per workstation with monotonic simulated time. `arp -a`
+and the action response expose retained endpoint ARP plus active PAT state.
+Controlled resilience scenarios are excluded and still receive fresh runtimes.
+`GET /api/security/consoles/{id}`
 returns modeled evidence, while acknowledgement and clear routes update only
-the current local API session. Application releases, schema
+the current local API session. `GET /api/hmis/{id}/historian` returns the
+bounded local/replica pipeline state; `POST /api/hmis/{id}/telemetry`
+publishes only its latest replicated record. Application releases, schema
 compatibility, and migration expectations are defined in the
 [versioning policy](../docs/reference/versioning.md) and
 [changelog](../../CHANGELOG.md).

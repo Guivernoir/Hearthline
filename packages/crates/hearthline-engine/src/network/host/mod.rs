@@ -6,3 +6,4 @@ mod stack;
 pub use appliances::{DnsServer, ServiceNode};
 pub use gateway::{HttpInspectionRule, HttpInspectionTarget, ReverseProxyWaf};
 pub use monitor::PassiveSensor;
+pub(crate) use stack::{EndpointReceive, EndpointStack};

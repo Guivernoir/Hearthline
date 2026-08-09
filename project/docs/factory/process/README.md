@@ -11,20 +11,32 @@ permissive role.
 
 ## Implementation Status
 
-The ordered process canvas and ten process-area views are implemented. Each area
-uses bootstrap JSON for representative equipment and relationships. The Rust
-workspace has provisional controller-scan, I/O, sensor, actuator, HMI, safety,
-and connector primitives plus parsed YAML for all 90 area components, both
-physical vPLC hosts, and the Level 3 aggregation pair. Body Preparation now has
-an executable operator session together with the other nine areas. Every local
-HMI is assembled from its area YAML with two configured samples, one safety
-interface, two commandable field outputs, alarm and audit state, and a command
-path executed through the HMI, vPLC, remote I/O, and actuator primitives.
+The ordered process canvas and ten process-area views are implemented. Nine
+areas still use bootstrap JSON for representative presentation relationships.
+Forming is the first detailed and executable area: its view derives 32
+components from the generated YAML catalog and separates ceramic-slip supply,
+pressure casting, robotic demoulding, water/air/vacuum utilities, SCADA,
+module HMIs, control, distributed I/O, and field equipment.
+
+The Rust workspace has provisional controller-scan, I/O, sensor, actuator,
+SCADA/HMI, safety, and connector primitives plus parsed YAML for 113 area
+components, both physical vPLC hosts, and the Level 3 aggregation pair. Every
+configured local operator interface is assembled from area YAML with declared
+signal and command scope, alarm and audit state, and a command path executed
+through the operator interface, vPLC, remote I/O, and actuator primitives.
 The first composite resilience scenario also disables both factory-facing
 inter-site handoffs while the Body Preparation HMI resets its healthy safety
 circuit and starts the transfer pump over an independently validated local
-path. IEC 61131-3 programs, automatic sequences, plant dynamics, and material
-flow are not yet executable.
+path. Forming additionally runs a deterministic Rust sequence through mould
+filling, pressure casting, excess-slip drainage, water/air release, robotic
+pickup and handoff, mould washing, air purging, vacuum drying, and mould
+closure. Its bounded Structured Text sequence and explicit YAML I/O binding
+are executable; production-fidelity plant dynamics, the remaining nine area
+programs, and broader IEC 61131-3 language support remain unimplemented.
+The Forming SCADA can capture the current process scan and invoke the existing
+brokered factory operations-data path. The resulting typed telemetry packet,
+analytics delivery result, and media trace are returned to the same operator
+session.
 
 ![Factory local autonomy simulation](local-autonomy-screenshot.png)
 
@@ -65,11 +77,14 @@ Body Preparation
 
 The Svelte views currently consume
 [`process-view.json`](../../../../packages/web/src/generated/process-view.json), a versioned
-bootstrap view model. Canonical appliance and connection YAML is available
-through the generated configuration catalog, while presentation relationships
-and coordinates remain in the bootstrap file. IEC 61131-3 sources, resolved
-I/O bindings, connectivity results, virtual PLC state, and Rust process
-outcomes will replace the remaining bootstrap records.
+bootstrap view model for the process sequence and nine representative area
+views. Forming derives its component inventory and descriptions from the
+generated canonical configuration catalog; Svelte retains only its
+presentation grouping and coordinates. Its HMI state and accelerated process
+cycle, parsed control-source state, and resolved Forming I/O bindings are
+supplied by the Rust API. Broader connectivity results, remaining area control
+sources, and generated process-area topology will replace the remaining
+bootstrap records.
 
 Svelte owns layout and interaction. Rust owns process state, material movement,
 faults, accelerated time, network decisions, and generated results. The virtual

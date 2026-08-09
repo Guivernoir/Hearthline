@@ -1,0 +1,11 @@
+schema_version: "0.2.0"
+id: "area-02-rio-01-to-area-02-pos-01"
+label: "Slip fill-head position input"
+lifecycle: "simulated"
+transport: "field-io"
+medium: { type: "field-wiring", signal: "Slip fill-head position", length_m: 24.0 }
+endpoints:
+  a: { appliance: "area-02-rio-01", interface: "field-io-10" }
+  b: { appliance: "area-02-pos-01", interface: "field-io" }
+properties: { capacity_mbps: 10, latency_ms: 0, loss_every: null, direction: "bidirectional", operational: true }
+tags: ["ot", "ot-area-02", "field-io", "module-pressure-casting"]

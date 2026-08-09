@@ -1,0 +1,28 @@
+schema_version: "0.10.0"
+id: "area-02-pos-03"
+label: "AREA-02-POS-03"
+kind: "field-sensor"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Demoulding robot position transducer"
+summary: "Reports normalized robot travel from home through mould pickup to the operator handoff point."
+lifecycle: "simulated"
+tags: ["ot-area-02", "sensor", "module-robotic-demould", "robot", "position"]
+render:
+  - { view: "factory/process/forming", node: "area-02-pos-03", mode: "any" }
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "field-sensor"
+  signal_tag: "area-02-pos-03"
+  unit: "millimetre"
+  minimum: 0
+  maximum: 3000
+  initial_value: 0

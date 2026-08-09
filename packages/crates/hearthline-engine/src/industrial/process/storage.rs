@@ -3,8 +3,8 @@ use hearthline_model::{PortId, Text};
 
 use crate::runtime::collect_fixed;
 
-pub(crate) type Ports = FixedList<PortId, 16>;
-pub(crate) type TaggedValues<T> = FixedList<(Text<64>, T), 16>;
+pub(crate) type Ports = FixedList<PortId, 32>;
+pub(crate) type TaggedValues<T> = FixedList<(Text<64>, T), 32>;
 
 pub(crate) fn collect_ports(values: impl IntoIterator<Item = PortId>) -> Ports {
     collect_fixed(values)

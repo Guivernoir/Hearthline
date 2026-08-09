@@ -29,8 +29,8 @@ pub use multi_chassis::{MultiChassisConfig, MultiChassisRole};
 pub use presentation::{Lifecycle, RenderBinding, RenderMode};
 pub use spanning_tree::{SpanningTreeConfig, SpanningTreeProtocol};
 
-pub const APPLIANCE_SCHEMA_VERSION: &str = "0.9.0";
-pub const FRONTEND_CATALOG_SCHEMA_VERSION: &str = "0.8.0";
+pub const APPLIANCE_SCHEMA_VERSION: &str = "0.10.0";
+pub const FRONTEND_CATALOG_SCHEMA_VERSION: &str = "0.9.0";
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]

@@ -107,10 +107,13 @@
           <summary>Connection details</summary>
           <dl>
             <div><dt>Resolved address</dt><dd>{report.browser.resolvedAddress ?? "No answer"}</dd></div>
+            <div><dt>Resolution</dt><dd>{report.browser.resolutionSource}</dd></div>
             <div><dt>Application gateway</dt><dd>{report.browser.gateway ?? "Not reached"}</dd></div>
             <div><dt>Application service</dt><dd>{report.browser.forwardedTo ?? "Not reached"}</dd></div>
             <div><dt>Request body</dt><dd>{report.browser.requestBodyBytes} bytes</dd></div>
             <div><dt>Simulation runs</dt><dd>{report.simulations.length}</dd></div>
+            <div><dt>Session ARP</dt><dd>{report.networkState.arpEntries.length} entries</dd></div>
+            <div><dt>PAT translations</dt><dd>{report.networkState.patTranslations}</dd></div>
           </dl>
         </details>
       </article>
@@ -130,10 +133,13 @@
         </div>
         <dl>
           <div><dt>Resolved address</dt><dd>{report.browser.resolvedAddress ?? "No answer"}</dd></div>
+          <div><dt>Resolution</dt><dd>{report.browser.resolutionSource}</dd></div>
           <div><dt>Application gateway</dt><dd>{report.browser.gateway ?? "Not reached"}</dd></div>
           <div><dt>Application service</dt><dd>{report.browser.forwardedTo ?? "Not reached"}</dd></div>
           <div><dt>Request body</dt><dd>{report.browser.requestBodyBytes} bytes</dd></div>
           <div><dt>Simulation runs</dt><dd>{report.simulations.length}</dd></div>
+          <div><dt>Session ARP</dt><dd>{report.networkState.arpEntries.length} entries</dd></div>
+          <div><dt>PAT translations</dt><dd>{report.networkState.patTranslations}</dd></div>
         </dl>
       </div>
     {:else}

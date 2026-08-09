@@ -1,4 +1,4 @@
-schema_version: "0.9.0"
+schema_version: "0.10.0"
 id: "area-07-hmi-01"
 label: "AREA-07-HMI-01"
 kind: "hmi"

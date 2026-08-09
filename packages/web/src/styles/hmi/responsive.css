@@ -8,7 +8,8 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .hmi-event-panel .hmi-audit {
+  .hmi-event-panel .hmi-audit,
+  .hmi-event-panel .hmi-telemetry {
     grid-column: 1 / -1;
   }
 }
@@ -31,7 +32,7 @@
   }
 
   .hmi-runtime-header dl {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .hmi-runtime-header dl div {
@@ -43,7 +44,8 @@
   }
 
   .hmi-signal-grid,
-  .hmi-actuator-grid {
+  .hmi-actuator-grid,
+  .hmi-shell.scada-workstation .hmi-actuator-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -57,6 +59,20 @@
 
   .hmi-state-control button {
     flex: 1 1 0;
+  }
+
+  .hmi-cycle-section > header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .hmi-cycle-track {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hmi-fault-controls {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .hmi-safety-row {
@@ -77,7 +93,8 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .hmi-event-panel .hmi-audit {
+  .hmi-event-panel .hmi-audit,
+  .hmi-event-panel .hmi-telemetry {
     grid-column: auto;
   }
 }

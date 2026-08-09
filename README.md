@@ -11,12 +11,18 @@ exchange, and a segmented ceramics process. Its current implementation is a
 navigable Svelte architecture application plus a deterministic Rust component
 engine. Typed appliance, connection, and scenario YAML pipelines validate the
 rendered inventory and selected executable paths, generate frontend
-configuration data, and support validated local editing. Twenty-eight configured
+configuration data, and support validated local editing. Thirty configured
 scenarios cover independent Customer PC-01 and PC-02 public paths, independent
 Business IT PC-01 through PC-04 internal DNS and HTTPS paths, approved or
 denied factory operations-data flows, and three controlled public-web security
 exercises: path traversal, a disallowed method, and a bounded SQL-injection
 request body.
+The Forming vPLC now emits a typed process sample through its virtual host and
+Level 3 core to a bounded factory-local historian. A second executable path
+replicates accepted records through the southbound OT firewall into the OT DMZ.
+Forming SCADA shows both stores and their route evidence, and its publication
+action sends only the latest replicated record through six modeled links to
+Central Office analytics.
 The first availability scenario applies a request-scoped customer access-link
 outage, verifies the resulting media drop, and defines a separate recovery
 state whose restored run must deliver the original DNS response.
@@ -46,8 +52,12 @@ Body Preparation control chain retains seven operational local links, resets
 its healthy safety circuit, and starts the configured transfer pump through
 HMI, vPLC, remote I/O, and actuator behavior. This is a bounded command-level
 proof, not yet a changing plant-state or controller-program simulation.
-Complete topology execution, IEC 61131-3 control execution, and plant
-simulation remain planned engineering layers.
+Complete topology execution, general IEC 61131-3 control execution, and
+broader plant simulation remain planned engineering layers. Forming is the
+first bounded area-specific process model: a validated Structured Text subset
+owns its sequence and output requests while Rust advances ceramic-slip
+pressure casting, robotic demoulding, mould cleaning, vacuum drying, process
+signals, alarms, and injected faults.
 
 ![Hearthline regional architecture](project/docs/screenshot.png)
 
@@ -105,9 +115,12 @@ The following capabilities are implemented in the Svelte application:
 - Customer LAN, customer edge, public-service, enterprise, DMZ, operations,
   analytics, and factory security views.
 - A ten-stage ceramics process with individual controllers, HMIs, sensors,
-  distributed I/O, actuators, and safety or permissive interfaces.
+  distributed I/O, actuators, and safety or permissive interfaces; Forming is
+  the first detailed cell with 32 components, cell-wide SCADA, four module
+  HMIs, 17 process inputs, and six controlled outputs.
 - A bootstrap process view model loaded from
-  [`process-view.json`](packages/web/src/generated/process-view.json).
+  [`process-view.json`](packages/web/src/generated/process-view.json), with the
+  detailed Forming inventory derived from the generated YAML catalog.
 - Rust-generated appliance and connection metadata, full YAML inspection, and
   validated editing through a localhost-only Rust API.
 - A Rust workspace with shared model contracts, typed YAML configuration,
@@ -131,14 +144,35 @@ The following capabilities are implemented in the Svelte application:
   forwarding or discarding state, and scenario-report projection.
 - Enterable Customer PC-01 and PC-02 endpoints with responsive desktops,
   terminals, browsers, independent YAML-derived network identities, and
-  Rust-backed DNS, HTTPS, and denied SSH actions.
+  Rust-backed DNS, repeated ICMP echo, HTTPS, and denied SSH actions. Each API
+  session maintains an isolated 60-second DNS client cache with inspection and
+  flush commands plus a persistent compatible baseline network that retains
+  endpoint ARP, switch CAM, routed-neighbor, customer PAT, and traversed
+  firewall-session state across actions.
 - Enterable Business IT PC-01 through PC-04 endpoints with scenario-derived
-  portal home pages and Rust-backed internal DNS and HTTPS actions across
-  trunked VLANs 20, 30, and 80 through routed Core-01 SVIs.
-- Enterable HMIs for all ten process areas with YAML-derived instruments,
-  safety permissives, alarm acknowledgement, operator audit, equipment-specific
-  actuator states, and commands executed through Rust HMI, vPLC, remote-I/O,
-  and field-actuator primitives.
+  portal home pages and Rust-backed internal DNS, repeated ICMP echo, and HTTPS
+  actions across trunked VLANs 20, 30, and 80 through routed Core-01 SVIs;
+  browser, `curl`, `ping`, and SSH share that workstation's DNS cache while
+  `nslookup` always queries the configured server. Browser details and
+  terminal `arp -a` expose current session state.
+- A responsive Network State application on each enterable workstation,
+  showing capability-scoped CAM, neighbor, PAT, and firewall-session tables
+  from the active Rust runtime plus a bounded read-only simulator console for
+  `show` commands. This is per-workstation session instrumentation, not a
+  global management plane or vendor CLI implementation.
+- Enterable operator interfaces for all ten process areas, including the
+  Forming SCADA workstation and four module-scoped HMIs, with YAML-derived
+  instruments, safety permissives, alarm acknowledgement, operator audit,
+  equipment-specific actuator states, and commands executed through Rust HMI,
+  vPLC, remote-I/O, and field-actuator primitives.
+- One shared Forming runtime across SCADA and module HMIs, with an accelerated
+  deterministic slip-casting cycle, 20-millisecond scan steps, live process
+  measurements, sequenced output state, named alarms, process reset, and five
+  injectable disturbances.
+- Automatic one-second Forming telemetry collection with bounded local and OT
+  DMZ stores, pending-record and loss accounting, 250-millisecond replication
+  retry, and an authorized replica-backed analytics publication with all three
+  media traces beside the live process.
 - Composite factory-autonomy evidence in the simulation workspace, including
   redundant conduit loss, local-path health, safety reset, command result,
   final actuator state, and the six recorded control stages.
@@ -155,15 +189,15 @@ Current maturity is:
 | Svelte architecture application | Implemented and buildable; rendered architecture remains provisional |
 | Physical and logical documentation captures | Implemented for every documented route |
 | Process view-model contract | Bootstrap JSON, schema `0.2.0` |
-| Canonical appliance YAML | Provisional baseline; 162 schema `0.9.0` files, one per appliance |
-| Canonical connection YAML | Provisional baseline; 208 schema `0.2.0` files, one per modeled connection |
+| Canonical appliance YAML | Provisional baseline; 185 schema `0.10.0` files, one per appliance |
+| Canonical connection YAML | Provisional baseline; 231 schema `0.2.0` files, one per modeled connection |
 | Rust component simulation | Allocator-free appliance runtime with Ethernet, ARP, switching, LACP aggregation, bounded multi-chassis split horizon, routing, NAT, active/standby stateful firewalls, service, media, and process primitives |
 | Rust YAML validation and frontend projection | Implemented for appliance behavior, port hardware and state, VRRP member consistency, Rapid-PVST bridge identities, LACP, multi-chassis and firewall-HA relationships, synchronized firewall policy, connection media, endpoint compatibility, capacity, exclusive point-to-point ports, file identity, and render bindings |
 | Local YAML editing | Implemented with revision checks, whole-project validation, atomic writes, and catalog regeneration |
-| Configured topology and end-to-end scenarios | Initial implementation; 28 versioned scenarios cover independent customer public paths, Business IT PC-01 through PC-04 internal DNS and HTTPS, deterministic Business IT core recovery, converged and protocol-timed northbound-firewall recovery, HA-sync, standby-state, stale-session, and fenced-isolation cases, a brokered OT-DMZ-to-analytics path with explicit HTTPS delivery and SSH default denial, a composite local-control/inter-site-outage case, three WAF-prevented security exercises, and one customer access-circuit outage with an explicit restoration expectation |
+| Configured topology and end-to-end scenarios | Initial implementation; 30 versioned scenarios cover independent customer public paths, Business IT PC-01 through PC-04 internal DNS and HTTPS, deterministic Business IT core recovery, converged and protocol-timed northbound-firewall recovery, HA-sync, standby-state, stale-session, and fenced-isolation cases, Forming-to-Level-3 collection, Level-3-to-DMZ replication, a brokered OT-DMZ-to-analytics path with explicit HTTPS delivery and SSH default denial, a composite local-control/inter-site-outage case, three WAF-prevented security exercises, and one customer access-circuit outage with an explicit restoration expectation |
 | Offensive and defensive interaction | First controlled slice implemented through Customer PC-01 method- and body-aware `curl`, configuration-owned DMZ WAF policy, and a filterable session-local Central SOC queue; broader attack techniques, telemetry transport, correlation, and response automation remain planned |
-| HMI and process interaction | Operator sessions implemented for all ten process areas; static configured samples, startup safety reset, alarm acknowledgement, equipment-specific commands, audit, and four-stage component traces execute, while plant dynamics and IEC 61131-3 logic remain planned |
-| IEC 61131-3 sources and vPLC execution | Planned; no control sources or runtime integration exist yet |
+| HMI and process interaction | Fourteen operator sessions are configured across all ten process areas; Forming adds shared cell-wide SCADA/module state, a bounded source-driven process, control-source inspection, automatic historian collection and replication, and operator-triggered replica publication, while durable persistence and broader plant dynamics remain planned |
+| Control sources and vPLC execution | Initial Forming slice implemented with versioned Structured Text, explicit YAML I/O binding, 20 ms scan execution, and Rust plant dynamics; broader language and area coverage remain planned |
 | Deployment or standards conformance | Not claimed |
 
 The generated catalog proves that the current YAML files parse, every
@@ -173,7 +207,7 @@ connection medium, link capacity does not exceed configured port or medium
 limits, and point-to-point physical ports are not reused. It does not prove
 project-wide address uniqueness, VLAN or route consistency, policy
 correctness, complete HA behavior, or arbitrary end-to-end reachability. The
-28 configured scenarios prove only their selected participant paths and
+30 configured scenarios prove only their selected participant paths and
 expected outcomes. Remaining bootstrap frontend datasets still describe architecture
 and presentation intent rather than simulated behavior.
 
@@ -261,11 +295,14 @@ Body Preparation
   -> Logistics
 ```
 
-Each process area is independently enterable and contains a representative cell
-network, logical vPLC workload, local HMI, distributed I/O, sensors, actuators,
-and safety or permissive interface. The target deployment assigns physical vPLC
-execution to a factory-local redundant control-compute cluster; no runtime is
-integrated yet. Detailed process documentation starts at the
+Each process area is independently enterable and contains a cell network,
+logical vPLC workload, local operator interface, distributed I/O, sensors,
+actuators, and a safety or permissive interface. Forming currently carries the
+only expanded module-level inventory; the other areas remain representative.
+The target deployment assigns physical vPLC
+execution to a factory-local redundant control-compute cluster. Only the
+bounded Forming Structured Text subset is integrated; this is not a general
+IEC 61131-3 runtime. Detailed process documentation starts at the
 [Ceramics Process](project/docs/factory/process/README.md).
 
 ## Repository Structure
@@ -286,6 +323,7 @@ integrated yet. Detailed process documentation starts at the
 |   |-- Cargo.toml
 |   `-- Cargo.lock
 |-- project
+|   |-- control
 |   |-- config
 |   |-- docs
 |   |-- scripts
@@ -302,14 +340,17 @@ corresponding current view.
 
 ## Next Planned Step
 
-The next engineering milestone adds changing local process state and alarm
-transitions so autonomy can be evaluated across controller scans and equipment
-effects rather than only one bounded operator command.
+The next engineering milestone strengthens the implemented Forming contract
+with process-condition transitions, reviewed parameters, recipe behavior, and
+cross-area replenishment of the approximately 40 C slip tank from Body
+Preparation. Broader Structured Text or Ladder support will require a declared
+IEC 61131-3 compatibility target before the parser is expanded.
 
 ## Roadmap
 
-1. Add changing process-state presentation, alarm transitions, and equipment
-   effects behind the ten-area HMI baseline.
+1. Refine the Forming plant model and implemented I/O bindings with reviewed
+   setpoints, recipes, retries, process permissives, and executable material
+   balance between Body Preparation and the Forming slip tank.
 2. Extend cross-file validation to addresses, VLANs, routes, NAT, services,
    policy references, and HA relationships.
 3. Extend configured component construction beyond the currently executable
@@ -322,12 +363,13 @@ effects rather than only one bounded operator command.
    components.
 7. Replace provisional configuration values and architecture placeholders with
    scenario-derived, cross-validated, and reviewed engineering definitions.
-8. Select the supported IEC 61131-3 edition, Structured Text dialect, and
-   Ladder interchange format.
-9. Implement program, symbol, task, tag, and I/O cross-references.
-10. Integrate virtual PLC execution with the Rust plant model.
-11. Add process scenarios, accelerated time, material tracking, and fault
-    injection.
+8. Select formal IEC 61131-3 compatibility targets and a Ladder interchange
+   format before broadening the implemented Forming subset.
+9. Extend program, symbol, task, tag, and I/O cross-references to additional
+   selected constructs and process areas.
+10. Extend source-driven virtual PLC execution beyond Forming.
+11. Extend deterministic process scenarios, accelerated time, cross-area
+    material tracking, and fault injection beyond the first Forming model.
 12. Extend the controlled Phase 3 WAF baseline with additional attack,
     detection, triage, and response paths backed by deterministic policy
     behavior.

@@ -1,4 +1,4 @@
-schema_version: "0.11.0"
+schema_version: "0.12.0"
 id: "business-northbound-firewall-stale-session-expiry"
 label: "Northbound firewall stale-session expiry"
 summary: "An approved historian TCP session is replicated before the HA link fails; member B promotes with the retained state, then rejects a reverse ACK after the idle TCP session reaches its deterministic 300-second expiry."

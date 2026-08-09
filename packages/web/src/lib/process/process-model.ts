@@ -21,6 +21,7 @@ export type ProcessIconKey =
   | "paintbrush"
   | "remote-io"
   | "router"
+  | "robot"
   | "scan"
   | "server"
   | "shield"

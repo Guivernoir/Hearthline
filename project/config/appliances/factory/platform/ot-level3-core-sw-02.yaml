@@ -1,4 +1,4 @@
-schema_version: "0.9.0"
+schema_version: "0.10.0"
 id: "ot-level3-core-sw-02"
 label: "OT-L3-CORE-SW-02"
 kind: "layer-3-switch"

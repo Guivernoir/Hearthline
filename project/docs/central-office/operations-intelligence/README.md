@@ -29,6 +29,11 @@ identity system, NOC tooling, routed telemetry, SIEM correlation, a full
 analytics pipeline, or a package-signing workflow. The selected
 historian-replica path is executable through the inter-site conduit: HTTPS
 reaches the analytics service, while SSH is denied at the northbound firewall.
+Its permitted application is a bounded telemetry frame. Forming telemetry is
+collected automatically into a factory-local in-memory store, replicated
+through the OT firewall into the DMZ store, and exposed in SCADA with both
+route traces. An authorized action then publishes the latest replica record
+and inspects the analytics delivery trace.
 The northbound pair also has an executable converged recovery in which
 `Business FRW-03B` takes both virtual identities and the same HTTPS flow after
 the active member's data links are withdrawn. A separate continuity scenario
@@ -83,7 +88,10 @@ safe shutdown, or essential factory operation.
 
 | Scenario | Status |
 | --- | --- |
-| Historian replica publishes selected data to analytics over HTTPS | Implemented; delivered through the named firewall rule |
+| Historian replica publishes selected data to analytics over HTTPS | Implemented; a typed canonical telemetry frame is delivered through the named firewall rule |
+| Forming vPLC publishes to the Level 3 historian | Implemented; addressed controller traffic traverses the virtual host and Level 3 core |
+| Level 3 historian replicates into the OT DMZ | Implemented; the named southbound firewall rule admits the bounded record and failed records remain pending for retry |
+| Forming SCADA publishes the latest replica record | Implemented; the operator-triggered payload and sequence traverse the historian-replica path and return delivery evidence |
 | Historian replica attempts SSH to analytics | Implemented; denied by default policy |
 | Northbound firewall A-to-B ownership transfer | Implemented converged recovery; HTTPS delivered through FRW-03B |
 | Northbound firewall session continuity | Implemented deterministic run; one synchronized TCP session survives timer-based FRW-03B promotion |
@@ -100,9 +108,9 @@ safe shutdown, or essential factory operation.
 | Routed SOC telemetry without inline process dependency | Planned |
 | Factory command path during conduit loss | Implemented bounded local-autonomy proof; both northbound handoffs fail while the Body Preparation pump command succeeds locally |
 
-The implemented data pair and security exercises validate selected network,
-service, and analyst-session behavior. They do not establish dataset
-authorization, analytics processing, identity, routed telemetry, SIEM
-correlation, administrative access, package approval, controller-program
-execution, changing plant state, vendor HA conformance, or broad failover
-behavior.
+The implemented data paths and security exercises validate selected network,
+service, process-snapshot, and analyst-session behavior. They do not establish
+durable historian persistence, protocol subscriptions, dataset authorization,
+analytics processing, identity, SIEM correlation,
+administrative access, package approval, controller-program execution, vendor
+HA conformance, or broad failover behavior.

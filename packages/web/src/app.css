@@ -18,6 +18,9 @@
 @import "./styles/workstation/shell.css";
 @import "./styles/workstation/applications.css";
 @import "./styles/workstation/browser-site.css";
+@import "./styles/workstation/runtime.css";
 @import "./styles/hmi/screen.css";
+@import "./styles/hmi/process.css";
+@import "./styles/hmi/program.css";
 @import "./styles/hmi/events.css";
 @import "./styles/hmi/responsive.css";

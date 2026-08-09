@@ -1,13 +1,155 @@
+use std::collections::BTreeMap;
+
 use hearthline_model::ComponentKind;
 use serde::{Deserialize, Serialize};
 
 use crate::appliance::BehaviorConfig;
+use crate::scenario::{InteractiveScenarioSession, is_interactive_scenario};
 use crate::{
-    ConfigError, ConfigRepository, ScenarioApplicationConfig, ScenarioHttpMethod,
-    ScenarioHttpResponse, ScenarioReport, ScenarioRepository,
+    ConfigError, ConfigRepository, ConnectionRepository, RuntimeDeviceSnapshot,
+    ScenarioApplicationConfig, ScenarioConfig, ScenarioHttpMethod, ScenarioHttpResponse,
+    ScenarioPacketConfig, ScenarioReport, ScenarioRepository,
 };
 
-pub const WORKSTATION_SCHEMA_VERSION: &str = "0.6.0";
+pub const WORKSTATION_SCHEMA_VERSION: &str = "0.10.0";
+pub const WORKSTATION_DNS_TTL_MS: u64 = 60_000;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct CachedDnsRecord {
+    address: String,
+    expires_at_ms: u64,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct WorkstationDnsCacheEntry {
+    pub name: String,
+    pub address: String,
+    pub remaining_ttl_ms: u64,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct WorkstationSession {
+    elapsed_ms: u64,
+    dns_cache: BTreeMap<String, CachedDnsRecord>,
+    network: Option<InteractiveScenarioSession>,
+}
+
+impl WorkstationSession {
+    pub fn tick(&mut self, elapsed_ms: u64) {
+        self.elapsed_ms = self.elapsed_ms.saturating_add(elapsed_ms);
+        self.remove_expired_dns();
+        if let Some(network) = &mut self.network {
+            network.tick(elapsed_ms);
+        }
+    }
+
+    pub fn cached_dns_address(&mut self, name: &str) -> Option<String> {
+        self.remove_expired_dns();
+        self.dns_cache
+            .get(&name.to_ascii_lowercase())
+            .map(|record| record.address.clone())
+    }
+
+    pub fn remember_dns(&mut self, name: &str, address: &str) {
+        self.dns_cache.insert(
+            name.to_ascii_lowercase(),
+            CachedDnsRecord {
+                address: address.into(),
+                expires_at_ms: self.elapsed_ms.saturating_add(WORKSTATION_DNS_TTL_MS),
+            },
+        );
+    }
+
+    pub fn dns_entries(&mut self) -> Vec<WorkstationDnsCacheEntry> {
+        self.remove_expired_dns();
+        self.dns_cache
+            .iter()
+            .map(|(name, record)| WorkstationDnsCacheEntry {
+                name: name.clone(),
+                address: record.address.clone(),
+                remaining_ttl_ms: record.expires_at_ms.saturating_sub(self.elapsed_ms),
+            })
+            .collect()
+    }
+
+    pub fn flush_dns(&mut self) -> usize {
+        let removed = self.dns_cache.len();
+        self.dns_cache.clear();
+        removed
+    }
+
+    pub fn network_state(&self) -> Result<WorkstationNetworkState, ConfigError> {
+        let Some(network) = &self.network else {
+            return Ok(WorkstationNetworkState::default());
+        };
+        let now_us = network.now_us();
+        let arp_entries = network
+            .endpoint_neighbors()?
+            .into_iter()
+            .map(|entry| WorkstationArpEntry {
+                address: entry.address.to_string(),
+                mac_address: entry.mac.to_string(),
+                interface: entry.port.to_string(),
+                remaining_ttl_ms: entry.expires_at_us.saturating_sub(now_us).div_ceil(1_000),
+            })
+            .collect();
+        Ok(WorkstationNetworkState {
+            active: true,
+            simulated_time_ms: now_us / 1_000,
+            arp_entries,
+            pat_translations: network.active_pat_translation_count(),
+            devices: network.runtime_devices(),
+        })
+    }
+
+    pub(crate) fn run_scenario(
+        &mut self,
+        appliances: &ConfigRepository,
+        connections: &ConnectionRepository,
+        scenarios: &ScenarioRepository,
+        source: &str,
+        scenario: &ScenarioConfig,
+        packet_override: Option<ScenarioPacketConfig>,
+    ) -> Result<ScenarioReport, ConfigError> {
+        if self.network.is_none() {
+            self.network = Some(InteractiveScenarioSession::from_source(
+                appliances,
+                connections,
+                scenarios,
+                source,
+            )?);
+        }
+        self.network
+            .as_mut()
+            .expect("interactive network was initialized")
+            .run(appliances, connections, scenario, packet_override)
+    }
+
+    fn remove_expired_dns(&mut self) {
+        let elapsed_ms = self.elapsed_ms;
+        self.dns_cache
+            .retain(|_, record| record.expires_at_ms > elapsed_ms);
+    }
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkstationNetworkState {
+    pub active: bool,
+    pub simulated_time_ms: u64,
+    pub arp_entries: Vec<WorkstationArpEntry>,
+    pub pat_translations: usize,
+    pub devices: Vec<RuntimeDeviceSnapshot>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkstationArpEntry {
+    pub address: String,
+    pub mac_address: String,
+    pub interface: String,
+    pub remaining_ttl_ms: u64,
+}
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -46,6 +188,7 @@ pub struct WorkstationInterface {
 pub enum WorkstationAction {
     Terminal { command: String },
     Browser { url: String },
+    Inspect { appliance: String, command: String },
 }
 
 #[derive(Clone, Copy, Debug, Serialize)]
@@ -53,6 +196,7 @@ pub enum WorkstationAction {
 pub enum WorkstationActionKind {
     Terminal,
     Browser,
+    Inspect,
 }
 
 #[derive(Clone, Copy, Debug, Serialize)]
@@ -77,6 +221,7 @@ pub struct WorkstationActionReport {
     pub clear_output: bool,
     pub browser: Option<BrowserNavigation>,
     pub simulations: Vec<ScenarioReport>,
+    pub network_state: WorkstationNetworkState,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -88,6 +233,7 @@ pub struct BrowserNavigation {
     pub host: String,
     pub path: String,
     pub resolved_address: Option<String>,
+    pub resolution_source: &'static str,
     pub gateway: Option<String>,
     pub forwarded_to: Option<String>,
     pub response: Option<ScenarioHttpResponse>,
@@ -144,11 +290,7 @@ pub fn workstation_profile(
 
 fn browser_home(scenarios: &ScenarioRepository, source: &str) -> Option<String> {
     scenarios.scenarios().find_map(|scenario| {
-        if scenario.config.source != source
-            || scenario.config.security.is_some()
-            || !scenario.config.connection_overrides.is_empty()
-            || !scenario.config.first_hop_overrides.is_empty()
-            || scenario.config.recovery.is_some()
+        if !is_interactive_scenario(&scenario.config, source) || scenario.config.security.is_some()
         {
             return None;
         }

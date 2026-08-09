@@ -1,5 +1,6 @@
 mod control;
 mod field;
+mod forming;
 mod io;
 mod safety;
 mod storage;
@@ -8,6 +9,10 @@ use hearthline_model::{ApplicationData, NetworkPayload, ServiceKind};
 
 pub use control::{Comparison, LogicRule, OperatorInterface, VirtualPlc};
 pub use field::{Actuator, FieldSensor};
+pub use forming::{
+    FormingFault, FormingMeasurements, FormingOutputs, FormingPhase, FormingProcess,
+    FormingStartError, FormingTick, FormingTrip,
+};
 pub use io::{IoDirection, RemoteIo};
 pub use safety::SafetyInterface;
 

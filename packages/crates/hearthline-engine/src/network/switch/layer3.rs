@@ -6,9 +6,9 @@ use hearthline_model::{ComponentId, ComponentKind, PortId, VlanId};
 use crate::runtime::{collect_fixed, runtime_text, single_effect};
 use crate::{DropReason, Effect, EffectList, NetworkIngress, SimulatedComponent, SimulationEvent};
 
-use super::{LearningSwitch, SwitchAggregationGroup, SwitchPort};
+use super::{LearningSwitch, MacTableEntry, SwitchAggregationGroup, SwitchPort};
 use crate::network::forwarding::{
-    ForwardingPlane, ReceiveOutcome, RoutedInterface, RoutingTable, local_response,
+    ForwardingPlane, NeighborEntry, ReceiveOutcome, RoutedInterface, RoutingTable, local_response,
 };
 
 const PORT_CAPACITY: usize = 16;
@@ -135,6 +135,14 @@ impl Layer3Switch {
 
     pub fn set_first_hop_active(&mut self, port: &PortId, address: Ipv4Addr, active: bool) -> bool {
         self.svi_ports.contains(port) && self.plane.set_first_hop_active(port, address, active)
+    }
+
+    pub fn active_mac_table(&self, now_us: u64) -> impl Iterator<Item = (&MacTableEntry, u64)> {
+        self.bridge.active_mac_table(now_us)
+    }
+
+    pub fn neighbors(&self, now_us: u64) -> impl Iterator<Item = &NeighborEntry> {
+        self.plane.neighbors(now_us)
     }
 
     fn handle_network(&mut self, ingress: NetworkIngress) -> EffectList {

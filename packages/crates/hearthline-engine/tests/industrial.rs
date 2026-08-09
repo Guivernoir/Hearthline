@@ -1,6 +1,8 @@
 use hearthline_engine::{
-    Comparison, DropReason, Effect, LogicRule, SafetyInterface, SimulatedComponent,
-    SimulationEvent, VirtualPlc,
+    Comparison, DropReason, Effect, FormingFault, FormingMeasurements, FormingPhase,
+    FormingProcess, FormingTrip, HistorianBuffer, LogicRule, SafetyInterface, SequenceAssignment,
+    SequenceCondition, SequenceInputs, SequenceProgram, SequenceRuntime, SequenceStep,
+    SequenceTransition, SimulatedComponent, SimulationEvent, VirtualPlc,
 };
 use hearthline_model::{ComponentId, ProcessEvent, ProcessSignal, SignalValue};
 
@@ -76,4 +78,210 @@ fn safety_reset_requires_authorization_and_all_permissives() {
         authorized: true,
     }));
     assert!(!safety.trip_latched());
+}
+
+fn forming_process() -> FormingProcess {
+    FormingProcess::new(FormingMeasurements {
+        slip_tank_level_percent: 72.0,
+        slip_density_g_cm3: 1.82,
+        slip_viscosity_mpa_s: 1_800.0,
+        slip_temperature_c: 40.0,
+        slip_feed_flow_l_min: 0.0,
+        slip_feed_pressure_bar: 2.5,
+        mould_pressure_bar: 0.0,
+        mould_temperature_c: 25.0,
+        fill_head_position_mm: 0.0,
+        mould_position_mm: 0.0,
+        water_flow_l_min: 0.0,
+        excess_slip_drain_flow_l_min: 0.0,
+        mould_moisture_percent: 8.0,
+        compressed_air_pressure_bar: 6.0,
+        vacuum_pressure_kpa: 0.0,
+        robot_position_mm: 0.0,
+        piece_gripped: false,
+    })
+}
+
+#[test]
+fn forming_cycle_changes_measurements_and_returns_to_idle() {
+    let mut process = forming_process();
+    process.start(true).expect("cycle start");
+
+    process.tick(750);
+    assert_eq!(process.phase(), FormingPhase::Filling);
+    assert_eq!(process.outputs().slip, "filling");
+    assert_eq!(process.measurements().slip_feed_flow_l_min, 85.0);
+    assert_eq!(process.measurements().fill_head_position_mm, 400.0);
+
+    process.tick(13_250);
+    assert_eq!(process.phase(), FormingPhase::Idle);
+    assert!(!process.running());
+    assert_eq!(process.cycle_count(), 1);
+    assert_eq!(process.outputs().mould, "closed");
+    assert_eq!(process.measurements().mould_position_mm, 0.0);
+    assert!(!process.measurements().piece_gripped);
+    assert_eq!(process.scan_count(), 700);
+}
+
+#[test]
+fn forming_cycle_keeps_release_assist_separate_from_mould_cleaning() {
+    let mut process = forming_process();
+    process.start(true).expect("cycle start");
+
+    process.tick(1_500);
+    assert_eq!(process.phase(), FormingPhase::Pressurizing);
+    assert_eq!(process.outputs().air, "pressurizing");
+
+    process.tick(750);
+    assert_eq!(process.phase(), FormingPhase::PressureDwell);
+    process.tick(2_500);
+    assert_eq!(process.phase(), FormingPhase::Draining);
+    assert_eq!(process.outputs().slip, "draining");
+    assert_eq!(process.outputs().air, "pressurizing");
+
+    process.tick(1_000);
+    assert_eq!(process.phase(), FormingPhase::Depressurizing);
+    assert_eq!(process.outputs().air, "isolated");
+    process.tick(500);
+    assert_eq!(process.phase(), FormingPhase::ReleaseWater);
+    assert_eq!(process.outputs().water, "release-wet");
+    process.tick(400);
+    assert_eq!(process.phase(), FormingPhase::ReleaseAir);
+    assert_eq!(process.outputs().water, "isolated");
+    assert_eq!(process.outputs().air, "release-assist");
+
+    process.tick(400);
+    assert_eq!(process.phase(), FormingPhase::OpeningMould);
+    process.tick(750);
+    assert_eq!(process.phase(), FormingPhase::RobotPickup);
+    process.tick(1_000);
+    assert_eq!(process.phase(), FormingPhase::RobotDelivery);
+    assert_eq!(process.outputs().robot, "delivering");
+
+    process.tick(1_200);
+    assert_eq!(process.phase(), FormingPhase::MouldWash);
+    assert_eq!(process.outputs().water, "mould-wash");
+    process.tick(1_000);
+    assert_eq!(process.phase(), FormingPhase::AirPurge);
+    assert_eq!(process.outputs().water, "isolated");
+    assert_eq!(process.outputs().air, "cleaning-purge");
+    process.tick(750);
+    assert_eq!(process.phase(), FormingPhase::VacuumDry);
+    assert_eq!(process.outputs().air, "isolated");
+    assert_eq!(process.outputs().vacuum, "vacuum-drying");
+}
+
+#[test]
+fn forming_vacuum_fault_trips_sequence_to_safe_outputs() {
+    let mut process = forming_process();
+    process.start(true).expect("cycle start");
+    process.tick(11_750);
+    process.set_fault(Some(FormingFault::VacuumLoss));
+
+    let result = process.tick(800);
+    assert_eq!(result.trip, Some(FormingTrip::VacuumNotEstablished));
+    assert_eq!(process.phase(), FormingPhase::Faulted);
+    assert_eq!(process.measurements().vacuum_pressure_kpa, -10.0);
+    assert_eq!(process.outputs().vacuum, "stopped");
+    assert_eq!(process.outputs().mould, "stopped");
+
+    process.set_fault(None);
+    assert!(process.reset_after_trip(true));
+    assert_eq!(process.phase(), FormingPhase::Idle);
+}
+
+#[test]
+fn historian_buffer_counts_pending_eviction() {
+    let mut buffer = HistorianBuffer::<u64, 3>::new();
+    buffer.push(1, false);
+    buffer.push(2, true);
+    buffer.push(3, false);
+    buffer.push(4, false);
+
+    assert_eq!(buffer.len(), 3);
+    assert_eq!(buffer.pending_count(), 2);
+    assert_eq!(buffer.dropped_unreplicated(), 1);
+    assert_eq!(
+        buffer.iter().map(|(value, _)| *value).collect::<Vec<_>>(),
+        [2, 3, 4]
+    );
+}
+
+#[test]
+fn historian_buffer_acknowledges_oldest_pending_record() {
+    let mut buffer = HistorianBuffer::<&str, 3>::new();
+    buffer.push("sample-1", false);
+    buffer.push("sample-2", false);
+
+    let (index, sample) = buffer.oldest_pending().expect("pending sample");
+    assert_eq!(*sample, "sample-1");
+    assert!(buffer.mark_replicated(index));
+
+    assert_eq!(buffer.pending_count(), 1);
+    assert_eq!(buffer.latest(), Some(&"sample-2"));
+}
+
+#[test]
+fn bounded_sequence_runtime_prioritizes_trip_and_requires_reset() {
+    let idle = SequenceStep::new(
+        0,
+        [SequenceAssignment {
+            variable: "phase".into(),
+            value: 0,
+        }],
+        Some(SequenceTransition {
+            condition: SequenceCondition::StartPermitted,
+            target: 10,
+        }),
+    )
+    .expect("idle step");
+    let running = SequenceStep::new(
+        10,
+        [SequenceAssignment {
+            variable: "phase".into(),
+            value: 10,
+        }],
+        Some(SequenceTransition {
+            condition: SequenceCondition::TimerElapsed { duration_ms: 50 },
+            target: 0,
+        }),
+    )
+    .expect("running step");
+    let fault = SequenceStep::new(
+        900,
+        [SequenceAssignment {
+            variable: "phase".into(),
+            value: 900,
+        }],
+        Some(SequenceTransition {
+            condition: SequenceCondition::ResetPermitted,
+            target: 0,
+        }),
+    )
+    .expect("fault step");
+    let program = SequenceProgram::new("test-sequence".into(), 20, 0, 900, [idle, running, fault])
+        .expect("sequence program");
+    let mut runtime = SequenceRuntime::new(program);
+
+    runtime.execute_scan(SequenceInputs {
+        start_request: true,
+        safety_ready: true,
+        ..SequenceInputs::default()
+    });
+    assert_eq!(runtime.current_step(), 10);
+    assert!(runtime.running());
+
+    runtime.execute_scan(SequenceInputs {
+        trip_active: true,
+        ..SequenceInputs::default()
+    });
+    assert_eq!(runtime.current_step(), 900);
+    assert!(!runtime.running());
+
+    runtime.execute_scan(SequenceInputs {
+        reset_request: true,
+        safety_ready: true,
+        ..SequenceInputs::default()
+    });
+    assert_eq!(runtime.current_step(), 0);
 }

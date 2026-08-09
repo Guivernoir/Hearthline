@@ -353,18 +353,19 @@
   }
 
   .browser-toolbar {
-    grid-template-columns: 1fr;
-    gap: 3px;
+    padding: 5px 7px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 32px 34px;
+    gap: 4px;
   }
 
   .browser-navigation {
-    position: absolute;
-    z-index: 2;
-    margin: 1px 0 0 2px;
+    position: static;
+    margin: 0;
   }
 
   .browser-address {
-    margin-top: 38px;
+    margin-top: 0;
   }
 
   .browser-result {

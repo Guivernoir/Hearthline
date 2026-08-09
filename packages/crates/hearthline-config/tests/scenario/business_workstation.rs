@@ -1,8 +1,9 @@
 use std::path::PathBuf;
 
 use hearthline_config::{
-    ConfigRepository, ConnectionRepository, ScenarioRepository, WorkstationAction,
-    WorkstationActionStatus, run_workstation_action, workstation_profile,
+    ConfigRepository, ConnectionRepository, ScenarioRepository, WORKSTATION_DNS_TTL_MS,
+    WorkstationAction, WorkstationActionStatus, WorkstationSession, run_workstation_action,
+    run_workstation_action_with_session, workstation_profile,
 };
 
 fn repositories() -> (ConfigRepository, ConnectionRepository, ScenarioRepository) {
@@ -157,4 +158,135 @@ fn second_access_switch_workstations_use_svi_routed_scenarios() {
         );
         assert!(report.simulations.iter().all(|run| run.expectation_met));
     }
+}
+
+#[test]
+fn workstation_session_caches_expires_and_flushes_dns_answers() {
+    let (appliances, connections, scenarios) = repositories();
+    let workstation = "business-it-usr-pc-01";
+    let mut session = WorkstationSession::default();
+    let browse = || WorkstationAction::Browser {
+        url: "https://portal.hearthline.test/".into(),
+    };
+
+    let first = run_workstation_action_with_session(
+        &appliances,
+        &connections,
+        &scenarios,
+        workstation,
+        browse(),
+        &mut session,
+    )
+    .expect("first portal action");
+    assert_eq!(first.simulations.len(), 2);
+    assert_eq!(
+        first
+            .browser
+            .as_ref()
+            .expect("browser result")
+            .resolution_source,
+        "dns-query"
+    );
+
+    let cached = run_workstation_action_with_session(
+        &appliances,
+        &connections,
+        &scenarios,
+        workstation,
+        browse(),
+        &mut session,
+    )
+    .expect("cached portal action");
+    assert_eq!(cached.simulations.len(), 1);
+    assert_eq!(
+        cached
+            .browser
+            .as_ref()
+            .expect("cached browser result")
+            .resolution_source,
+        "client-cache"
+    );
+    assert!(cached.output.iter().any(|line| line.contains("DNS cache")));
+
+    let display = run_workstation_action_with_session(
+        &appliances,
+        &connections,
+        &scenarios,
+        workstation,
+        WorkstationAction::Terminal {
+            command: "ipconfig /displaydns".into(),
+        },
+        &mut session,
+    )
+    .expect("display DNS cache");
+    assert!(
+        display
+            .output
+            .iter()
+            .any(|line| line.contains("portal.hearthline.test"))
+    );
+
+    session.tick(WORKSTATION_DNS_TTL_MS);
+    let expired = run_workstation_action_with_session(
+        &appliances,
+        &connections,
+        &scenarios,
+        workstation,
+        browse(),
+        &mut session,
+    )
+    .expect("expired portal action");
+    assert_eq!(expired.simulations.len(), 2);
+
+    let flushed = run_workstation_action_with_session(
+        &appliances,
+        &connections,
+        &scenarios,
+        workstation,
+        WorkstationAction::Terminal {
+            command: "ipconfig /flushdns".into(),
+        },
+        &mut session,
+    )
+    .expect("flush DNS cache");
+    assert!(
+        flushed
+            .output
+            .iter()
+            .any(|line| line.contains("1 cached DNS record"))
+    );
+
+    let after_flush = run_workstation_action_with_session(
+        &appliances,
+        &connections,
+        &scenarios,
+        workstation,
+        browse(),
+        &mut session,
+    )
+    .expect("post-flush portal action");
+    assert_eq!(after_flush.simulations.len(), 2);
+}
+
+#[test]
+fn nslookup_queries_the_server_even_when_client_cache_is_populated() {
+    let (appliances, connections, scenarios) = repositories();
+    let workstation = "business-it-usr-pc-01";
+    let mut session = WorkstationSession::default();
+    session.remember_dns("portal.hearthline.test", "10.10.80.20");
+
+    let report = run_workstation_action_with_session(
+        &appliances,
+        &connections,
+        &scenarios,
+        workstation,
+        WorkstationAction::Terminal {
+            command: "nslookup portal.hearthline.test".into(),
+        },
+        &mut session,
+    )
+    .expect("nslookup action");
+
+    assert_eq!(report.simulations.len(), 1);
+    assert_eq!(report.simulations[0].packet.destination_ip, "10.10.20.10");
 }

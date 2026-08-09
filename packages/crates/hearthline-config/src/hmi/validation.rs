@@ -14,6 +14,7 @@ pub(crate) fn validate_behavior(
         BehaviorConfig::OperatorInterface {
             controller,
             permissions,
+            signal_tags,
             command_tags,
         } => {
             ComponentId::new(controller).map_err(|error| ConfigError::new(error.to_string()))?;
@@ -23,6 +24,7 @@ pub(crate) fn validate_behavior(
                 )));
             }
             require_unique_values(appliance_id, "permission", permissions)?;
+            require_unique_ids(appliance_id, "signal tag", signal_tags)?;
             require_unique_ids(appliance_id, "command tag", command_tags)
         }
         BehaviorConfig::FieldSensor {
@@ -73,8 +75,10 @@ pub(crate) fn validate_behavior(
 
 pub(crate) fn validate_repository(appliances: &ConfigRepository) -> Result<(), ConfigError> {
     for loaded in appliances.appliances().filter(|loaded| {
-        loaded.config.kind == ComponentKind::Hmi
-            && loaded.config.tags.iter().any(|tag| tag == "interactive")
+        matches!(
+            loaded.config.kind,
+            ComponentKind::Hmi | ComponentKind::ScadaWorkstation
+        ) && loaded.config.tags.iter().any(|tag| tag == "interactive")
     }) {
         HmiSession::from_repository(appliances, &loaded.config.id)?;
     }

@@ -1,7 +1,7 @@
-schema_version: "0.11.0"
+schema_version: "0.12.0"
 id: "factory-operations-data"
 label: "Factory operations data"
-summary: "The OT DMZ historian replica publishes selected operations data through the governed conduit to Central Office analytics over HTTPS."
+summary: "The OT DMZ historian replica publishes a bounded process-telemetry frame through the governed conduit to Central Office analytics over HTTPS."
 category: "industrial-data"
 participants:
   - "ot-dmz-hist-replica-01"
@@ -23,8 +23,11 @@ packet:
     destination_port: 443
     syn: true
   application:
-    kind: "service"
+    kind: "telemetry"
     service: "analytics"
+    source: "area-02-vplc-01"
+    sequence: 0
+    payload: '{"cell":"OT-AREA-02","phase":"idle","cycle":0}'
 expectation:
   component: "operations-analytics-01"
   outcome: "delivered"

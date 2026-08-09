@@ -1,5 +1,6 @@
 mod aggregation;
 mod layer3;
+mod state;
 
 pub use aggregation::SwitchAggregationGroup;
 pub use layer3::Layer3Switch;

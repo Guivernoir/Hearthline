@@ -113,6 +113,61 @@
   stroke: #aa8178;
 }
 
+.forming-module {
+  stroke-width: 1.5;
+}
+
+.forming-feed-module {
+  fill: #e7ece6;
+  stroke: #829486;
+}
+
+.forming-press-module {
+  fill: #e8ecef;
+  stroke: #8295a1;
+}
+
+.forming-transfer-module {
+  fill: #ece9e2;
+  stroke: #9b927f;
+}
+
+.forming-utilities-module {
+  fill: #e4ecef;
+  stroke: #7f98a3;
+}
+
+.forming-machine-bay {
+  fill: #e8e9e5;
+}
+
+.forming-machine-shape,
+.forming-utility-vessel {
+  fill: #d8ded9;
+  stroke: #728078;
+  stroke-width: 3;
+}
+
+.forming-press-frame {
+  fill: #d5dce0;
+  stroke: #6f8792;
+}
+
+.forming-utility-vessel {
+  fill: #dce7e9;
+  stroke: #718f9a;
+}
+
+.forming-machine-flow {
+  fill: none;
+  stroke: #ae673d;
+  stroke-width: 4;
+}
+
+.forming-machine-arrow {
+  fill: #ae673d;
+}
+
 .area-cable-tray,
 .area-material-line,
 .area-floor-marking {
@@ -130,6 +185,17 @@
 .area-material-line {
   stroke: #ae673d;
   stroke-width: 5;
+}
+
+.forming-flow-arrow {
+  fill: #ae673d;
+}
+
+.forming-utility-line {
+  fill: none;
+  stroke: #4c7c91;
+  stroke-width: 4;
+  stroke-dasharray: 10 7;
 }
 
 .area-floor-marking {
@@ -174,6 +240,19 @@
   font-weight: 800;
 }
 
+.forming-module-label,
+.forming-flow-note {
+  fill: #46534c;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.forming-flow-note {
+  fill: #59655e;
+  font-size: 10px;
+  font-weight: 700;
+}
+
 .area-detail-label {
   fill: #7b6c60;
   font-size: 8px;
@@ -194,6 +273,27 @@
 .process-area-connections .process-safety-link {
   stroke: #765d91;
   stroke-dasharray: 8 6;
+}
+
+#process-data-arrow path {
+  fill: #51704c;
+}
+
+#process-command-arrow path {
+  fill: #aa673d;
+}
+
+.process-area-world.logical-view .process-sensor-link {
+  marker-start: url("#process-data-arrow");
+}
+
+.process-area-world.logical-view .process-actuator-link {
+  marker-end: url("#process-command-arrow");
+}
+
+.process-area-world.logical-view .process-supervisory-link {
+  marker-start: url("#process-data-arrow");
+  marker-end: url("#process-command-arrow");
 }
 
 .process-area-world.physical-view .process-area-connections path {
@@ -219,6 +319,18 @@
 
 .process-area-device {
   width: 190px;
+}
+
+.forming-world .process-area-device {
+  width: 190px;
+}
+
+.forming-world .area-zone-label {
+  font-size: 11px;
+}
+
+.forming-world .lan-key {
+  bottom: 18px;
 }
 
 .process-equipment-facts {
@@ -256,4 +368,3 @@
   background: #267168;
   cursor: pointer;
 }
-

@@ -1,0 +1,454 @@
+.network-state-app {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  grid-template-rows: 42px minmax(0, 1fr);
+  color: #303b35;
+  background: #f5f7f5;
+}
+
+.runtime-titlebar {
+  display: flex;
+  padding: 0 14px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid #d1d8d3;
+  background: #fff;
+}
+
+.runtime-titlebar span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #284a42;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.runtime-titlebar small {
+  color: #718078;
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+}
+
+.runtime-empty {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 9px;
+  padding: 24px;
+  color: #587067;
+  text-align: center;
+}
+
+.runtime-empty strong {
+  color: #33443d;
+  font-size: 16px;
+}
+
+.runtime-empty span {
+  color: #6e7b74;
+  font-size: 11px;
+}
+
+.runtime-workspace {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns: 218px minmax(0, 1fr);
+}
+
+.runtime-devices {
+  min-width: 0;
+  min-height: 0;
+  padding: 13px 10px;
+  overflow: auto;
+  border-right: 1px solid #d5dcd7;
+  background: #edf1ee;
+}
+
+.runtime-devices > label {
+  display: block;
+  margin: 0 4px 6px;
+  color: #6d7871;
+  font-size: 9px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.runtime-devices > select {
+  display: none;
+  width: 100%;
+  height: 34px;
+  border: 1px solid #bdc9c1;
+  border-radius: 4px;
+  color: #304039;
+  background: #fff;
+  font-size: 11px;
+}
+
+.runtime-device-list {
+  display: grid;
+  gap: 3px;
+}
+
+.runtime-device-list button {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 7px 8px;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #536159;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.runtime-device-list button:hover,
+.runtime-device-list button.active {
+  border-color: #c4d2ca;
+  color: #205d52;
+  background: #fff;
+}
+
+.runtime-device-list button span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.runtime-device-list strong,
+.runtime-device-list small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runtime-device-list strong {
+  color: #324139;
+  font-size: 10px;
+}
+
+.runtime-device-list small {
+  color: #7a857e;
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.runtime-detail {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-rows: 52px 37px minmax(100px, 1fr) minmax(142px, 34%);
+  background: #fff;
+}
+
+.runtime-appliance-header {
+  display: flex;
+  min-width: 0;
+  padding: 0 12px 0 15px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid #e0e5e1;
+}
+
+.runtime-appliance-header > div {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 9px;
+}
+
+.runtime-appliance-header small,
+.runtime-appliance-header span {
+  color: #7a857e;
+  font-size: 9px;
+}
+
+.runtime-appliance-header small {
+  text-transform: uppercase;
+}
+
+.runtime-appliance-header strong {
+  overflow: hidden;
+  color: #263a33;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runtime-appliance-header button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #d1d9d3;
+  border-radius: 4px;
+  color: #40645b;
+  background: #f7f9f7;
+  cursor: pointer;
+}
+
+.runtime-tabs {
+  display: flex;
+  min-width: 0;
+  padding: 0 10px;
+  align-items: end;
+  gap: 2px;
+  overflow-x: auto;
+  border-bottom: 1px solid #dbe1dc;
+  background: #f7f9f7;
+}
+
+.runtime-tabs button {
+  display: flex;
+  height: 36px;
+  padding: 0 10px;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: #647169;
+  background: transparent;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.runtime-tabs button.active {
+  border-bottom-color: #267468;
+  color: #1e5d52;
+}
+
+.runtime-tabs button span {
+  min-width: 18px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  background: #e2e9e4;
+  font-size: 8px;
+  text-align: center;
+}
+
+.runtime-table-viewport {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.runtime-table-viewport table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.runtime-table-viewport th,
+.runtime-table-viewport td {
+  height: 30px;
+  padding: 0 10px;
+  border-bottom: 1px solid #e5e9e6;
+  text-align: left;
+}
+
+.runtime-table-viewport th {
+  position: sticky;
+  top: 0;
+  color: #657169;
+  background: #f4f7f4;
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.runtime-table-viewport td {
+  color: #35443d;
+  font-variant-numeric: tabular-nums;
+}
+
+.runtime-summary {
+  display: grid;
+  margin: 0;
+  padding: 18px;
+  grid-template-columns: repeat(4, minmax(92px, 1fr));
+  gap: 1px;
+  background: #dfe5e1;
+}
+
+.runtime-summary div {
+  min-width: 0;
+  padding: 15px;
+  background: #f7f9f7;
+}
+
+.runtime-summary dt {
+  color: #6c7971;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.runtime-summary dd {
+  margin: 7px 0 0;
+  color: #225f54;
+  font-size: 22px;
+  font-weight: 750;
+}
+
+.runtime-no-entries {
+  margin: 22px;
+  color: #758078;
+  font-size: 10px;
+}
+
+.runtime-console {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  border-top: 1px solid #cfd7d1;
+  color: #d8dfda;
+  background: #222a26;
+  grid-template-rows: 30px minmax(0, 1fr) 36px;
+}
+
+.runtime-console > header,
+.runtime-console form {
+  display: flex;
+  min-width: 0;
+  padding: 0 10px;
+  align-items: center;
+  gap: 8px;
+}
+
+.runtime-console > header {
+  justify-content: space-between;
+  border-bottom: 1px solid #39443e;
+  font-size: 9px;
+}
+
+.runtime-console > header span {
+  color: #83b9aa;
+  text-transform: uppercase;
+}
+
+.runtime-console > header span.failed,
+.runtime-console > header span.denied {
+  color: #e49a90;
+}
+
+.runtime-console pre {
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 8px 12px;
+  overflow: auto;
+  color: #cbd4ce;
+  font: 10px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+  white-space: pre-wrap;
+}
+
+.runtime-console form {
+  border-top: 1px solid #39443e;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.runtime-console form label {
+  flex: 0 0 auto;
+  color: #75b6a6;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.runtime-console input {
+  width: 100%;
+  min-width: 0;
+  height: 28px;
+  border: 0;
+  outline: 0;
+  color: #eef2ef;
+  background: transparent;
+  font: 10px ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.runtime-console form button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #4a5b53;
+  border-radius: 4px;
+  color: #add8cc;
+  background: #33413b;
+  cursor: pointer;
+}
+
+@media (max-width: 760px) {
+  .runtime-workspace {
+    grid-template-columns: 1fr;
+    grid-template-rows: 62px minmax(0, 1fr);
+  }
+
+  .runtime-devices {
+    padding: 9px 10px;
+    border-right: 0;
+    border-bottom: 1px solid #d5dcd7;
+  }
+
+  .runtime-devices > label {
+    margin: 0 0 4px;
+  }
+
+  .runtime-devices > select {
+    display: block;
+  }
+
+  .runtime-device-list {
+    display: none;
+  }
+
+  .runtime-detail {
+    grid-template-rows: 48px 37px minmax(86px, 1fr) minmax(126px, 38%);
+  }
+
+  .runtime-appliance-header small,
+  .runtime-appliance-header span {
+    display: none;
+  }
+
+  .runtime-summary {
+    padding: 10px;
+    grid-template-columns: repeat(2, minmax(92px, 1fr));
+  }
+
+  .runtime-summary div {
+    padding: 10px;
+  }
+
+  .runtime-summary dd {
+    margin-top: 3px;
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 520px) {
+  .runtime-titlebar small {
+    display: none;
+  }
+
+  .runtime-table-viewport th,
+  .runtime-table-viewport td {
+    padding: 0 7px;
+  }
+}

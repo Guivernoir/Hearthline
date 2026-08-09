@@ -17,15 +17,25 @@ firewall, and connector primitives now exist, and all factory appliances and
 current attachment records have parsed YAML. The configuration includes a
 redundant Level 3 aggregation pair between the OT firewall, factory-local
 services, vPLC hosts, and cell uplinks. No area-specific control logic, plant
-dynamics, or complete factory topology currently runs.
-One selected OT DMZ exchange path is executable for historian-replica data to
-Central Office analytics, including a positive HTTPS result and a negative SSH
-result. Each of the ten process HMIs also runs a deterministic YAML-derived
-operator session with startup safety reset, alarm and audit state, and
-four-stage field-command traces. A composite availability scenario drops both
+dynamics, or complete factory topology currently runs outside the bounded
+Forming process slice described below.
+Three selected data paths are executable: Forming to the Level 3 historian,
+Level 3 through the OT firewall to the DMZ replica, and the replica to Central
+Office analytics. The northbound pair includes a positive HTTPS result and a
+negative SSH result. Each process area also exposes deterministic YAML-derived operator
+sessions; Forming includes cell-wide SCADA and four module-local HMIs. These
+interfaces share one Rust-backed cell state, including a deterministic
+ceramic-slip pressure-casting cycle, live instruments, outputs, alarms, and
+fault injection. A bounded API-session historian samples once per second,
+retries DMZ replication, and exposes local/replica state in Forming SCADA. The
+SCADA publication action sends the latest replica record through the governed
+inter-site path to Central Office analytics. A composite
+availability scenario drops both
 factory-facing conduit handoffs while the Body Preparation HMI resets its
 safety interface and commands its pump over an independently validated local
-path. These sessions do not yet execute automatic control or process dynamics.
+path. Forming now executes one validated, bounded Structured Text sequence with
+an explicit YAML I/O map; Rust remains responsible for plant dynamics and
+independent trips. The other nine areas do not yet execute control sources.
 
 ## Environments
 
@@ -74,9 +84,10 @@ Body Preparation
   -> Logistics
 ```
 
-Planned Rust models will represent material state, process conditions,
-accelerated time, equipment state, and faults. Future virtual PLC integration
-will execute selected control programs against the simulated I/O boundary.
+The first executable area model represents accelerated Forming phases,
+selected process conditions, source-driven equipment commands, and five
+injected faults. Remaining areas, broader control-language support, and
+cross-area material state are planned.
 
 ## Physical Deployment Requirements
 

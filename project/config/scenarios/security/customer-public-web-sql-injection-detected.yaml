@@ -1,4 +1,4 @@
-schema_version: "0.11.0"
+schema_version: "0.12.0"
 id: "customer-public-web-sql-injection-detected"
 label: "Customer SQL injection prevented"
 summary: "Customer PC-01 submits a controlled form payload through the public HTTPS path; the DMZ web gateway detects a configured SQL tautology signature in the request body and projects defensive evidence to the Central SOC session."

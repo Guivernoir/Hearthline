@@ -1,4 +1,4 @@
-schema_version: "0.11.0"
+schema_version: "0.12.0"
 id: "business-it-user-pc-04-portal"
 label: "Business user PC-04 internal portal"
 summary: "Managed user PC-04 reaches the employee portal through User Access Switch 02, Core-01 inter-VLAN routing, and server access on VLAN 80."

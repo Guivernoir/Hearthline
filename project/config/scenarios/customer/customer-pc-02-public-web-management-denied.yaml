@@ -1,4 +1,4 @@
-schema_version: "0.11.0"
+schema_version: "0.12.0"
 id: "customer-pc-02-public-web-management-denied"
 label: "Customer PC-02 public management denied"
 summary: "The public path translates the published address but the perimeter firewall rejects an undeclared SSH management attempt from Customer PC-02."

@@ -1,0 +1,28 @@
+schema_version: "0.10.0"
+id: "area-02-vis-01"
+label: "AREA-02-VIS-01"
+kind: "field-sensor"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Ceramic-slip viscosity transmitter"
+summary: "Measures slip viscosity as a representative rheology input for filling and casting repeatability."
+lifecycle: "simulated"
+tags: ["ot-area-02", "sensor", "module-slip-supply", "material", "slip", "viscosity"]
+render:
+  - { view: "factory/process/forming", node: "area-02-vis-01", mode: "any" }
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "field-sensor"
+  signal_tag: "area-02-vis-01"
+  unit: "millipascal-second"
+  minimum: 0
+  maximum: 5000
+  initial_value: 1800

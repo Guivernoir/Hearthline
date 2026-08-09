@@ -10,6 +10,7 @@ repository.workspace = true
 [dependencies]
 axum.workspace = true
 hearthline-config = { path = "../hearthline-config" }
+hearthline-engine = { path = "../hearthline-engine" }
 serde.workspace = true
 serde_json.workspace = true
 tokio.workspace = true

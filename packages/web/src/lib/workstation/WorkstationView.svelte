@@ -11,6 +11,7 @@
     Wifi,
   } from "@lucide/svelte";
   import BrowserApp from "./BrowserApp.svelte";
+  import NetworkStateApp from "./NetworkStateApp.svelte";
   import TerminalApp from "./TerminalApp.svelte";
   import {
     loadWorkstationProfile,
@@ -18,7 +19,7 @@
     type WorkstationProfile,
   } from "./workstation-api";
 
-  type ActiveApplication = "browser" | "terminal";
+  type ActiveApplication = "browser" | "terminal" | "network";
 
   export let applianceId: string;
   export let onBack: () => void = () => {};
@@ -82,6 +83,9 @@
         <button class:active={activeApplication === "terminal"} type="button" aria-label="Open terminal" title="Terminal" onclick={() => (activeApplication = "terminal")}>
           <TerminalSquare size={22} /><span>Terminal</span>
         </button>
+        <button class:active={activeApplication === "network"} type="button" aria-label="Open network state" title="Network state" onclick={() => (activeApplication = "network")}>
+          <Network size={22} /><span>Network</span>
+        </button>
         <button type="button" aria-label="Open appliance configuration" title="Configuration" onclick={() => onOpenConfig(applianceId)}>
           <FileText size={22} /><span>Config</span>
         </button>
@@ -90,8 +94,15 @@
       <section class="desktop-window">
         {#if activeApplication === "browser"}
           <BrowserApp workstationId={applianceId} initialUrl={profile.browserHome} onResult={receiveResult} />
-        {:else}
+        {:else if activeApplication === "terminal"}
           <TerminalApp workstationId={applianceId} hostname={profile.hostname} onResult={receiveResult} />
+        {:else}
+          <NetworkStateApp
+            workstationId={applianceId}
+            networkState={lastReport?.networkState ?? null}
+            onResult={receiveResult}
+            {onOpenConfig}
+          />
         {/if}
       </section>
 
@@ -104,6 +115,11 @@
           </button>
           {#if activityOpen}
             <div>
+              <p class="activity-session-state">
+                <strong>Session state</strong>
+                <span>{lastReport.networkState.arpEntries.length} ARP / {lastReport.networkState.patTranslations} PAT</span>
+                <small>{lastReport.networkState.simulatedTimeMs} ms</small>
+              </p>
               {#each lastReport.simulations as simulation}
                 <section>
                   <header><strong>{simulation.scenario_label}</strong><span>{simulation.duration_us} us</span></header>
@@ -113,6 +129,12 @@
                       <strong>{simulation.packet.application.method.toUpperCase()}</strong>
                       <span>{simulation.packet.application.host}{simulation.packet.application.path}</span>
                       <small>{simulation.packet.application.body_bytes} body bytes</small>
+                    </p>
+                  {:else if simulation.packet.transport.protocol === "icmp-echo"}
+                    <p class="activity-request">
+                      <strong>ICMP</strong>
+                      <span>{simulation.packet.source_ip} to {simulation.packet.destination_ip}</span>
+                      <small>Echo sequence {simulation.packet.transport.sequence} / TTL {simulation.packet.ttl}</small>
                     </p>
                   {/if}
                   {#if simulation.security}
@@ -138,6 +160,6 @@
   <footer class="statusbar workstation-statusbar">
     <span class="status-state"><i></i>{profile?.hostname ?? "Endpoint session"}</span>
     <span>{profile?.interfaces[0]?.addresses[0] ?? "No address"}</span>
-    <span>DNS {profile?.dnsServers[0] ?? "not configured"}</span>
+    <span>{lastReport ? `ARP ${lastReport.networkState.arpEntries.length} / PAT ${lastReport.networkState.patTranslations}` : `DNS ${profile?.dnsServers[0] ?? "not configured"}`}</span>
   </footer>
 </div>

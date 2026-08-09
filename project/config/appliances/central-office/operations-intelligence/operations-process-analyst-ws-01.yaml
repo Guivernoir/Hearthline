@@ -1,4 +1,4 @@
-schema_version: "0.9.0"
+schema_version: "0.10.0"
 id: "operations-process-analyst-ws-01"
 label: "Process Analysis WS-01"
 kind: "workstation"

@@ -1,4 +1,4 @@
-schema_version: "0.9.0"
+schema_version: "0.10.0"
 id: "business-it-usr-pc-02"
 label: "Business IT-USR-PC-02"
 kind: "workstation"

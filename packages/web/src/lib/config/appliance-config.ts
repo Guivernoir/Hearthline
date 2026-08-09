@@ -139,8 +139,8 @@ export interface ApplianceCatalog {
   applianceConnectionIndex: Record<string, string[]>;
 }
 
-export const SUPPORTED_APPLIANCE_CATALOG_SCHEMA = "0.8.0";
-export const SUPPORTED_APPLIANCE_SCHEMA = "0.9.0";
+export const SUPPORTED_APPLIANCE_CATALOG_SCHEMA = "0.9.0";
+export const SUPPORTED_APPLIANCE_SCHEMA = "0.10.0";
 export const SUPPORTED_CONNECTION_SCHEMA = "0.2.0";
 
 let activeCatalog = applianceConfigData as ApplianceCatalog;
@@ -206,7 +206,7 @@ export function isInteractiveWorkstation(id: string) {
 export function isInteractiveHmi(id: string) {
   const appliance = findAppliance(id);
   return appliance !== null &&
-    appliance.kind === "hmi" &&
+    appliance.behaviorFamily === "operator-interface" &&
     appliance.tags.includes("interactive");
 }
 
@@ -223,6 +223,12 @@ export function findConnectionsForAppliance(id: string) {
     .filter(
       (connection): connection is FrontendConnection => connection !== null,
     );
+}
+
+export function findAppliancesForEnvironment(environment: string) {
+  return activeCatalog.appliances.filter(
+    (appliance) => appliance.environment === environment,
+  );
 }
 
 export function findAppliancesForNode(

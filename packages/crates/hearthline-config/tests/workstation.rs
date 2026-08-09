@@ -2,8 +2,8 @@ use std::path::PathBuf;
 
 use hearthline_config::{
     ConfigRepository, ConnectionRepository, ScenarioApplicationConfig, ScenarioHttpMethod,
-    ScenarioRepository, WorkstationAction, WorkstationActionStatus, run_workstation_action,
-    workstation_profile,
+    ScenarioRepository, ScenarioTransportConfig, WorkstationAction, WorkstationActionStatus,
+    run_workstation_action, workstation_profile,
 };
 
 fn repositories() -> (ConfigRepository, ConnectionRepository, ScenarioRepository) {
@@ -455,4 +455,37 @@ fn unknown_terminal_commands_do_not_bypass_the_rust_command_contract() {
         WorkstationActionStatus::Unsupported
     ));
     assert!(report.simulations.is_empty());
+}
+
+#[test]
+fn ping_builds_repeated_icmp_probes_and_verifies_echo_replies() {
+    let (appliances, connections, scenarios) = repositories();
+
+    let report = run_workstation_action(
+        &appliances,
+        &connections,
+        &scenarios,
+        "customer-pc-01",
+        WorkstationAction::Terminal {
+            command: "ping -n 2 198.51.100.50".into(),
+        },
+    )
+    .expect("ping action");
+
+    assert!(matches!(report.status, WorkstationActionStatus::Succeeded));
+    assert_eq!(report.simulations.len(), 2);
+    assert!(report.simulations.iter().all(|run| run.expectation_met));
+    assert!(report.simulations.iter().enumerate().all(|(index, run)| {
+        matches!(
+            run.packet.transport,
+            ScenarioTransportConfig::IcmpEcho { sequence, .. }
+                if usize::from(sequence) == index + 1
+        )
+    }));
+    assert!(
+        report
+            .output
+            .iter()
+            .any(|line| line.contains("Received = 2"))
+    );
 }

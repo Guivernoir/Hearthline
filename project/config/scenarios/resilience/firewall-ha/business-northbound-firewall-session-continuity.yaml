@@ -1,4 +1,4 @@
-schema_version: "0.11.0"
+schema_version: "0.12.0"
 id: "business-northbound-firewall-session-continuity"
 label: "Northbound firewall session continuity"
 summary: "An approved historian TCP session is synchronized over the dedicated HA link before member A fails; member B promotes after the heartbeat hold timer and permits the reverse ACK from existing state."

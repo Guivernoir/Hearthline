@@ -5,7 +5,7 @@ use hearthline_config::{ApplianceConfig, ConfigRepository};
 use hearthline_model::{BehaviorFamily, ComponentKind};
 
 const SWITCH: &str = r#"
-schema_version: 0.9.0
+schema_version: 0.10.0
 id: test-switch-01
 label: Test SW-01
 kind: layer-2-switch

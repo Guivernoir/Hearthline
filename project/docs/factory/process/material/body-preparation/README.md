@@ -9,8 +9,10 @@
 
 ![Body Preparation operator interface](hmi-screenshot.png)
 
-Body Preparation covers storage, mixing, body-mass transfer, and distribution
-to Forming.
+Body Preparation covers raw-material storage, batching, mixing, conditioning,
+and transfer of prepared ceramic slip to Forming. By the Forming boundary the
+material is a thick liquid, not dry powder. The receiving Forming tank uses an
+initial simulator reference of approximately 40 degrees Celsius.
 
 ## Current Representation
 
@@ -42,7 +44,9 @@ sequence executes yet.
 
 ## Planned Work
 
-Simulation will add material inventory, transfer flow, automatic pump and valve
-sequencing, and spill or invalid-transfer conditions. Explicit I/O-binding
-files, Structured Text parsing, controller task execution, and plant dynamics
-remain pending.
+Simulation will add material inventory, slip-property state, transfer flow,
+automatic pump and valve sequencing, and spill or invalid-transfer conditions.
+It will also define the handoff to the Forming supply tank without making the
+two areas one control zone. Explicit I/O-binding files, Structured Text
+parsing, controller task execution, and Body Preparation dynamics remain
+pending.

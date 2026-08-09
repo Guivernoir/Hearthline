@@ -10,14 +10,17 @@ enterprise workflows and factory-local Level 3 operations.
 ## Implementation Status
 
 The OT DMZ subzones, policy boundaries, service roles, and Level 3 handoff are
-implemented as physical and logical diagrams. Firewall HA, session recording,
-replication, transfer inspection, passive monitoring, identity checks, and
-failover remain requirements rather than tested behavior. Parsed YAML now
+implemented as physical and logical diagrams. Southbound firewall-pair HA,
+session recording, transfer inspection, passive monitoring, identity checks,
+and failover remain requirements rather than tested behavior. Parsed YAML now
 provides separate member identities, default-deny firewall baselines, DMZ VLAN
 baselines, service roles, and explicitly non-inline passive sensors. The
 selected Exchange VLAN 352 path from `OT-DMZ-HIST-REPLICA-01` through
 `Business FRW-03A` is executable: HTTPS reaches Central Office analytics under
 a named rule, while SSH is denied by default policy.
+The selected southbound path is also executable: the factory-local historian
+crosses `OT FRW-01A` under a host-specific TCP 443 rule and reaches the VLAN
+352 DMZ replica. This does not establish `OT FRW-01A/01B` failover behavior.
 
 ## Architecture
 
@@ -134,6 +137,7 @@ non-urgent changes remain staged until the authorized path returns.
 | Approved administrator to jump service | Allowed | Planned |
 | Central Office source directly to Level 3 | Denied | Planned |
 | Jump service to approved Level 3 target | Allowed only with separate authorization | Planned |
+| Factory-local historian to DMZ replica | Allowed only through the named southbound rule | Implemented through `OT FRW-01A` |
 | Historian replica to selected enterprise consumer over HTTPS | Allowed in the declared direction | Implemented |
 | Historian replica to enterprise analytics over SSH | Denied by default policy | Implemented |
 | Enterprise source directly to OT historian | Denied | Planned |

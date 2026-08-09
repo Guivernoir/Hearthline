@@ -1,4 +1,4 @@
-schema_version: "0.11.0"
+schema_version: "0.12.0"
 id: "business-northbound-firewall-session-state-loss"
 label: "Northbound firewall session-state loss"
 summary: "The standby loses its replicated session table before member A fails; member B still promotes from current heartbeat state but rejects the reverse ACK because no matching stateful session remains."

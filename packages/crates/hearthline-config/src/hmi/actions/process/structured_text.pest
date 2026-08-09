@@ -1,0 +1,62 @@
+program = { SOI ~ program_kw ~ identifier ~ variable_block* ~ case_statement ~ end_program_kw ~ semicolon? ~ EOI }
+
+variable_block = { variable_section ~ variable_declaration+ ~ end_var_kw }
+variable_section = { var_input_kw | var_output_kw | var_kw }
+variable_declaration = { identifier ~ colon ~ data_type ~ initializer? ~ semicolon }
+initializer = { assignment_operator ~ literal }
+data_type = { bool_type | int_type | dint_type | real_type | ton_type }
+
+case_statement = { case_kw ~ identifier ~ of_kw ~ case_branch+ ~ end_case_kw ~ semicolon? }
+case_branch = { integer ~ colon ~ statement+ }
+statement = _{ timer_call | if_statement | assignment }
+assignment = { identifier ~ assignment_operator ~ assignment_value ~ semicolon }
+assignment_value = { literal | identifier }
+timer_call = { identifier ~ open_paren ~ in_kw ~ assignment_operator ~ bool_expression ~ comma ~ pt_kw ~ assignment_operator ~ duration ~ close_paren ~ semicolon }
+if_statement = { if_kw ~ bool_expression ~ then_kw ~ assignment ~ end_if_kw ~ semicolon? }
+
+bool_expression = { bool_term ~ (and_kw ~ bool_term)* }
+bool_term = { not_kw? ~ bool_atom }
+bool_atom = { variable_reference | bool_literal }
+variable_reference = @{ identifier ~ (dot ~ identifier)? }
+
+literal = { bool_literal | real | integer }
+bool_literal = { true_kw | false_kw }
+real = @{ "-"? ~ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
+integer = @{ "-"? ~ ASCII_DIGIT+ }
+duration = @{ ^"T#" ~ ASCII_DIGIT+ ~ (^"ms" | ^"s") }
+identifier = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+
+program_kw = _{ ^"PROGRAM" }
+end_program_kw = _{ ^"END_PROGRAM" }
+var_input_kw = { ^"VAR_INPUT" }
+var_output_kw = { ^"VAR_OUTPUT" }
+var_kw = { ^"VAR" }
+end_var_kw = _{ ^"END_VAR" }
+case_kw = _{ ^"CASE" }
+of_kw = _{ ^"OF" }
+end_case_kw = _{ ^"END_CASE" }
+if_kw = _{ ^"IF" }
+then_kw = _{ ^"THEN" }
+end_if_kw = _{ ^"END_IF" }
+and_kw = _{ ^"AND" }
+not_kw = { ^"NOT" }
+in_kw = _{ ^"IN" }
+pt_kw = _{ ^"PT" }
+true_kw = { ^"TRUE" }
+false_kw = { ^"FALSE" }
+bool_type = { ^"BOOL" }
+int_type = { ^"INT" }
+dint_type = { ^"DINT" }
+real_type = { ^"REAL" }
+ton_type = { ^"TON" }
+
+assignment_operator = _{ ":=" }
+colon = _{ ":" }
+semicolon = _{ ";" }
+comma = _{ "," }
+dot = _{ "." }
+open_paren = _{ "(" }
+close_paren = _{ ")" }
+
+WHITESPACE = _{ " " | "\t" | NEWLINE | comment }
+comment = _{ "(*" ~ (!"*)" ~ ANY)* ~ "*)" }

@@ -88,7 +88,7 @@
 
 .desktop-window {
   position: absolute;
-  inset: var(--desktop-inset) var(--desktop-inset) var(--desktop-inset) 118px;
+  inset: var(--desktop-inset) var(--desktop-inset) calc(var(--desktop-inset) + 62px) 118px;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
@@ -165,6 +165,26 @@
   padding: 0 12px 12px;
   overflow: auto;
   border-top: 1px solid #dce2dd;
+}
+
+.activity-session-state {
+  display: grid;
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  color: #526159;
+  background: #edf2ef;
+  font-size: 10px;
+}
+
+.activity-session-state strong {
+  color: #33423a;
+}
+
+.activity-session-state small {
+  color: #748078;
 }
 
 .network-activity section {
@@ -304,7 +324,7 @@
   }
 
   .desktop-window {
-    inset: 8px 8px 78px;
+    inset: 8px 8px 140px;
   }
 
   .desktop-dock {
@@ -333,7 +353,7 @@
 
   .network-activity {
     right: 14px;
-    bottom: 88px;
+    bottom: 78px;
     width: calc(100% - 28px);
   }
 

@@ -2,6 +2,7 @@ mod scenario {
     mod autonomy;
     mod availability;
     mod business_workstation;
+    mod workstation_session;
 }
 
 use std::path::PathBuf;

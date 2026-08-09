@@ -1,0 +1,41 @@
+schema_version: "0.10.0"
+id: "area-02-vplc-01"
+label: "AREA-02-vPLC-01"
+kind: "virtual-plc"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Forming-cell sequence and interlock controller"
+summary: "Owns slip filling, pressure casting, utility, demoulding, and transfer sequence logic; operator interfaces exchange tags with this controller rather than field devices."
+lifecycle: "simulated"
+tags:
+  - "ot-area-02"
+  - "controller"
+  - "control-authority"
+default_gateway: "10.30.2.1"
+render:
+  - view: "factory/process/forming"
+    node: "area-02-vplc-01"
+    mode: "logical"
+interfaces:
+  - id: "cell-network"
+    hardware: "virtual-nic"
+    mac_address: "02:00:00:30:02:20"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10000, duplex: "full", mtu: 1500 }
+    mode: "routed"
+    addresses: ["10.30.2.20/24"]
+    vlans: [302]
+  - id: "cell-network-standby"
+    hardware: "virtual-nic"
+    mac_address: "02:00:00:30:02:21"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10000, duplex: "full", mtu: 1500 }
+    mode: "routed"
+    addresses: ["10.30.2.21/24"]
+    vlans: [302]
+behavior:
+  family: "virtual-controller"
+  scan_interval_ms: 20
+  program_ref: "control/programs/forming/area-02-vplc-01.st"
+  io_binding: "control/bindings/forming/area-02-vplc-01.yaml"

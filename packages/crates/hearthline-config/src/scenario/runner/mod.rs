@@ -16,6 +16,9 @@ mod isolation;
 use isolation::run_ha_isolation_scenario;
 mod autonomy;
 use autonomy::run_local_autonomy_scenario;
+mod interactive;
+pub use interactive::InteractiveScenarioSession;
+pub(crate) use interactive::is_interactive_scenario;
 mod support;
 use support::{ContinuityTopology, append_phase};
 

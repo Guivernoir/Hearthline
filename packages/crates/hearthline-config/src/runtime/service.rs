@@ -4,6 +4,7 @@ use crate::ConfigError;
 
 pub(crate) fn parse_service_kind(value: &str) -> Result<ServiceKind, ConfigError> {
     match value {
+        "icmp-echo" => Ok(ServiceKind::IcmpEcho),
         "dns" | "dns-tcp" | "dns-udp" => Ok(ServiceKind::Dns),
         "dhcp" => Ok(ServiceKind::Dhcp),
         "http" => Ok(ServiceKind::Http),
@@ -18,12 +19,12 @@ pub(crate) fn parse_service_kind(value: &str) -> Result<ServiceKind, ConfigError
         "policy-decision" => Ok(ServiceKind::PolicyDecision),
         "file-transfer" => Ok(ServiceKind::FileTransfer),
         "historian" | "historian-replication" => Ok(ServiceKind::HistorianReplication),
-        "monitoring" => Ok(ServiceKind::Monitoring),
+        "monitoring" | "scada" => Ok(ServiceKind::Monitoring),
         "backup" => Ok(ServiceKind::Backup),
         "analytics" => Ok(ServiceKind::Analytics),
         "voice-signaling" => Ok(ServiceKind::VoiceSignaling),
         "printing" => Ok(ServiceKind::Printing),
-        "plc-engineering" => Ok(ServiceKind::PlcEngineering),
+        "engineering" | "plc-engineering" => Ok(ServiceKind::PlcEngineering),
         "industrial-io" => Ok(ServiceKind::IndustrialIo),
         "management" => Ok(ServiceKind::Management),
         "generic" => Ok(ServiceKind::Generic),
@@ -35,6 +36,7 @@ pub(crate) fn parse_service_kind(value: &str) -> Result<ServiceKind, ConfigError
 
 pub(crate) const fn service_name(service: ServiceKind) -> &'static str {
     match service {
+        ServiceKind::IcmpEcho => "icmp-echo",
         ServiceKind::Dns => "dns",
         ServiceKind::Dhcp => "dhcp",
         ServiceKind::Http => "http",

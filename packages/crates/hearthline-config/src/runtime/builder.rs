@@ -30,9 +30,11 @@ pub(super) fn build_appliance(
     let config = &loaded.config;
     let id = component_id(&config.id)?;
     match &config.behavior {
-        BehaviorConfig::ServiceHost { dns_records, .. }
-            if config.kind == ComponentKind::DnsServer =>
-        {
+        BehaviorConfig::ServiceHost {
+            dns_records,
+            respond_to_icmp,
+            ..
+        } if config.kind == ComponentKind::DnsServer => {
             let records = dns_records
                 .iter()
                 .map(|record| {
@@ -44,7 +46,7 @@ pub(super) fn build_appliance(
                 })
                 .collect::<Result<Vec<_>, ConfigError>>()?;
             let interfaces = routed_interfaces(config)?;
-            let appliance = if let Some(gateway) = &config.default_gateway {
+            let mut appliance = if let Some(gateway) = &config.default_gateway {
                 DnsServer::with_default_gateway(
                     id,
                     interfaces,
@@ -54,6 +56,7 @@ pub(super) fn build_appliance(
             } else {
                 DnsServer::new(id, interfaces, records)
             };
+            appliance.set_respond_to_icmp(*respond_to_icmp);
             Ok(ConfiguredAppliance::Dns(Box::new(appliance)))
         }
         BehaviorConfig::ComputeHost { .. }
@@ -95,6 +98,7 @@ pub(super) fn build_appliance(
             } else {
                 ServiceNode::new(id, config.kind, interfaces, services)
             };
+            appliance.set_respond_to_icmp(config.behavior.responds_to_icmp());
             if let BehaviorConfig::ServiceHost {
                 http_site: Some(site),
                 ..

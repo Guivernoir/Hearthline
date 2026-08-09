@@ -71,6 +71,18 @@ struct PatSession {
     expires_at_us: u64,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct PatTranslation {
+    pub protocol: TransportProtocol,
+    pub internal_address: Ipv4Addr,
+    pub internal_token: u16,
+    pub remote_address: Ipv4Addr,
+    pub remote_port: Option<u16>,
+    pub external_address: Ipv4Addr,
+    pub external_token: u16,
+    pub expires_at_us: u64,
+}
+
 #[derive(Clone, Debug)]
 pub struct NatRouter {
     id: ComponentId,
@@ -167,6 +179,33 @@ impl NatRouter {
 
     pub fn translation_count(&self) -> usize {
         self.pat.len()
+    }
+
+    pub fn active_translation_count(&self, now_us: u64) -> usize {
+        self.pat
+            .iter()
+            .filter(|session| session.expires_at_us > now_us)
+            .count()
+    }
+
+    pub fn active_translations(&self, now_us: u64) -> impl Iterator<Item = PatTranslation> + '_ {
+        self.pat
+            .iter()
+            .filter(move |session| session.expires_at_us > now_us)
+            .map(|session| PatTranslation {
+                protocol: session.outbound.flow.protocol,
+                internal_address: session.outbound.flow.source,
+                internal_token: session.outbound.source_token,
+                remote_address: session.outbound.flow.destination,
+                remote_port: session.outbound.flow.destination_port,
+                external_address: self.outside_address,
+                external_token: session.external_token,
+                expires_at_us: session.expires_at_us,
+            })
+    }
+
+    pub fn neighbors(&self, now_us: u64) -> impl Iterator<Item = &super::NeighborEntry> {
+        self.plane.neighbors(now_us)
     }
 
     fn expire_pat(&mut self, now_us: u64) {

@@ -7,6 +7,7 @@ use hearthline_model::{
     NetworkPayload, PortId, Route, TcpFlags, Transport,
 };
 
+use crate::NeighborEntry;
 use crate::network::forwarding::NeighborCache;
 use crate::runtime::{collect_fixed, runtime_text, single_effect};
 use crate::{
@@ -118,6 +119,10 @@ impl EndpointStack {
         self.interfaces
             .iter()
             .any(|interface| interface.id == *port)
+    }
+
+    pub fn neighbors(&self, now_us: u64) -> impl Iterator<Item = &NeighborEntry> {
+        self.neighbors.entries(now_us)
     }
 
     pub fn receive(&mut self, ingress: NetworkIngress) -> EndpointReceive {

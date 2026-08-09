@@ -1,0 +1,234 @@
+.control-program-overlay {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: grid;
+  padding: 28px;
+  place-items: center;
+  background: rgb(21 28 24 / 72%);
+}
+
+.control-program-panel {
+  display: grid;
+  width: min(1120px, 100%);
+  height: min(820px, 100%);
+  min-width: 0;
+  min-height: 0;
+  grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid #829088;
+  border-radius: 6px;
+  color: #202723;
+  background: #f5f7f5;
+  box-shadow: 0 24px 70px rgb(8 12 10 / 38%);
+}
+
+.control-program-panel > header {
+  display: flex;
+  min-height: 52px;
+  padding: 0 14px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #aeb8b1;
+  color: #f6f8f6;
+  background: #273a35;
+}
+
+.control-program-panel > header > div {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, auto);
+  align-items: center;
+  column-gap: 9px;
+}
+
+.control-program-panel > header span {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  grid-row: 1 / 3;
+  place-items: center;
+  border: 1px solid #668078;
+  border-radius: 4px;
+  background: #314a43;
+}
+
+.control-program-panel > header strong {
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.control-program-panel > header small {
+  color: #b8c8c0;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.control-program-panel button {
+  display: inline-flex;
+  min-width: 32px;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #aeb8b1;
+  border-radius: 4px;
+  color: #35433b;
+  background: #fff;
+  cursor: pointer;
+}
+
+.control-program-panel > header button {
+  border-color: #668078;
+  color: #fff;
+  background: #314a43;
+}
+
+.control-program-runtime {
+  display: grid;
+  margin: 0;
+  padding: 10px 14px;
+  grid-template-columns: repeat(6, minmax(90px, 1fr));
+  gap: 8px;
+  border-bottom: 1px solid #d2d8d3;
+  background: #eef2ef;
+}
+
+.control-program-runtime div {
+  min-width: 0;
+  padding-right: 8px;
+  border-right: 1px solid #d2d8d3;
+}
+
+.control-program-runtime div:last-child {
+  border-right: 0;
+}
+
+.control-program-runtime dt {
+  color: #6c7770;
+  font-size: 8px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.control-program-runtime dd {
+  margin: 3px 0 0;
+  overflow: hidden;
+  font: 650 10px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.control-program-toolbar {
+  display: flex;
+  min-height: 46px;
+  padding: 7px 12px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid #d2d8d3;
+}
+
+.control-program-toolbar > div {
+  display: inline-flex;
+}
+
+.control-program-toolbar > div button {
+  min-width: 144px;
+  border-radius: 0;
+}
+
+.control-program-toolbar > div button:first-child {
+  border-radius: 4px 0 0 4px;
+}
+
+.control-program-toolbar > div button:last-child {
+  margin-left: -1px;
+  border-radius: 0 4px 4px 0;
+}
+
+.control-program-toolbar button.active {
+  position: relative;
+  z-index: 1;
+  border-color: #37735d;
+  color: #fff;
+  background: #37735d;
+}
+
+.control-program-path {
+  padding: 6px 13px;
+  overflow: hidden;
+  border-bottom: 1px solid #d2d8d3;
+  color: #65716a;
+  background: #f9faf9;
+  font: 10px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.control-program-panel pre {
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 16px;
+  overflow: auto;
+  color: #dce9e2;
+  background: #18221f;
+  font: 11px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+  tab-size: 4;
+}
+
+.control-program-panel code {
+  font: inherit;
+  white-space: pre;
+}
+
+.control-program-loading,
+.control-program-error {
+  display: flex;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #65716a;
+  background: #18221f;
+  font-size: 11px;
+}
+
+.control-program-error {
+  color: #f3b8ad;
+}
+
+@media (max-width: 700px) {
+  .control-program-overlay {
+    padding: 0;
+  }
+
+  .control-program-panel {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .control-program-runtime {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .control-program-runtime div:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .control-program-toolbar > div {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .control-program-toolbar > div button {
+    min-width: 0;
+    flex: 1 1 0;
+    font-size: 10px;
+  }
+}

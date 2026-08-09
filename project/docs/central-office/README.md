@@ -17,7 +17,10 @@ and broad HA behavior remain future work. Two selected path families are executa
 customer HTTPS crosses the public DMZ and named downstream policy to an
 internal application response while public SSH is denied, and the Factory OT
 DMZ historian replica reaches Central Office analytics over HTTPS through
-`Business FRW-03A` while SSH is denied by default policy.
+`Business FRW-03A` while SSH is denied by default policy. The permitted packet
+is now a typed telemetry frame sourced from the bounded OT DMZ replica after
+an independently executed Forming-to-Level-3 collection and southbound
+replication path.
 The northbound pair additionally supports one bounded, protocol-timed session
 continuity case through `Business FRW-03B`; this does not establish vendor HA
 conformance or production recovery performance.

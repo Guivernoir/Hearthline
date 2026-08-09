@@ -45,6 +45,13 @@ export type ScenarioApplication =
       body: string | null;
       body_bytes: number;
     }
+  | {
+      kind: "telemetry";
+      service: string;
+      source: string;
+      sequence: number;
+      payload: string;
+    }
   | { kind: "service"; service: string };
 
 export interface ScenarioPacket {

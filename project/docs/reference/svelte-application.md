@@ -6,13 +6,13 @@ location and environment drill-downs, the factory process canvas,
 Rust-generated inspection, validated local editing of canonical appliance and
 connection YAML, and the configured simulation workspace.
 
-The current development release is `0.2.0`. Project release compatibility is
+The current development release is `0.3.0`. Project release compatibility is
 defined in the [versioning policy](versioning.md), while frontend data
 schemas retain their own independent versions.
 
 ## Current Status
 
-The application is an interactive architecture viewer with 28 executable
+The application is an interactive architecture viewer with 30 executable
 configured scenarios, not yet a general-purpose network or plant simulator.
 Navigation, physical and logical canvases, inspection, responsive controls,
 packet composition, scenario execution, and trace inspection are implemented.
@@ -41,14 +41,24 @@ Central SOC queue.
 Customer PC-01/02 and Business IT PC-01/02/03/04 are enterable as endpoint
 sessions whose terminals and browsers invoke independent Rust paths; each browser
 renders bounded page content returned by its configured service. All ten
-process areas have Rust-backed HMI sessions with safety, alarms, YAML-derived
-instruments, equipment-specific actuator commands, audit state, and component
-traces.
+process areas have Rust-backed operator sessions with safety, alarms,
+YAML-derived instruments, equipment-specific actuator commands, audit state,
+and component traces. Forming adds a cell-wide SCADA session and four
+module-scoped HMIs backed by one shared process state. Its interface displays
+the exact accelerated casting sequence, changing instrumentation, six output
+states, scan and cycle counters, named alarms, and five simulation
+disturbances. Its historian panel displays automatic controller collection,
+Level 3 storage, southbound firewall replication, DMZ storage, pending and loss
+state, and both route traces. SCADA publishes only the latest replicated record
+through the canonical analytics scenario and presents the northbound evidence.
 The factory local-autonomy workspace combines both failed inter-site handoffs,
 the expected historian-path drop, a seven-link local control path, safety
 reset, pump command, resulting actuator state, and six-stage control trace in
 one Rust-derived report.
-IEC 61131-3 execution and changing process results are not yet available.
+Forming now exposes its executing bounded Structured Text source, YAML I/O
+binding, task timing, revision, and current step from Rust. This is not general
+IEC 61131-3 execution; the remaining nine areas retain command-level operator
+sessions.
 
 The rendered architecture and underlying YAML content are provisional
 placeholders, not finished network or plant definitions. The viewer accurately
@@ -135,6 +145,9 @@ and scenarios are implemented.
 - Configured factory operations-data delivery and denial traces through the OT
   DMZ exchange subzone, inter-site conduit, northbound firewall, enterprise
   core, and analytics service.
+- Automatic Forming telemetry collection and OT DMZ replication with bounded
+  tier state, retry and loss visibility, plus operator-triggered publication of
+  the latest replica record through the governed analytics path.
 - A composite factory autonomy run that keeps both conduit handoffs down while
   displaying the independent local HMI-to-pump command result and its
   safety/control-path evidence.
@@ -148,25 +161,43 @@ and scenarios are implemented.
   office node, with scenario-derived portal homes and internal DNS and HTTPS
   traces across both user-access switches and Core-01 VLAN 20, 30, and 80
   SVIs.
-- Rust-backed `hostname`, `ipconfig`, `nslookup`, method- and body-aware
-  `curl`, and `ssh` terminal commands plus bounded quoted arguments, browser
-  URL parsing, DNS resolution, modeled HTTP content, and explicit policy-denial
-  presentation.
-- Enterable HMIs for all ten process areas with configured sensor values,
+- Rust-backed `hostname`, `ipconfig`, `nslookup`, repeated `ping`, method- and
+  body-aware `curl`, and `ssh` terminal commands plus bounded quoted arguments,
+  browser URL parsing, DNS resolution, modeled HTTP content, ICMP probe
+  summaries, and explicit policy-denial presentation. Workstation sessions
+  share an isolated, 60-second DNS cache across browser, `curl`, `ping`, and
+  SSH actions; the terminal can inspect or flush it, and browser connection
+  details identify query, cache, or literal-address resolution. Compatible
+  baseline actions also share one persistent Rust network runtime. Browser
+  details, the activity drawer, and the status bar project live ARP/PAT counts,
+  while terminal `arp -a` lists the retained endpoint neighbor table.
+- A responsive workstation Network State application that selects appliances
+  from the isolated session topology, renders capability-scoped CAM,
+  neighbor, PAT, and firewall-session tables, links to canonical
+  configuration, and submits bounded read-only `show` commands to Rust. It is
+  simulator instrumentation rather than modeled privileged device access.
+- Enterable operator interfaces for all ten process areas with configured sensor values,
   safety permissives and reset, alarm acknowledgement, equipment-specific
   controls, operator audit, and Rust-generated command-path traces.
+- A responsive Forming SCADA sequence view shared with four module HMIs,
+  including automatic-cycle start/reset, live signal polling, automatic-output
+  inhibition of manual commands, process fault injection, alarm handling, and
+  historian pipeline inspection and authorized operations-data publication.
+- A responsive Forming control-source viewer for the validated Structured Text
+  and YAML I/O documents, controller task timing, revision, and current step.
 - Click-to-center minimap on desktop and tablet layouts.
 - Responsive map, toolbar, inspector, location, and detailed network layouts.
 - Distinct trust-path, control-network, and material-flow representations.
 
 Regional, location, Customer Network, Central Office, and most Factory data is
-still temporary view data declared in `src/lib/*.svelte`. OT process inventory
-is now read from `src/generated/process-view.json`, a versioned bootstrap
-derivative with source references for each area and component. It is not yet
-canonical or Rust-generated. Configuration is independently read from
-`src/generated/appliance-configs.json`, which Rust generates from 162
-appliance and 208 connection YAML files. The process model will later be replaced with JSON
-generated from validated area topology and IEC 61131-3 cross-references.
+still temporary view data declared in `src/lib/*.svelte`. Nine OT area
+inventories are read from `src/generated/process-view.json`, a versioned
+bootstrap derivative. Forming derives its 32 components from
+`src/generated/appliance-configs.json`, while Svelte retains presentation-only
+grouping and coordinates. Rust generates that catalog from 185 appliance and
+231 connection YAML files. The remaining process model will later be replaced
+with JSON generated from validated area topology and additional control-source
+cross-references.
 
 ## Commands
 
@@ -222,7 +253,7 @@ virtual PLC integration.
 The process inventory and configuration catalog are behind separate versioned
 JSON contracts. Remaining place, environment, and node arrays will follow as
 their canonical schemas mature. Svelte may retain presentation coordinates
-and interaction state, but it does not parse YAML or IEC 61131-3 source,
+and interaction state, but it does not parse YAML or Structured Text source,
 evaluate connectivity, or simulate the process. YAML updates are submitted to
 Rust as opaque text and only accepted after server-side parsing and validation.
 

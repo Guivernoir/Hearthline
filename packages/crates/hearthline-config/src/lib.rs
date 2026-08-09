@@ -31,14 +31,18 @@ pub use connection::{
 };
 pub use hmi::{
     HMI_SCHEMA_VERSION, HmiAction, HmiActionReport, HmiActionStatus, HmiActuator, HmiAlarm,
-    HmiAlarmSeverity, HmiAuditEntry, HmiPermissive, HmiSafety, HmiSession, HmiSignal, HmiSnapshot,
-    HmiTraceEntry,
+    HmiAlarmSeverity, HmiAuditEntry, HmiControlProgramDocument, HmiControlProgramState,
+    HmiPermissive, HmiProcessFault, HmiProcessPhase, HmiProcessState, HmiSafety, HmiSession,
+    HmiSessionStore, HmiSignal, HmiSnapshot, HmiTraceEntry, build_forming_telemetry_packet,
 };
-pub use runtime::{ConfiguredAppliance, ConfiguredNetwork};
+pub use runtime::{
+    ConfiguredAppliance, ConfiguredNetwork, RuntimeDeviceSnapshot, RuntimeFirewallSessionEntry,
+    RuntimeMacEntry, RuntimeNeighborEntry, RuntimePatEntry,
+};
 pub use scenario::{
-    LoadedScenario, SCENARIO_REPORT_SCHEMA_VERSION, SCENARIO_SCHEMA_VERSION,
-    SECURITY_EVENT_SCHEMA_VERSION, ScenarioApplicationConfig, ScenarioConfig,
-    ScenarioConnectionOverride, ScenarioConnectionState, ScenarioContinuityConfig,
+    InteractiveScenarioSession, LoadedScenario, SCENARIO_REPORT_SCHEMA_VERSION,
+    SCENARIO_SCHEMA_VERSION, SECURITY_EVENT_SCHEMA_VERSION, ScenarioApplicationConfig,
+    ScenarioConfig, ScenarioConnectionOverride, ScenarioConnectionState, ScenarioContinuityConfig,
     ScenarioContinuityFault, ScenarioContinuityReport, ScenarioExpectation,
     ScenarioExpectationMode, ScenarioExpectedOutcome, ScenarioFirewallHaOverride,
     ScenarioFirewallHaState, ScenarioFirstHopOverride, ScenarioFirstHopState,
@@ -52,7 +56,9 @@ pub use scenario::{
     run_scenario_with_state_overrides,
 };
 pub use workstation::{
-    BrowserNavigation, WORKSTATION_SCHEMA_VERSION, WorkstationAction, WorkstationActionKind,
-    WorkstationActionReport, WorkstationActionStatus, WorkstationInterface, WorkstationProfile,
-    run_workstation_action, workstation_profile,
+    BrowserNavigation, WORKSTATION_DNS_TTL_MS, WORKSTATION_SCHEMA_VERSION, WorkstationAction,
+    WorkstationActionKind, WorkstationActionReport, WorkstationActionStatus, WorkstationArpEntry,
+    WorkstationDnsCacheEntry, WorkstationInterface, WorkstationNetworkState, WorkstationProfile,
+    WorkstationSession, run_workstation_action, run_workstation_action_with_session,
+    workstation_profile,
 };

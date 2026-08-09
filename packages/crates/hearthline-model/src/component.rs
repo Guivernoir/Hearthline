@@ -183,6 +183,7 @@ pub enum ComponentKind {
     ChangeStagingService,
     VirtualizationHost,
     VirtualPlc,
+    ScadaWorkstation,
     Hmi,
     RemoteIo,
     FieldSensor,
@@ -191,7 +192,7 @@ pub enum ComponentKind {
 }
 
 impl ComponentKind {
-    pub const ALL: [Self; 36] = [
+    pub const ALL: [Self; 37] = [
         Self::Workstation,
         Self::PrivilegedWorkstation,
         Self::EngineeringWorkstation,
@@ -223,6 +224,7 @@ impl ComponentKind {
         Self::ChangeStagingService,
         Self::VirtualizationHost,
         Self::VirtualPlc,
+        Self::ScadaWorkstation,
         Self::Hmi,
         Self::RemoteIo,
         Self::FieldSensor,
@@ -261,7 +263,7 @@ impl ComponentKind {
             Self::PassiveNetworkSensor => BehaviorFamily::PassiveMonitor,
             Self::VirtualizationHost => BehaviorFamily::ComputeHost,
             Self::VirtualPlc => BehaviorFamily::VirtualController,
-            Self::Hmi => BehaviorFamily::OperatorInterface,
+            Self::ScadaWorkstation | Self::Hmi => BehaviorFamily::OperatorInterface,
             Self::RemoteIo => BehaviorFamily::RemoteIo,
             Self::FieldSensor => BehaviorFamily::FieldSensor,
             Self::FieldActuator => BehaviorFamily::FieldActuator,
@@ -304,6 +306,7 @@ impl Display for ComponentKind {
             Self::ChangeStagingService => "change-staging-service",
             Self::VirtualizationHost => "virtualization-host",
             Self::VirtualPlc => "virtual-plc",
+            Self::ScadaWorkstation => "scada-workstation",
             Self::Hmi => "hmi",
             Self::RemoteIo => "remote-io",
             Self::FieldSensor => "field-sensor",
@@ -350,6 +353,7 @@ impl FromStr for ComponentKind {
             "change-staging-service" => Self::ChangeStagingService,
             "virtualization-host" => Self::VirtualizationHost,
             "virtual-plc" => Self::VirtualPlc,
+            "scada-workstation" => Self::ScadaWorkstation,
             "hmi" => Self::Hmi,
             "remote-io" => Self::RemoteIo,
             "field-sensor" => Self::FieldSensor,
@@ -384,6 +388,7 @@ impl core::error::Error for ComponentKindParseError {}
 /// Application or infrastructure service exposed by an endpoint.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum ServiceKind {
+    IcmpEcho,
     Dns,
     Dhcp,
     Http,

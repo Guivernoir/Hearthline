@@ -4,7 +4,10 @@ mod gateway;
 mod network;
 mod service;
 
-pub use appliance::ConfiguredAppliance;
+pub use appliance::{
+    ConfiguredAppliance, RuntimeDeviceSnapshot, RuntimeFirewallSessionEntry, RuntimeMacEntry,
+    RuntimeNeighborEntry, RuntimePatEntry,
+};
 pub use network::ConfiguredNetwork;
 
 use builder::build_appliance;

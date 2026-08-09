@@ -1,3 +1,5 @@
+use core::net::Ipv4Addr;
+
 use heapless::Vec as FixedList;
 use hearthline_model::{
     ComponentId, ComponentKind, NetworkPayload, PortId, ProcessEvent, ProcessSignal, ServiceKind,
@@ -6,8 +8,12 @@ use hearthline_model::{
 
 use super::is_industrial_communication;
 use super::storage::{Ports, TaggedValues, collect_ports, get, upsert};
+use crate::network::{EndpointReceive, EndpointStack};
 use crate::runtime::{collect_fixed, runtime_text, single_effect};
-use crate::{DropReason, Effect, EffectList, ProcessEffect, SimulatedComponent, SimulationEvent};
+use crate::{
+    DropReason, Effect, EffectList, ProcessEffect, RoutedInterface, SimulatedComponent,
+    SimulationEvent,
+};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Comparison {
@@ -49,6 +55,7 @@ pub struct VirtualPlc {
     inputs: TaggedValues<ProcessSignal>,
     outputs: TaggedValues<SignalValue>,
     rules: FixedList<LogicRule, 16>,
+    network: Option<EndpointStack>,
     operational: bool,
 }
 
@@ -68,8 +75,22 @@ impl VirtualPlc {
             inputs: TaggedValues::new(),
             outputs: TaggedValues::new(),
             rules: collect_fixed(rules),
+            network: None,
             operational: true,
         }
+    }
+
+    pub fn with_network(
+        id: ComponentId,
+        ports: impl IntoIterator<Item = PortId>,
+        scan_period_ms: u64,
+        rules: impl IntoIterator<Item = LogicRule>,
+        interfaces: impl IntoIterator<Item = RoutedInterface>,
+        default_gateway: Option<Ipv4Addr>,
+    ) -> Self {
+        let mut controller = Self::new(id, ports, scan_period_ms, rules);
+        controller.network = Some(EndpointStack::with_routes(interfaces, default_gateway, []));
+        controller
     }
 
     pub fn outputs(&self) -> &[(Text<64>, SignalValue)] {
@@ -133,10 +154,20 @@ impl SimulatedComponent for VirtualPlc {
         }
         match event {
             SimulationEvent::Network(ingress) => {
-                if !self.ports.contains(&ingress.port) {
-                    return single_effect(Effect::Drop(DropReason::InvalidIngress(ingress.port)));
-                }
-                let NetworkPayload::Ipv4(packet) = ingress.frame.payload else {
+                let frame = if let Some(network) = &mut self.network {
+                    match network.receive(ingress) {
+                        EndpointReceive::Handled(effects) => return effects,
+                        EndpointReceive::Ipv4 { frame, .. } => frame,
+                    }
+                } else {
+                    if !self.ports.contains(&ingress.port) {
+                        return single_effect(Effect::Drop(DropReason::InvalidIngress(
+                            ingress.port,
+                        )));
+                    }
+                    ingress.frame
+                };
+                let NetworkPayload::Ipv4(packet) = frame.payload else {
                     return single_effect(Effect::Drop(DropReason::UnsupportedProtocol));
                 };
                 if matches!(
@@ -157,9 +188,10 @@ impl SimulatedComponent for VirtualPlc {
                     single_effect(Effect::Drop(DropReason::PolicyDenied { rule: None }))
                 }
             }
-            SimulationEvent::Ipv4Egress(_) => {
-                single_effect(Effect::Drop(DropReason::UnsupportedProtocol))
-            }
+            SimulationEvent::Ipv4Egress(egress) => self.network.as_mut().map_or_else(
+                || single_effect(Effect::Drop(DropReason::UnsupportedProtocol)),
+                |network| network.send(egress),
+            ),
             SimulationEvent::Process(ProcessEvent::Signal(signal)) => {
                 upsert(&mut self.inputs, signal.tag.clone(), signal);
                 EffectList::new()
@@ -215,6 +247,7 @@ impl SimulatedComponent for VirtualPlc {
 #[derive(Clone, Debug)]
 pub struct OperatorInterface {
     id: ComponentId,
+    kind: ComponentKind,
     ports: Ports,
     allowed_command_tags: FixedList<Text<64>, 16>,
     operational: bool,
@@ -226,8 +259,22 @@ impl OperatorInterface {
         ports: impl IntoIterator<Item = PortId>,
         allowed_command_tags: impl IntoIterator<Item = Text<64>>,
     ) -> Self {
+        Self::with_kind(id, ComponentKind::Hmi, ports, allowed_command_tags)
+    }
+
+    pub fn with_kind(
+        id: ComponentId,
+        kind: ComponentKind,
+        ports: impl IntoIterator<Item = PortId>,
+        allowed_command_tags: impl IntoIterator<Item = Text<64>>,
+    ) -> Self {
+        debug_assert!(matches!(
+            kind,
+            ComponentKind::Hmi | ComponentKind::ScadaWorkstation
+        ));
         Self {
             id,
+            kind,
             ports: collect_ports(ports),
             allowed_command_tags: collect_fixed(allowed_command_tags),
             operational: true,
@@ -241,7 +288,7 @@ impl SimulatedComponent for OperatorInterface {
     }
 
     fn kind(&self) -> ComponentKind {
-        ComponentKind::Hmi
+        self.kind
     }
 
     fn has_port(&self, port: &PortId) -> bool {

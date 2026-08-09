@@ -1,0 +1,28 @@
+schema_version: "0.10.0"
+id: "area-02-vt-01"
+label: "AREA-02-VT-01"
+kind: "field-sensor"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Mould drying vacuum transmitter"
+summary: "Measures negative pressure used after water and air cleaning to verify that the mould is dry for reuse."
+lifecycle: "simulated"
+tags: ["ot-area-02", "sensor", "module-utilities", "vacuum", "pressure", "mould"]
+render:
+  - { view: "factory/process/forming", node: "area-02-vt-01", mode: "any" }
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "field-sensor"
+  signal_tag: "area-02-vt-01"
+  unit: "kilopascal"
+  minimum: -100
+  maximum: 0
+  initial_value: 0

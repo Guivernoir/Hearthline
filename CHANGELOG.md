@@ -5,6 +5,115 @@ All notable changes to Hearthline are recorded here. Releases follow
 development, so minor releases may include documented configuration or API
 migrations.
 
+## Unreleased
+
+### Added
+
+- A detailed YAML-defined ceramic-slip Forming cell with 32 components,
+  cell-wide SCADA, four module HMIs, 17 process inputs, six process outputs,
+  one 24-channel remote-I/O station, and explicit field and control-network
+  connections.
+- A deterministic Rust process model for mould filling, compressed-air
+  pressure and dwell, excess-slip drainage, depressurization, sequential
+  release water and air, robotic pickup and operator handoff, mould washing,
+  air purging, vacuum drying, and mould closure.
+- Shared Forming state across SCADA and module HMIs, a background process
+  clock, automatic-cycle controls, scan and cycle counters, phase-aware output
+  inhibition, and five injectable process disturbances with named alarms.
+- Operator-interface signal scopes, a first-class `scada-workstation`
+  component kind, and Rust tests for module visibility, shared process state,
+  normal-cycle completion, fault handling, reset authorization, and separate
+  safety latching.
+- A catalog-driven Forming architecture view with separate ceramic-slip,
+  pressure-casting, robotic-demoulding, and water/air/vacuum modules plus
+  directional telemetry and command paths.
+- A typed, allocator-free process-telemetry packet carrying a service,
+  controller source, sequence, and bounded payload through the existing media,
+  routing, and policy engine.
+- An authorized Forming SCADA publication workflow that captures the current
+  process snapshot, uses the OT DMZ historian replica as the network publisher,
+  delivers to Central Office analytics, and displays payload, route metrics,
+  outcome, and trace evidence.
+- Automatic Forming telemetry collection from the addressed vPLC through its
+  virtual host and Level 3 core into the factory-local historian, followed by
+  policy-controlled replication through `OT FRW-01A` into the OT DMZ replica.
+- A bounded API-session historian runtime with one-second samples, 60-record
+  local and replica stores, a pending queue, 250-millisecond replication
+  retries, unreplicated-eviction accounting, and fail-closed publication when
+  no replicated record is available.
+- A responsive SCADA historian panel showing both storage tiers, payload
+  freshness, backlog and loss counters, collection and replication evidence,
+  and the governed northbound publication route.
+- A versioned Forming Structured Text source, explicit YAML I/O binding, and
+  bounded parser/compiler that validates program declarations, task timing,
+  sequence transitions, field tags, phase codes, and actuator states before
+  configuration is accepted.
+- Source-driven Forming vPLC scans with PLC-timer quantization, Rust-owned plant
+  dynamics and trips, and regression coverage for start, fault, reset, and
+  scan-boundary behavior.
+- A responsive HMI control-source viewer and API document exposing the
+  executing source, I/O binding, task, watchdog, current step, and revision.
+- Interactive workstation `ping [-n COUNT] <host-or-ip>` diagnostics with
+  optional DNS resolution, one dynamically constructed ICMP packet per probe,
+  verified echo-reply delivery, packet-loss and timing output, and complete
+  Rust network/media traces.
+- Per-workstation, API-session DNS caches with a deterministic 60-second TTL,
+  cache-aware browser, `curl`, `ping`, and SSH resolution, authoritative
+  `nslookup` queries, and terminal `ipconfig /displaydns` and
+  `ipconfig /flushdns` controls.
+- Per-workstation interactive network sessions that reuse one union of
+  compatible baseline scenario appliances and media, advance monotonic
+  simulated time, retain endpoint ARP and customer PAT state across actions,
+  and normalize each returned trace to action-relative time.
+- Structured workstation network-state reports, terminal `arp -a`, browser
+  ARP/PAT details, and activity/status summaries backed by live simulator
+  tables rather than inferred trace text.
+- Capability-scoped runtime snapshots for switch CAM tables, endpoint and
+  routed-neighbor caches, PAT translations, and stateful firewall sessions,
+  including remaining lifetimes and regression-tested expiry.
+- A responsive workstation Network State application with appliance
+  selection, structured runtime tables, configuration links, and a bounded
+  Rust-backed read-only console supporting `show status`,
+  `show mac address-table`, `show arp`, `show ip nat translations`, and
+  `show sessions` where applicable.
+
+### Changed
+
+- Migrated appliance configuration to schema `0.10.0`, the generated catalog
+  to `0.9.0`, and the HMI API to `0.4.0`.
+- Replaced the provisional dry-powder hydraulic-press representation with the
+  intended ceramic-slip pressure-casting, robotic-demoulding, and mould-care
+  workflow.
+- Made the Body Preparation feed to the 40 C Forming slip tank explicit,
+  separated demoulding-assistance water and air from post-handoff mould
+  cleaning, and aligned the closed-mould position across YAML and Rust.
+- Expanded deterministic process storage for the 24-channel Forming I/O
+  station and updated the SCADA layout for sequence and fault supervision.
+- Migrated scenario configuration to schema `0.12.0` and scenario reports to
+  `0.15.0` for typed process telemetry.
+- Gave addressed virtual PLCs the existing routed endpoint stack so they can
+  originate IPv4 traffic while retaining their process scan and I/O behavior.
+- Connected endpoint and DNS-server `respond_to_icmp` YAML policy to runtime
+  behavior, added a typed `icmp-echo` delivery, and advanced the workstation
+  action schema to `0.10.0` for explicit DNS-resolution provenance, retained
+  structured network-state projection, and runtime inspection actions.
+
+### Documentation
+
+- Replaced the representative Forming inventory with its current control/data
+  flow, exact process sequence, implemented signal and output inventory,
+  simulation boundary, engineering basis, fault coverage, and planned control
+  integration.
+- Documented the live Forming historian collection, DMZ replication,
+  northbound analytics publication, operator audit, route evidence, and the
+  remaining boundary to a production historian; refreshed the SCADA capture.
+- Documented workstation DNS-cache lifetime, command behavior, session scope,
+  persistent baseline-network ownership, ARP/PAT evidence, resilience-scenario
+  exclusion, and the remaining boundary to broader interactive topology state.
+- Documented the session-context CAM, neighbor, PAT, and firewall tables, the
+  read-only simulator console, and the distinction between runtime
+  instrumentation and privileged device management.
+
 ## 0.3.0 - 2026-08-04
 
 ### Added

@@ -32,7 +32,13 @@
     physicalSlotPositions,
     type EquipmentPresentation,
     type EquipmentView,
-  } from "./process-area-layout";
+  } from "./layout/process-area-layout";
+  import {
+    buildFormingEquipment,
+    FORMING_WORLD_HEIGHT,
+    FORMING_WORLD_WIDTH,
+  } from "./layout/forming-area-layout";
+  import ProcessAreaBackdrop from "./layout/ProcessAreaBackdrop.svelte";
 
   export let routeKey: string;
   export let onBack: () => void = () => {};
@@ -40,8 +46,8 @@
   export let onOpenHmi: (id: string) => void = () => {};
   export let viewMode: ViewMode = "logical";
 
-  const WORLD_WIDTH = 1280;
-  const WORLD_HEIGHT = 900;
+  const DEFAULT_WORLD_WIDTH = 1280;
+  const DEFAULT_WORLD_HEIGHT = 900;
   const MIN_ZOOM = 0.25;
   const MAX_ZOOM = 1.6;
   const ZOOM_STEP = 0.1;
@@ -61,12 +67,16 @@
   let viewportHeight = 1;
 
   $: area = findProcessArea(routeKey);
-  $: equipment = (area?.equipment ?? []).map((item) => ({
-    ...item,
-    ...(viewMode === "physical"
-      ? physicalSlotPositions[item.slot]
-      : logicalSlotPositions[item.slot]),
-  })) as EquipmentView[];
+  $: worldWidth = routeKey === "forming" ? FORMING_WORLD_WIDTH : DEFAULT_WORLD_WIDTH;
+  $: worldHeight = routeKey === "forming" ? FORMING_WORLD_HEIGHT : DEFAULT_WORLD_HEIGHT;
+  $: equipment = routeKey === "forming"
+    ? buildFormingEquipment(viewMode)
+    : (area?.equipment ?? []).map((item) => ({
+        ...item,
+        ...(viewMode === "physical"
+          ? physicalSlotPositions[item.slot]
+          : logicalSlotPositions[item.slot]),
+      })) as EquipmentView[];
   $: selectedEquipment = equipment.find((item) => item.id === selectedId) ?? null;
   $: selectedPresentation = selectedEquipment
     ? equipmentPresentation(selectedEquipment)
@@ -78,8 +88,8 @@
         viewMode,
       )
     : [];
-  $: worldPixelWidth = WORLD_WIDTH * zoom;
-  $: worldPixelHeight = WORLD_HEIGHT * zoom;
+  $: worldPixelWidth = worldWidth * zoom;
+  $: worldPixelHeight = worldHeight * zoom;
   $: worldOffsetX = Math.max(0, (viewportWidth - worldPixelWidth) / 2);
   $: worldOffsetY = Math.max(0, (viewportHeight - worldPixelHeight) / 2);
 
@@ -94,15 +104,15 @@
 
     const focusX = focalX ?? viewport.clientWidth / 2;
     const focusY = focalY ?? viewport.clientHeight / 2;
-    const currentOffsetX = Math.max(0, (viewport.clientWidth - WORLD_WIDTH * zoom) / 2);
-    const currentOffsetY = Math.max(0, (viewport.clientHeight - WORLD_HEIGHT * zoom) / 2);
+    const currentOffsetX = Math.max(0, (viewport.clientWidth - worldWidth * zoom) / 2);
+    const currentOffsetY = Math.max(0, (viewport.clientHeight - worldHeight * zoom) / 2);
     const worldX = (viewport.scrollLeft + focusX - currentOffsetX) / zoom;
     const worldY = (viewport.scrollTop + focusY - currentOffsetY) / zoom;
 
     zoom = targetZoom;
     await tick();
-    const nextOffsetX = Math.max(0, (viewport.clientWidth - WORLD_WIDTH * zoom) / 2);
-    const nextOffsetY = Math.max(0, (viewport.clientHeight - WORLD_HEIGHT * zoom) / 2);
+    const nextOffsetX = Math.max(0, (viewport.clientWidth - worldWidth * zoom) / 2);
+    const nextOffsetY = Math.max(0, (viewport.clientHeight - worldHeight * zoom) / 2);
     viewport.scrollLeft = worldX * zoom + nextOffsetX - focusX;
     viewport.scrollTop = worldY * zoom + nextOffsetY - focusY;
   }
@@ -113,16 +123,16 @@
     const horizontalPadding = compact ? 24 : 80;
     const verticalPadding = compact ? 24 : 64;
     const fitted = Math.min(
-      (viewport.clientWidth - horizontalPadding) / WORLD_WIDTH,
-      (viewport.clientHeight - verticalPadding) / WORLD_HEIGHT,
+      (viewport.clientWidth - horizontalPadding) / worldWidth,
+      (viewport.clientHeight - verticalPadding) / worldHeight,
     );
 
     zoom = Number(clampZoom(compact ? Math.max(0.65, fitted) : fitted).toFixed(2));
     await tick();
     viewport.scrollLeft = compact
       ? 0
-      : Math.max(0, (WORLD_WIDTH * zoom - viewport.clientWidth) / 2);
-    viewport.scrollTop = Math.max(0, (WORLD_HEIGHT * zoom - viewport.clientHeight) / 2);
+      : Math.max(0, (worldWidth * zoom - viewport.clientWidth) / 2);
+    viewport.scrollTop = Math.max(0, (worldHeight * zoom - viewport.clientHeight) / 2);
   }
 
   async function resetView() {
@@ -164,6 +174,16 @@
     if (!upstream) return "";
     const source = equipmentCenter(upstream);
     const target = equipmentCenter(item);
+    if (routeKey === "forming") {
+      if (item.linkKind === "io" || item.linkKind === "safety-status") {
+        const fieldBus = 700;
+        return `M${source.x} ${source.y} V${fieldBus} H${target.x} V${target.y}`;
+      }
+      if (item.kind === "module HMI") {
+        const operatorBus = 475;
+        return `M${source.x} ${source.y} V${operatorBus} H${target.x} V${target.y}`;
+      }
+    }
     if (item.linkKind === "safety-status") {
       const lowerRoute = 810;
       return `M${source.x} ${source.y} V${lowerRoute} H${target.x} V${target.y}`;
@@ -312,6 +332,7 @@
       </button>
       <button
         type="button"
+        class="process-area-grid-toggle"
         class:active={gridVisible}
         aria-pressed={gridVisible}
         aria-label="Toggle reference grid"
@@ -341,8 +362,9 @@
             class:grid-visible={gridVisible}
             class:physical-view={viewMode === "physical"}
             class:logical-view={viewMode === "logical"}
+            class:forming-world={routeKey === "forming"}
             class="process-area-world"
-            style={`left: ${worldOffsetX}px; top: ${worldOffsetY}px; width: ${WORLD_WIDTH}px; height: ${WORLD_HEIGHT}px; transform: scale(${zoom});`}
+            style={`left: ${worldOffsetX}px; top: ${worldOffsetY}px; width: ${worldWidth}px; height: ${worldHeight}px; transform: scale(${zoom});`}
             aria-label={`${viewMode} ${area.label} view`}
           >
             <div class="lan-heading">
@@ -351,44 +373,17 @@
               <p>{area.subtitle}</p>
             </div>
 
-            <svg class="process-area-drawing" viewBox={`0 0 ${WORLD_WIDTH} ${WORLD_HEIGHT}`} aria-hidden="true">
-              <g class="process-area-physical-layer">
-                <rect class="area-facility-shell" x="25" y="100" width="1230" height="720"></rect>
-                <rect class="area-control-room" x="45" y="125" width="485" height="650"></rect>
-                <rect class="area-field-room" x="555" y="125" width="680" height="650"></rect>
-                <rect class="area-compute-bay" x="55" y="135" width="220" height="180"></rect>
-                <rect class="area-operator-bay" x="290" y="135" width="235" height="180"></rect>
-                <rect class="area-cabinet-row" x="55" y="340" width="470" height="245"></rect>
-                <rect class="area-safety-bay" x="900" y="670" width="300" height="125"></rect>
-                <path class="area-cable-tray" d="M165 270 V355 H410 V452 H695 V165 H1150"></path>
-                <path class="area-material-line" d="M595 485 H1165"></path>
-                <path class="area-floor-marking" d="M575 160 H1210 V650 H575 Z M850 160 V650"></path>
-                <text class="area-zone-label" x="70" y="150">LEVEL 3 CONTROL COMPUTE</text>
-                <text class="area-zone-label" x="305" y="150">LOCAL OPERATOR STATION</text>
-                <text class="area-zone-label" x="70" y="365">CELL NETWORK AND DISTRIBUTED I/O</text>
-                <text class="area-zone-label" x="585" y="155">FIELD EQUIPMENT BAY</text>
-                <text class="area-zone-label" x="925" y="700">SAFETY / INTERLOCK BOUNDARY</text>
-                <text class="area-detail-label" x="640" y="475">PROCESS MATERIAL PATH</text>
-              </g>
-
-              <g class="process-area-logical-layer">
-                <rect class="area-logical-zone area-network-zone" x="35" y="315" width="245" height="270"></rect>
-                <rect class="area-logical-zone area-control-zone" x="295" y="90" width="260" height="700"></rect>
-                <rect class="area-logical-zone area-input-zone" x="575" y="90" width="280" height="700"></rect>
-                <rect class="area-logical-zone area-output-zone" x="875" y="90" width="350" height="550"></rect>
-                <rect class="area-logical-zone area-safety-zone" x="875" y="655" width="350" height="160"></rect>
-                <text class="area-zone-label" x="55" y="345">CELL NETWORK</text>
-                <text class="area-zone-label" x="315" y="120">CONTROL AND OPERATOR LAYER</text>
-                <text class="area-zone-label" x="595" y="120">PROCESS INPUTS</text>
-                <text class="area-zone-label" x="895" y="120">PROCESS OUTPUTS</text>
-                <text class="area-zone-label" x="895" y="685">SAFETY AND PERMISSIVES</text>
-              </g>
+            <svg class="process-area-drawing" viewBox={`0 0 ${worldWidth} ${worldHeight}`} aria-hidden="true">
+              <ProcessAreaBackdrop {routeKey} />
 
               <g class="process-area-connections">
                 {#each equipment.filter((item) => upstreamFor(item)) as item (item.id)}
                   <path
                     class:process-io-link={item.linkKind === "io"}
                     class:process-safety-link={item.linkKind === "safety-status"}
+                    class:process-sensor-link={item.kind === "process input"}
+                    class:process-actuator-link={item.kind === "process output"}
+                    class:process-supervisory-link={item.kind === "module HMI" || item.kind === "SCADA workstation"}
                     d={connectionPath(item)}
                   ></path>
                 {/each}

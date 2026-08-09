@@ -1,4 +1,4 @@
-schema_version: "0.11.0"
+schema_version: "0.12.0"
 id: "business-northbound-firewall-failover"
 label: "Northbound firewall failover"
 summary: "The OT DMZ historian publishes approved HTTPS operations data through firewall member A, then repeats the request after the converged data path and virtual interface ownership move to member B."

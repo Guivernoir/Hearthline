@@ -1,4 +1,4 @@
-schema_version: "0.9.0"
+schema_version: "0.10.0"
 id: "ot-operations-services-01"
 label: "OT Operations Services-01"
 kind: "service-cluster"
@@ -9,6 +9,7 @@ role: "Factory-local SCADA, historian, engineering, and OT management services"
 summary: "Maintains local supervision and operations data when the inter-site conduit is unavailable."
 lifecycle: "design"
 tags: []
+default_gateway: "10.20.0.1"
 render:
   - view: "factory/process"
     node: "ot-operations"
@@ -16,6 +17,7 @@ render:
 interfaces:
   - id: "level-three"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:20:00:20"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -24,10 +26,12 @@ interfaces:
       duplex: "full"
       mtu: 1500
     mode: "routed"
-    addresses: []
+    addresses:
+      - "10.20.0.20/24"
     vlans: []
   - id: "level-three-standby"
     hardware: "ethernet-rj45"
+    mac_address: "02:00:00:20:00:21"
     state:
       administrative: "up"
       initial_operational: "up"
@@ -36,7 +40,8 @@ interfaces:
       duplex: "full"
       mtu: 1500
     mode: "access"
-    addresses: []
+    addresses:
+      - "10.20.0.21/24"
     vlans: []
 behavior:
   family: "service-host"
