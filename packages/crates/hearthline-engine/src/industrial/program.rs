@@ -193,6 +193,15 @@ impl SequenceRuntime {
     }
 
     pub fn elapse(&mut self, elapsed_ms: u64, inputs: SequenceInputs) -> Option<SequenceScan> {
+        self.elapse_with_timer_override(elapsed_ms, inputs, None)
+    }
+
+    pub fn elapse_with_timer_override(
+        &mut self,
+        elapsed_ms: u64,
+        inputs: SequenceInputs,
+        timer_override_ms: Option<u64>,
+    ) -> Option<SequenceScan> {
         assert!(
             elapsed_ms <= self.time_to_next_scan_ms(),
             "sequence elapsed slice cannot cross more than one scan boundary"
@@ -203,10 +212,18 @@ impl SequenceRuntime {
             return None;
         }
         self.scan_remainder_ms = 0;
-        Some(self.execute_scan(inputs))
+        Some(self.execute_scan_with_timer_override(inputs, timer_override_ms))
     }
 
     pub fn execute_scan(&mut self, inputs: SequenceInputs) -> SequenceScan {
+        self.execute_scan_with_timer_override(inputs, None)
+    }
+
+    fn execute_scan_with_timer_override(
+        &mut self,
+        inputs: SequenceInputs,
+        timer_override_ms: Option<u64>,
+    ) -> SequenceScan {
         self.scan_count = self.scan_count.saturating_add(1);
         let previous_step = self.current_step;
         if inputs.trip_active {
@@ -215,7 +232,12 @@ impl SequenceRuntime {
             .program
             .step(self.current_step)
             .and_then(|step| step.transition)
-            && transition_matches(transition.condition, self.step_elapsed_ms, inputs)
+            && transition_matches(
+                transition.condition,
+                self.step_elapsed_ms,
+                inputs,
+                timer_override_ms,
+            )
         {
             self.current_step = transition.target;
         }
@@ -252,12 +274,15 @@ fn transition_matches(
     condition: SequenceCondition,
     step_elapsed_ms: u64,
     inputs: SequenceInputs,
+    timer_override_ms: Option<u64>,
 ) -> bool {
     match condition {
         SequenceCondition::StartPermitted => {
             inputs.start_request && inputs.safety_ready && !inputs.trip_active
         }
-        SequenceCondition::TimerElapsed { duration_ms } => step_elapsed_ms >= duration_ms,
+        SequenceCondition::TimerElapsed { duration_ms } => {
+            step_elapsed_ms >= timer_override_ms.unwrap_or(duration_ms)
+        }
         SequenceCondition::ResetPermitted => {
             inputs.reset_request && inputs.safety_ready && !inputs.trip_active
         }

@@ -1,13 +1,60 @@
 use hearthline_engine::{
     Comparison, DropReason, Effect, FormingFault, FormingMeasurements, FormingPhase,
-    FormingProcess, FormingTrip, HistorianBuffer, LogicRule, SafetyInterface, SequenceAssignment,
-    SequenceCondition, SequenceInputs, SequenceProgram, SequenceRuntime, SequenceStep,
-    SequenceTransition, SimulatedComponent, SimulationEvent, VirtualPlc,
+    FormingProcess, FormingSetpoints, FormingTrip, HistorianBuffer, LogicRule, RobotCellArbiter,
+    RobotCellRequestStatus, RobotCellStage, RobotJoints, RobotMotionKind, RobotMotionRuntime,
+    RobotPose, RobotWorkspace, SafetyInterface, SequenceAssignment, SequenceCondition,
+    SequenceInputs, SequenceProgram, SequenceRuntime, SequenceStep, SequenceTransition,
+    SimulatedComponent, SimulationEvent, VirtualPlc,
 };
 use hearthline_model::{ComponentId, ProcessEvent, ProcessSignal, SignalValue};
 
 fn id(value: &str) -> ComponentId {
     ComponentId::new(value).expect("test ID")
+}
+
+#[test]
+fn robot_motion_interpolates_and_stops_at_the_configured_target() {
+    let workspace = RobotWorkspace {
+        minimum: RobotPose::new(-1_000.0, -1_000.0, 0.0, -180.0, -180.0, -180.0),
+        maximum: RobotPose::new(1_000.0, 1_000.0, 2_000.0, 180.0, 180.0, 180.0),
+        joint_minimum: RobotJoints::new([-170.0, -90.0, -150.0, -190.0, -125.0, -360.0]),
+        joint_maximum: RobotJoints::new([170.0, 150.0, 150.0, 190.0, 125.0, 360.0]),
+    };
+    let home = RobotPose::new(0.0, 0.0, 1_200.0, 0.0, 90.0, 0.0);
+    let target = RobotPose::new(800.0, 500.0, 900.0, 0.0, 90.0, 0.0);
+    let mut robot = RobotMotionRuntime::new(workspace, home, 1_000.0, 90.0).expect("robot");
+    robot
+        .command_pose(target, RobotMotionKind::Linear, 50.0)
+        .expect("motion command");
+
+    assert!(robot.active());
+    assert!(!robot.tick(500));
+    assert!(robot.progress() > 0.0 && robot.progress() < 1.0);
+    assert!(robot.pose().x > 0.0 && robot.pose().x < target.x);
+    assert!(robot.tick(10_000));
+    assert_eq!(robot.pose(), target);
+    assert!(!robot.active());
+}
+
+#[test]
+fn robot_cell_arbiter_grants_one_mould_and_preserves_fifo_order() {
+    let mut arbiter = RobotCellArbiter::default();
+    assert_eq!(arbiter.request("mould-03"), RobotCellRequestStatus::Granted);
+    assert_eq!(arbiter.request("mould-01"), RobotCellRequestStatus::Queued);
+    assert_eq!(arbiter.request("mould-02"), RobotCellRequestStatus::Queued);
+    assert_eq!(arbiter.active(), Some("mould-03"));
+    assert_eq!(
+        arbiter.queue().collect::<Vec<_>>(),
+        ["mould-01", "mould-02"]
+    );
+
+    arbiter.set_stage(RobotCellStage::Return);
+    assert_eq!(
+        arbiter.complete_active().expect("active").as_str(),
+        "mould-03"
+    );
+    assert_eq!(arbiter.active(), Some("mould-01"));
+    assert_eq!(arbiter.stage(), RobotCellStage::Approach);
 }
 
 fn signal(tag: &str, value: SignalValue) -> ProcessSignal {
@@ -192,6 +239,25 @@ fn forming_vacuum_fault_trips_sequence_to_safe_outputs() {
 }
 
 #[test]
+fn forming_setpoints_drive_phase_duration_and_pressure_dynamics() {
+    let setpoints = FormingSetpoints {
+        fill_ms: 2_200,
+        pressure_bar: 7.4,
+        ..FormingSetpoints::default()
+    };
+    let mut process = forming_process().with_setpoints(setpoints);
+    process.start(true).expect("cycle start");
+    process.tick(2_000);
+    assert_eq!(process.phase(), FormingPhase::Filling);
+
+    process.tick(200);
+    assert_eq!(process.phase(), FormingPhase::Pressurizing);
+    process.tick(750);
+    assert_eq!(process.phase(), FormingPhase::PressureDwell);
+    assert_eq!(process.measurements().mould_pressure_bar, 7.4);
+}
+
+#[test]
 fn historian_buffer_counts_pending_eviction() {
     let mut buffer = HistorianBuffer::<u64, 3>::new();
     buffer.push(1, false);
@@ -285,4 +351,38 @@ fn bounded_sequence_runtime_prioritizes_trip_and_requires_reset() {
         ..SequenceInputs::default()
     });
     assert_eq!(runtime.current_step(), 0);
+}
+
+#[test]
+fn bounded_sequence_runtime_accepts_a_reviewed_timer_override() {
+    let idle = SequenceStep::new(
+        0,
+        [],
+        Some(SequenceTransition {
+            condition: SequenceCondition::StartPermitted,
+            target: 10,
+        }),
+    )
+    .expect("idle step");
+    let running = SequenceStep::new(
+        10,
+        [],
+        Some(SequenceTransition {
+            condition: SequenceCondition::TimerElapsed { duration_ms: 1_000 },
+            target: 0,
+        }),
+    )
+    .expect("running step");
+    let fault = SequenceStep::new(900, [], None).expect("fault step");
+    let program = SequenceProgram::new("override-test".into(), 20, 0, 900, [idle, running, fault])
+        .expect("program");
+    let mut runtime = SequenceRuntime::new(program);
+    runtime.execute_scan(SequenceInputs {
+        start_request: true,
+        safety_ready: true,
+        ..SequenceInputs::default()
+    });
+    runtime.elapse_with_timer_override(20, SequenceInputs::default(), Some(20));
+    assert_eq!(runtime.current_step(), 0);
+    assert_eq!(runtime.cycle_count(), 1);
 }

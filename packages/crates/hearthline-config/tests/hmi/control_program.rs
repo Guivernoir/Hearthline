@@ -11,7 +11,7 @@ fn repository() -> ConfigRepository {
 fn forming_control_source_is_loaded_and_exposed_by_the_hmi() {
     let appliances = repository();
     let session =
-        HmiSession::from_repository(&appliances, "area-02-scada-01").expect("Forming SCADA");
+        HmiSession::from_repository(&appliances, "area-02-machine-pc-01").expect("Forming SCADA");
     let snapshot = session.snapshot();
     let state = snapshot.control_program.expect("control program state");
     assert_eq!(state.language, "structured-text");
@@ -39,11 +39,11 @@ fn structured_text_timer_transition_occurs_on_the_plc_scan_boundary() {
     let appliances = repository();
     let mut sessions = HmiSessionStore::default();
     sessions
-        .execute(&appliances, "area-02-scada-01", HmiAction::StartProcess)
-        .expect("start Forming");
+        .execute(&appliances, "area-02-hmi-01", HmiAction::StartMould)
+        .expect("start Mould 1");
     sessions.tick(1_500);
     let pressurizing = sessions
-        .profile(&appliances, "area-02-scada-01")
+        .profile(&appliances, "area-02-hmi-01")
         .expect("pressurizing snapshot");
     assert_eq!(
         pressurizing.process.expect("process").phase,
@@ -52,7 +52,7 @@ fn structured_text_timer_transition_occurs_on_the_plc_scan_boundary() {
 
     sessions.tick(750);
     let before_scan = sessions
-        .profile(&appliances, "area-02-scada-01")
+        .profile(&appliances, "area-02-hmi-01")
         .expect("pre-scan snapshot");
     assert_eq!(
         before_scan.process.expect("process").phase,
@@ -61,11 +61,14 @@ fn structured_text_timer_transition_occurs_on_the_plc_scan_boundary() {
 
     sessions.tick(10);
     let after_scan = sessions
-        .profile(&appliances, "area-02-scada-01")
+        .profile(&appliances, "area-02-hmi-01")
         .expect("post-scan snapshot");
     assert_eq!(after_scan.process.expect("process").phase, "pressure-dwell");
+    let controller = sessions
+        .profile(&appliances, "area-02-machine-pc-01")
+        .expect("controller source state");
     assert_eq!(
-        after_scan
+        controller
             .control_program
             .expect("control program")
             .current_step,

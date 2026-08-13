@@ -1,0 +1,28 @@
+schema_version: "0.10.0"
+id: "area-02-m04-tt-01"
+label: "AREA-02-M04-TT-01"
+kind: "field-sensor"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Mould-temperature transmitter"
+summary: "Independent Mould 4 mould-temperature transmitter used by its local panel, the forming controller, and machine-PC SCADA."
+lifecycle: "simulated"
+tags: ["ot-area-02", "sensor", "station-mould-04", "temperature"]
+render:
+  - { view: "factory/process/forming", node: "area-02-m04-tt-01", mode: "any" }
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "field-sensor"
+  signal_tag: "area-02-m04-tt-01"
+  unit: "degree-celsius"
+  minimum: 5
+  maximum: 80
+  initial_value: 38

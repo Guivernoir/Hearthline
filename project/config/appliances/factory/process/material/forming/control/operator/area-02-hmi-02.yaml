@@ -5,12 +5,13 @@ kind: "hmi"
 site: "Factory"
 environment: "Forming"
 zone: "OT-AREA-02"
-role: "Pressure-casting mould module HMI"
-summary: "Local operator panel for mould pressure, temperature, fill-head and mould position, mould motion, cycle start, and machine-safety reset."
+role: "Mould 2 local operator panel"
+summary: "Keyed local panel for Mould 2 enable, automatic status, manual movement, and authenticated setup movement. Process-sensor bypass never overrides hardwired safety."
 lifecycle: "simulated"
 tags:
   - "ot-area-02"
-  - "module-pressure-casting"
+  - "station-mould-02"
+  - "mould-panel"
   - "operator interface"
   - "interactive"
 render:
@@ -28,11 +29,23 @@ interfaces:
 behavior:
   family: "operator-interface"
   controller: "area-02-vplc-01"
-  permissions: ["observe", "acknowledge-alarms", "authorized-command", "reset-safety", "run-sequence"]
+  permissions: ["observe", "acknowledge-alarms", "authorized-command", "reset-safety", "start-mould", "stop-mould-after-phase", "end-mould-after-cycle"]
   signal_tags:
-    - "area-02-pt-02"
-    - "area-02-tt-02"
-    - "area-02-pos-01"
-    - "area-02-pos-02"
+    - "area-02-m02-pt-01"
+    - "area-02-m02-tt-01"
+    - "area-02-m02-pos-01"
+    - "area-02-m02-pos-02"
+    - "area-02-m02-mt-01"
+    - "area-02-m02-inc-01"
   command_tags:
-    - "area-02-mould-01-command"
+    - "area-02-m02-mould-01-command"
+  safety_components: ["area-02-m02-safe-01", "area-02-cell-guard-safe-01"]
+  control_station:
+    station_type: "mould-panel"
+    target: "mould-02"
+    mode_selector:
+      positions: ["manual", "auto", "setup"]
+      initial_position: "auto"
+      setup_password_sha256: "0dd7fd00e4a8872cfa378eebdca94f9c8a898dd328f8b0aeb0b5dd0f69a09c72"
+      bypassed_permissives: ["process-sensor-permissives"]
+      retained_protections: ["emergency-stop-chain", "hardwired-travel-limits"]

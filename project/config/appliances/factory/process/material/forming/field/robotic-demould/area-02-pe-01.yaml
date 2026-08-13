@@ -8,7 +8,7 @@ zone: "OT-AREA-02"
 role: "Robot gripper piece-presence sensor"
 summary: "Confirms that the green piece is held during mould pickup and delivery to the operator."
 lifecycle: "simulated"
-tags: ["ot-area-02", "sensor", "module-robotic-demould", "robot", "part-detection"]
+tags: ["ot-area-02", "sensor", "station-robot", "robot", "part-detection"]
 render:
   - { view: "factory/process/forming", node: "area-02-pe-01", mode: "any" }
 interfaces:

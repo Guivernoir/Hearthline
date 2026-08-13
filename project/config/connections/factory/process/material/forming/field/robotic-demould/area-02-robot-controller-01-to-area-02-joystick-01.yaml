@@ -1,0 +1,11 @@
+schema_version: "0.2.0"
+id: "area-02-robot-controller-01-to-area-02-joystick-01"
+label: "Robot controller pendant link"
+lifecycle: "simulated"
+transport: "ethernet"
+medium: { type: "copper", wiring: "straight-through", category: "cat6a", length_m: 8.0 }
+endpoints:
+  a: { appliance: "area-02-robot-controller-01", interface: "pendant-link" }
+  b: { appliance: "area-02-joystick-01", interface: "controller-link" }
+properties: { capacity_mbps: 100, latency_ms: 0, loss_every: null, direction: "bidirectional", operational: true }
+tags: ["ot", "ot-area-02", "robot-pendant", "motion-control"]

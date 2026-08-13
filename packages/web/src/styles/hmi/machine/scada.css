@@ -1,0 +1,446 @@
+.machine-pc-layout {
+  display: grid;
+  min-height: calc(100vh - 174px);
+  grid-template-columns: 196px minmax(0, 1fr);
+  background: #e9eeeb;
+}
+
+.machine-pc-navigation {
+  display: flex;
+  padding: 10px 8px;
+  flex-direction: column;
+  gap: 14px;
+  border-right: 1px solid #bfc9c3;
+  background: #263b34;
+}
+
+.machine-pc-nav-group {
+  display: grid;
+  gap: 4px;
+}
+
+.machine-pc-nav-group > small {
+  padding: 8px 9px 4px;
+  color: #9db0a7;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.machine-pc-navigation button {
+  display: grid;
+  min-height: 40px;
+  padding: 7px 9px;
+  align-items: center;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: 7px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #d6e0db;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.machine-pc-navigation button:hover,
+.machine-pc-navigation button.active {
+  border-color: #54766a;
+  background: #36564b;
+}
+
+.machine-pc-navigation button > span,
+.machine-pc-navigation button > strong {
+  min-width: 0;
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.machine-pc-navigation button > i {
+  min-width: 18px;
+  padding: 2px 4px;
+  border-radius: 8px;
+  color: #fff;
+  background: #a64b3c;
+  font-size: 8px;
+  font-style: normal;
+  text-align: center;
+}
+
+.machine-pc-nav-group.moulds button {
+  grid-template-columns: 28px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+}
+
+.machine-pc-nav-group.moulds button > span {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  grid-row: 1 / 3;
+  place-items: center;
+  border: 1px solid #718b80;
+  border-radius: 50%;
+  color: #dbe5e0;
+}
+
+.machine-pc-nav-group.moulds button > span.running {
+  border-color: #63aa88;
+  background: #34755a;
+}
+
+.machine-pc-nav-group.moulds button > span.faulted {
+  border-color: #d38a79;
+  background: #98493c;
+}
+
+.machine-pc-nav-group.moulds button > small {
+  overflow: hidden;
+  color: #aebeb6;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.machine-pc-page {
+  min-width: 0;
+}
+
+.machine-pc-page-header {
+  display: flex;
+  min-height: 42px;
+  padding: 7px 12px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid #c5cec8;
+  color: #42534a;
+  background: #f5f7f5;
+}
+
+.machine-pc-page-header div,
+.machine-pc-page-header span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+}
+
+.machine-pc-page-header div small {
+  color: #6b7972;
+  text-transform: uppercase;
+}
+
+.machine-pc-page-header span i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #38805e;
+}
+
+.machine-pc-overview,
+.machine-pc-mould-page,
+.machine-pc-tank-page,
+.machine-pc-production,
+.machine-pc-history,
+.machine-pc-logs {
+  min-width: 0;
+  padding: 12px;
+}
+
+.machine-pc-overview > header,
+.machine-pc-production > header,
+.slip-tank-mimic > header,
+.machine-pc-faceplate > header {
+  display: flex;
+  min-height: 40px;
+  padding: 8px 11px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid #c5cec8;
+  border-bottom: 0;
+  background: #edf1ee;
+}
+
+.machine-pc-overview > header span,
+.machine-pc-production > header span,
+.slip-tank-mimic > header span,
+.machine-pc-faceplate > header span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #354a40;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.machine-pc-overview > header small,
+.machine-pc-faceplate > header small {
+  color: #6c7972;
+  font-size: 8px;
+}
+
+.machine-pc-asset-grid {
+  display: grid;
+  padding: 12px;
+  grid-template-columns: repeat(2, minmax(260px, 1fr));
+  gap: 8px;
+  border: 1px solid #c5cec8;
+  background: #f7f9f7;
+}
+
+.machine-pc-asset-grid button {
+  display: grid;
+  min-height: 86px;
+  padding: 11px;
+  align-items: center;
+  grid-template-columns: 46px minmax(0, 1fr) 20px;
+  gap: 10px;
+  border: 1px solid #c5cec8;
+  border-radius: 4px;
+  color: #35463d;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.machine-pc-asset-grid button:hover {
+  border-color: #4a7b65;
+  background: #f2f7f4;
+}
+
+.machine-pc-asset-grid button > span {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid #9eb1a7;
+  border-radius: 4px;
+  color: #39745a;
+  background: #eef4f0;
+}
+
+.machine-pc-asset-grid button > span.running {
+  color: #fff;
+  background: #39765a;
+}
+
+.machine-pc-asset-grid button > span.faulted {
+  color: #fff;
+  background: #a34b3d;
+}
+
+.machine-pc-asset-grid button div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.machine-pc-asset-grid button small {
+  color: #6e7a74;
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.machine-pc-asset-grid button strong {
+  font-size: 13px;
+}
+
+.machine-pc-asset-grid button em {
+  overflow: hidden;
+  color: #627068;
+  font-size: 9px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.machine-pc-mould-page {
+  display: grid;
+  gap: 10px;
+}
+
+.machine-pc-faceplate {
+  border: 1px solid #c5cec8;
+  background: #fff;
+}
+
+.machine-pc-faceplate > div {
+  display: flex;
+  padding: 10px 12px 4px;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 9px;
+}
+
+.machine-pc-faceplate nav {
+  display: flex;
+  padding: 8px 12px 12px;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.machine-pc-faceplate nav button {
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 1px solid #aebbb4;
+  border-radius: 3px;
+  color: #405249;
+  background: #f4f7f5;
+  font-size: 8px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.machine-pc-faceplate nav button.active {
+  color: #fff;
+  background: #39765a;
+}
+
+.slip-tank-mimic {
+  border: 1px solid #c5cec8;
+  background: #f8faf8;
+}
+
+.slip-tank-mimic > div {
+  display: grid;
+  padding: 12px;
+  grid-template-columns: minmax(360px, 1.25fr) minmax(250px, 0.75fr);
+  gap: 12px;
+}
+
+.slip-tank-mimic svg {
+  width: 100%;
+  max-height: 430px;
+  border: 1px solid #c6d0ca;
+  background: #eef2ef;
+}
+
+.tank-shell {
+  fill: #dfe6e2;
+  stroke: #5d7067;
+  stroke-width: 5;
+}
+
+.tank-fill {
+  fill: #a96e49;
+  opacity: 0.72;
+}
+
+.tank-agitator,
+.tank-pipe {
+  fill: none;
+  stroke: #5a7066;
+  stroke-width: 6;
+}
+
+.tank-drive {
+  fill: #d1dcd7;
+  stroke: #5a7066;
+  stroke-width: 4;
+}
+
+.slip-tank-mimic text {
+  fill: #617168;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.machine-pc-value-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.machine-pc-value-list div {
+  display: grid;
+  padding: 10px;
+  align-content: center;
+  gap: 4px;
+  border: 1px solid #c6d0ca;
+  background: #fff;
+}
+
+.machine-pc-value-list small,
+.machine-pc-value-list span {
+  color: #67756d;
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.machine-pc-value-list strong {
+  color: #2d4036;
+  font-size: 16px;
+}
+
+.production-summary {
+  display: grid;
+  padding: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  border: 1px solid #c5cec8;
+  background: #f7f9f7;
+}
+
+.production-summary div {
+  display: grid;
+  padding: 10px;
+  gap: 5px;
+  border: 1px solid #cbd3ce;
+  background: #fff;
+}
+
+.production-summary small {
+  color: #6b7871;
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.production-summary strong {
+  font-size: 22px;
+}
+
+.production-table {
+  display: grid;
+  border: 1px solid #c5cec8;
+  border-top: 0;
+}
+
+.production-table button {
+  display: grid;
+  min-height: 48px;
+  padding: 8px 11px;
+  align-items: center;
+  grid-template-columns: 10px minmax(90px, 0.7fr) minmax(110px, 1fr) minmax(120px, 1fr) 80px 18px;
+  gap: 8px;
+  border: 0;
+  border-bottom: 1px solid #d3dad5;
+  color: #35463d;
+  background: #fff;
+  text-align: left;
+}
+
+.production-table button > span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #9aa79f;
+}
+
+.production-table button > span.running {
+  background: #39765a;
+}
+
+.production-table em,
+.production-table small {
+  color: #66746c;
+  font-size: 9px;
+  font-style: normal;
+  text-transform: uppercase;
+}
+
+.machine-pc-history .hmi-historian {
+  border: 1px solid #c5cec8;
+  background: #fff;
+}

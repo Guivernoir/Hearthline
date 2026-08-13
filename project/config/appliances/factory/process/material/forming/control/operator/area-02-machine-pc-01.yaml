@@ -1,0 +1,130 @@
+schema_version: "0.10.0"
+id: "area-02-machine-pc-01"
+label: "AREA-02-MACHINE-PC-01"
+kind: "scada-workstation"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Embedded forming-machine PC hosting SCADA and engineering services"
+summary: "Hosts cell SCADA, mould detail, alarm and event logs, recipes, timing parameters, valve controls, trends, and the validated controller-source viewer. It has no robot command authority."
+lifecycle: "simulated"
+tags: ["ot-area-02", "machine-pc", "scada", "operator interface", "interactive"]
+render:
+  - { view: "factory/process/forming", node: "area-02-machine-pc-01", mode: "any" }
+interfaces:
+  - id: "cell-network"
+    hardware: "ethernet-rj45"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }
+    mode: "access"
+    addresses: []
+    vlans: [102]
+behavior:
+  family: "operator-interface"
+  controller: "area-02-vplc-01"
+  permissions:
+    - "observe"
+    - "acknowledge-alarms"
+    - "authorized-command"
+    - "reset-safety"
+    - "inject-faults"
+    - "publish-telemetry"
+    - "configure-parameters"
+    - "select-recipe"
+    - "view-control-source"
+    - "operate-guard-door"
+  signal_tags: []
+  command_tags:
+    - "area-02-slip-01-command"
+    - "area-02-water-01-command"
+    - "area-02-air-01-command"
+    - "area-02-vac-01-command"
+    - "area-02-m01-manifold-01-command"
+    - "area-02-m02-manifold-01-command"
+    - "area-02-m03-manifold-01-command"
+    - "area-02-m04-manifold-01-command"
+    - "area-02-m01-handoff-01-command"
+    - "area-02-m02-handoff-01-command"
+    - "area-02-m03-handoff-01-command"
+    - "area-02-m04-handoff-01-command"
+  safety_components:
+    - "area-02-safe-01"
+    - "area-02-m02-safe-01"
+    - "area-02-m03-safe-01"
+    - "area-02-m04-safe-01"
+    - "area-02-robot-safe-01"
+    - "area-02-cell-guard-safe-01"
+  control_station:
+    station_type: "machine-pc"
+    target: "forming-cell"
+  parameters:
+    - { id: "mould-01-fill-ms", label: "Fill duration", target: "mould-01", unit: "ms", minimum: 500, maximum: 10000, step: 100, initial_value: 1500 }
+    - { id: "mould-01-pressure-bar", label: "Casting pressure", target: "mould-01", unit: "bar", minimum: 1, maximum: 10, step: 0.1, initial_value: 6 }
+    - { id: "mould-01-dwell-ms", label: "Pressure hold", target: "mould-01", unit: "ms", minimum: 500, maximum: 15000, step: 100, initial_value: 2500 }
+    - { id: "mould-01-drain-ms", label: "Slip drain", target: "mould-01", unit: "ms", minimum: 200, maximum: 8000, step: 100, initial_value: 1000 }
+    - { id: "mould-01-pickup-delay-ms", label: "Release air to robot pickup", target: "mould-01", unit: "ms", minimum: 100, maximum: 5000, step: 50, initial_value: 400 }
+    - { id: "mould-01-wash-ms", label: "Mould wash", target: "mould-01", unit: "ms", minimum: 500, maximum: 8000, step: 100, initial_value: 1000 }
+    - { id: "mould-01-vacuum-ms", label: "Vacuum drying", target: "mould-01", unit: "ms", minimum: 500, maximum: 15000, step: 100, initial_value: 1500 }
+    - { id: "mould-02-fill-ms", label: "Fill duration", target: "mould-02", unit: "ms", minimum: 500, maximum: 10000, step: 100, initial_value: 1600 }
+    - { id: "mould-02-pressure-bar", label: "Casting pressure", target: "mould-02", unit: "bar", minimum: 1, maximum: 10, step: 0.1, initial_value: 6 }
+    - { id: "mould-02-dwell-ms", label: "Pressure hold", target: "mould-02", unit: "ms", minimum: 500, maximum: 15000, step: 100, initial_value: 2600 }
+    - { id: "mould-02-drain-ms", label: "Slip drain", target: "mould-02", unit: "ms", minimum: 200, maximum: 8000, step: 100, initial_value: 1000 }
+    - { id: "mould-02-pickup-delay-ms", label: "Release air to robot pickup", target: "mould-02", unit: "ms", minimum: 100, maximum: 5000, step: 50, initial_value: 450 }
+    - { id: "mould-02-wash-ms", label: "Mould wash", target: "mould-02", unit: "ms", minimum: 500, maximum: 8000, step: 100, initial_value: 1000 }
+    - { id: "mould-02-vacuum-ms", label: "Vacuum drying", target: "mould-02", unit: "ms", minimum: 500, maximum: 15000, step: 100, initial_value: 1600 }
+    - { id: "mould-03-fill-ms", label: "Fill duration", target: "mould-03", unit: "ms", minimum: 500, maximum: 10000, step: 100, initial_value: 1550 }
+    - { id: "mould-03-pressure-bar", label: "Casting pressure", target: "mould-03", unit: "bar", minimum: 1, maximum: 10, step: 0.1, initial_value: 6.2 }
+    - { id: "mould-03-dwell-ms", label: "Pressure hold", target: "mould-03", unit: "ms", minimum: 500, maximum: 15000, step: 100, initial_value: 2700 }
+    - { id: "mould-03-drain-ms", label: "Slip drain", target: "mould-03", unit: "ms", minimum: 200, maximum: 8000, step: 100, initial_value: 1100 }
+    - { id: "mould-03-pickup-delay-ms", label: "Release air to robot pickup", target: "mould-03", unit: "ms", minimum: 100, maximum: 5000, step: 50, initial_value: 450 }
+    - { id: "mould-03-wash-ms", label: "Mould wash", target: "mould-03", unit: "ms", minimum: 500, maximum: 8000, step: 100, initial_value: 1100 }
+    - { id: "mould-03-vacuum-ms", label: "Vacuum drying", target: "mould-03", unit: "ms", minimum: 500, maximum: 15000, step: 100, initial_value: 1600 }
+    - { id: "mould-04-fill-ms", label: "Fill duration", target: "mould-04", unit: "ms", minimum: 500, maximum: 10000, step: 100, initial_value: 1700 }
+    - { id: "mould-04-pressure-bar", label: "Casting pressure", target: "mould-04", unit: "bar", minimum: 1, maximum: 10, step: 0.1, initial_value: 6.2 }
+    - { id: "mould-04-dwell-ms", label: "Pressure hold", target: "mould-04", unit: "ms", minimum: 500, maximum: 15000, step: 100, initial_value: 2800 }
+    - { id: "mould-04-drain-ms", label: "Slip drain", target: "mould-04", unit: "ms", minimum: 200, maximum: 8000, step: 100, initial_value: 1100 }
+    - { id: "mould-04-pickup-delay-ms", label: "Release air to robot pickup", target: "mould-04", unit: "ms", minimum: 100, maximum: 5000, step: 50, initial_value: 500 }
+    - { id: "mould-04-wash-ms", label: "Mould wash", target: "mould-04", unit: "ms", minimum: 500, maximum: 8000, step: 100, initial_value: 1100 }
+    - { id: "mould-04-vacuum-ms", label: "Vacuum drying", target: "mould-04", unit: "ms", minimum: 500, maximum: 15000, step: 100, initial_value: 1700 }
+  recipes:
+    - { id: "standard-casting", label: "Standard casting", description: "Development baseline for the four configured mould stations." }
+    - { id: "thin-wall", label: "Thin wall", description: "Development recipe with shorter pressure and drain phases." }
+    - { id: "heavy-section", label: "Heavy section", description: "Development recipe with longer pressure and drying phases." }
+  active_recipe: "standard-casting"
+  supervisory_profile:
+    namespace: "hearthline.forming.area-02"
+    model_id: "forming-cell-supervisory-model"
+    repository:
+      id: "forming-model-repository"
+      engineering_node: "engineering-repository-01"
+      revision: "0.3.1-draft"
+      deployed_revision: "0.3.1-draft"
+    templates:
+      - { id: "industrial-asset", label: "Industrial asset", attributes: ["operating-state", "quality", "last-update"], alarm_capable: true, history_capable: true }
+      - { id: "forming-cell", label: "Forming cell", parent: "industrial-asset", attributes: ["production-enabled", "active-recipe", "total-cycles"], alarm_capable: true, history_capable: true }
+      - { id: "casting-station", label: "Casting station", parent: "industrial-asset", attributes: ["phase", "pressure", "temperature", "moisture", "cycle-count"], alarm_capable: true, history_capable: true }
+      - { id: "robot-cell", label: "Robot cell", parent: "industrial-asset", attributes: ["controller-state", "active-mould", "queue-depth", "active-frame", "active-tool"], alarm_capable: true, history_capable: true }
+      - { id: "utility-system", label: "Utility system", parent: "industrial-asset", attributes: ["header-pressure", "flow", "isolation-state"], alarm_capable: true, history_capable: true }
+    assets:
+      - { id: "forming-area-02", label: "Forming Area 02", template: "forming-cell", components: ["area-02-vplc-01", "area-02-machine-pc-01"], historized_tags: ["area-02-lt-01", "area-02-tt-01"] }
+      - { id: "forming-mould-01", label: "Mould 1", template: "casting-station", parent: "forming-area-02", components: ["area-02-m01-rio-01", "area-02-mould-01", "area-02-m01-manifold-01"], historized_tags: ["area-02-pt-02", "area-02-tt-02", "area-02-mt-02"] }
+      - { id: "forming-mould-02", label: "Mould 2", template: "casting-station", parent: "forming-area-02", components: ["area-02-m02-rio-01", "area-02-m02-mould-01", "area-02-m02-manifold-01"], historized_tags: ["area-02-m02-pt-01", "area-02-m02-tt-01", "area-02-m02-mt-01"] }
+      - { id: "forming-mould-03", label: "Mould 3", template: "casting-station", parent: "forming-area-02", components: ["area-02-m03-rio-01", "area-02-m03-mould-01", "area-02-m03-manifold-01"], historized_tags: ["area-02-m03-pt-01", "area-02-m03-tt-01", "area-02-m03-mt-01"] }
+      - { id: "forming-mould-04", label: "Mould 4", template: "casting-station", parent: "forming-area-02", components: ["area-02-m04-rio-01", "area-02-m04-mould-01", "area-02-m04-manifold-01"], historized_tags: ["area-02-m04-pt-01", "area-02-m04-tt-01", "area-02-m04-mt-01"] }
+      - { id: "forming-robot-cell", label: "Demoulding robot cell", template: "robot-cell", parent: "forming-area-02", components: ["area-02-robot-controller-01", "area-02-robot-01", "area-02-joystick-01", "area-02-robot-safe-01"], historized_tags: ["area-02-pos-03", "area-02-pe-01"] }
+      - { id: "forming-utilities", label: "Shared process utilities", template: "utility-system", parent: "forming-area-02", components: ["area-02-slip-01", "area-02-water-01", "area-02-air-01", "area-02-vac-01"], historized_tags: ["area-02-pt-01", "area-02-ft-02", "area-02-pt-04", "area-02-vt-01"] }
+    deployment_nodes:
+      - { id: "engineering-repository-01", label: "Engineering repository", host: "area-02-machine-pc-01", role: "engineering-repository", state: "online" }
+      - { id: "application-runtime-01", label: "Primary application runtime", host: "area-02-machine-pc-01", role: "application-runtime", state: "active", redundancy_group: "forming-runtime" }
+      - { id: "application-runtime-02", label: "Standby application runtime", host: "area-02-supervisory-node-02", role: "application-runtime", state: "standby", redundancy_group: "forming-runtime" }
+      - { id: "historian-node-01", label: "Local process historian", host: "area-02-supervisory-node-02", role: "historian", state: "online" }
+      - { id: "operator-client-01", label: "Machine operator client", host: "area-02-machine-pc-01", role: "operator-client", state: "online" }
+    roles:
+      - { id: "operator", label: "Operator", permissions: ["observe", "acknowledge-alarms", "operate-approved-controls"] }
+      - { id: "process-engineer", label: "Process engineer", permissions: ["observe", "acknowledge-alarms", "configure-parameters", "select-recipe", "view-control-source"] }
+      - { id: "maintenance", label: "Maintenance", permissions: ["observe", "acknowledge-alarms", "diagnose", "reset-safety"] }
+    identity: { user: "process.engineer", role: "process-engineer", authentication: "local-role-session" }
+    history:
+      sample_interval_ms: 1000
+      capacity: 60
+      tags: ["area-02-lt-01", "area-02-tt-01", "area-02-pt-01", "area-02-pt-02", "area-02-m02-pt-01", "area-02-m03-pt-01", "area-02-m04-pt-01", "area-02-pt-04", "area-02-vt-01", "area-02-pos-03"]

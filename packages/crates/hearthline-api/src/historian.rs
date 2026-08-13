@@ -11,7 +11,7 @@ use serde::Serialize;
 
 use crate::{ApiError, AppState};
 
-pub(super) const FORMING_SCADA_ID: &str = "area-02-scada-01";
+pub(super) const FORMING_SCADA_ID: &str = "area-02-machine-pc-01";
 const COLLECTION_SCENARIO: &str = "factory-forming-historian-collection";
 const REPLICATION_SCENARIO: &str = "factory-historian-dmz-replication";
 const PUBLICATION_SCENARIO: &str = "factory-operations-data";

@@ -1,0 +1,27 @@
+schema_version: "0.10.0"
+id: "area-02-m04-mould-01"
+label: "AREA-02-M04-MOULD-01"
+kind: "field-actuator"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Mould 4 movable-section drive"
+summary: "Receives automatic PLC states or authenticated local manual/setup movement commands; hardwired travel limits remain authoritative."
+lifecycle: "simulated"
+tags: ["ot-area-02", "actuator", "station-mould-04", "mould", "position"]
+render:
+  - { view: "factory/process/forming", node: "area-02-m04-mould-01", mode: "any" }
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "field-actuator"
+  command_tag: "area-02-m04-mould-01-command"
+  safe_state: "stopped"
+  feedback_tag: "area-02-m04-mould-01-feedback"
+  states: ["stopped", "closed", "opening-left", "opening-right", "open", "closing-left", "closing-right", "closing"]

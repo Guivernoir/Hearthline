@@ -121,7 +121,7 @@ simulation state, or scenario outcomes have been validated.
 
 The appliance configuration catalog is
 [`packages/web/src/generated/appliance-configs.json`](../../../packages/web/src/generated/appliance-configs.json).
-Rust generates it from 185 parsed per-appliance and 231 per-connection YAML
+Rust generates it from 222 parsed per-appliance and 271 per-connection YAML
 files. It provides stable IDs, typed kind and behavior-family metadata,
 resolved connection endpoints, lifecycle state, source revisions, full source
 text, and environment-scoped render bindings. Svelte uses this derivative
@@ -330,14 +330,22 @@ construction and deeper network cross-validation follow; later steps remain
 unimplemented unless stated otherwise in the repository-level README.
 
 All ten process areas have configured operator sessions. Forming includes one
-cell-wide SCADA scope and four module-local HMI scopes. Rust validates operator
+embedded machine-PC supervisory scope, four mould-local HMI scopes, and one
+robot-pendant scope. Rust validates operator
 permission and sends each accepted command through the operator interface,
 vPLC, remote I/O, and actuator primitives while preserving safety, alarm,
-actuator, and audit state. Forming additionally gives its five operator
-interfaces one shared deterministic process. A bounded Structured Text source
-owns normal sequence steps and requested outputs through an explicit YAML I/O
-map; Rust advances plant measurements and independently raises modeled trips
-across 20-millisecond scans.
+actuator, and audit state. Forming additionally gives its six operator
+interfaces one shared cell state with local selector authority, mutable
+development parameters and recipes, and four independently started mould
+sequence runtimes. A bounded Structured Text source owns normal sequence steps
+and requested outputs through an explicit YAML I/O map; Rust advances each
+mould's measurements and raises scoped modeled trips across 20-millisecond
+scans. The robot controller applies bounded FIFO arbitration, four configured
+handoff definitions, frames, tool/payload data, and motion-completion gates.
+Mould timings and pressure are bound to the seven configured values per
+station. The machine PC projects reusable supervisory objects, live tag
+quality/time, bounded trends and events, role identity, revision state, and
+active/standby deployment nodes.
 The authorized Forming SCADA scope can capture that shared state into a typed,
 bounded telemetry packet and execute the existing brokered historian-replica
 path to Central Office analytics. The returned scenario report keeps the live
@@ -347,25 +355,29 @@ This is not a general IEC 61131-3 runtime and does not provide a
 production-fidelity material, pressure, drying, or robot model.
 
 1. Maintain the navigable Svelte architecture and synchronized documentation.
-2. Refine the implemented Forming I/O and control-program contract with
-   reviewed process conditions and parameters.
-3. Add further exact Phase 1 failover, isolation, and outage scenarios.
-4. Extend structural validation with address, VLAN, route, policy, and HA
+2. Add cross-area material balance and replenishment between Body Preparation
+   and the Forming slip tank.
+3. Add robot recovery/fault paths and collision-envelope checks around the
+   implemented controller, handoff, frame, tool, payload, and arbitration model.
+4. Bind recipe revisions to reviewed setpoint bundles and add deployment/audit
+   controls around the implemented supervisory object model.
+5. Add further exact Phase 1 failover, isolation, and outage scenarios.
+6. Extend structural validation with address, VLAN, route, policy, and HA
    reference rules.
-5. Translate remaining site and environment presentation data into canonical
+7. Translate remaining site and environment presentation data into canonical
    inputs.
-6. Extend parsed component construction to behavior families not yet supported.
-7. Assemble routing, NAT, stateful-policy, and conduit primitives into broader
+8. Extend parsed component construction to behavior families not yet supported.
+9. Assemble routing, NAT, stateful-policy, and conduit primitives into broader
    configured topologies.
-8. Extend versioned JSON generation to topology and scenario data.
-9. Add positive and negative network scenarios.
-10. Replace provisional configuration and architecture content with
+10. Extend versioned JSON generation to topology and scenario data.
+11. Add positive and negative network scenarios.
+12. Replace provisional configuration and architecture content with
     scenario-derived, cross-validated engineering definitions.
-11. Select formal control-language compatibility targets and Ladder
+13. Select formal control-language compatibility targets and Ladder
     interchange formats before broadening the implemented Forming subset.
-12. Extend control parsing and I/O cross-reference validation to selected
+14. Extend control parsing and I/O cross-reference validation to selected
     constructs and additional process areas.
-13. Extend source-driven virtual PLC execution beyond Forming.
-14. Extend process state, accelerated time, material tracking, and fault
+15. Extend source-driven virtual PLC execution beyond Forming.
+16. Extend process state, accelerated time, material tracking, and fault
     injection beyond the first Forming implementation.
-15. Add vendor-specific rendering only as a separate tested capability.
+17. Add device-family-specific rendering only as a separate tested capability.

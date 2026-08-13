@@ -1,0 +1,22 @@
+schema_version: "0.10.0"
+id: "area-02-m03-handoff-out-01"
+label: "AREA-02-M03-HANDOFF-OUT-01"
+kind: "field-sensor"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Mould 3 handoff operator-side position sensor"
+summary: "Confirms that the Mould 3 transfer station has reached the protected operator collection position."
+lifecycle: "simulated"
+tags: ["ot-area-02", "sensor", "guarded-cell", "transfer-station", "station-mould-03", "station-handoff-03"]
+render:
+  - { view: "factory/process/forming", node: "area-02-m03-handoff-out-01", mode: "logical" }
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior: { family: "field-sensor", signal_tag: "area-02-m03-handoff-out-01", unit: "boolean", minimum: 0, maximum: 1, initial_value: 0 }

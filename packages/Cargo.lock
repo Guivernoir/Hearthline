@@ -393,7 +393,7 @@ dependencies = [
 
 [[package]]
 name = "hearthline-api"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "axum",
  "hearthline-config",
@@ -405,7 +405,7 @@ dependencies = [
 
 [[package]]
 name = "hearthline-cli"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "hearthline-config",
  "hearthline-engine",
@@ -415,7 +415,7 @@ dependencies = [
 
 [[package]]
 name = "hearthline-config"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "hearthline-engine",
  "hearthline-model",
@@ -430,7 +430,7 @@ dependencies = [
 
 [[package]]
 name = "hearthline-engine"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "criterion",
  "heapless",
@@ -440,7 +440,7 @@ dependencies = [
 
 [[package]]
 name = "hearthline-model"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "heapless",
  "serde",

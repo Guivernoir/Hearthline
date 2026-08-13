@@ -1,0 +1,102 @@
+@media (max-width: 980px) {
+  .robot-live-readouts,
+  .robot-controller-strip,
+  .robot-handoff-registers,
+  .robot-status-workspace,
+  .robot-jog-workspace,
+  .robot-program-workspace {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .robot-jog-controls,
+  .robot-program-browser {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 650px) {
+  .robot-pendant > header {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .robot-pendant > header dl {
+    display: none;
+  }
+
+  .robot-live-view {
+    margin: 7px;
+  }
+
+  .robot-scene svg {
+    height: auto;
+    aspect-ratio: 31 / 18.5;
+  }
+
+  .robot-live-readouts,
+  .robot-controller-strip,
+  .robot-handoff-registers,
+  .robot-cell-summary > dl,
+  .robot-status-workspace,
+  .robot-jog-workspace,
+  .robot-program-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .robot-workspace-tabs {
+    padding: 6px 7px;
+    flex-wrap: wrap;
+  }
+
+  .robot-workspace-tabs .robot-enable-command {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .robot-status-workspace,
+  .robot-jog-workspace,
+  .robot-program-workspace {
+    padding: 7px;
+  }
+
+  .robot-position-summary,
+  .robot-jog-controls,
+  .robot-program-browser {
+    grid-column: auto;
+  }
+
+  .robot-jog-settings,
+  .robot-axis-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .robot-speed-control {
+    grid-template-columns: auto minmax(80px, 1fr) 40px;
+  }
+
+  .robot-axis-grid article {
+    grid-template-columns: 28px 34px minmax(80px, 1fr) 34px;
+  }
+
+  .robot-position-summary article,
+  .robot-taught-list button {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .robot-position-summary em,
+  .robot-taught-list em {
+    grid-column: 1 / -1;
+  }
+
+  .robot-program-lines {
+    height: 320px;
+  }
+
+  .robot-program-lines li {
+    grid-template-columns: 30px minmax(0, 1fr);
+  }
+
+  .robot-program-lines li small {
+    display: none;
+  }
+}

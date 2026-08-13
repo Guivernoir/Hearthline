@@ -20,9 +20,18 @@ pub use appliance::{
     FrontendMultiChassis, FrontendSpanningTree, HttpInspectionRuleConfig,
     HttpInspectionTargetConfig, HttpMethodConfig, HttpSiteConfig, InterfaceConfig, InterfaceMode,
     Lifecycle, LinkAggregationConfig, LinkAggregationGroupConfig, LinkAggregationMode,
-    LinkAggregationProtocol, ListenerConfig, LoadedAppliance, MultiChassisConfig, MultiChassisRole,
-    NatTranslationConfig, PolicyAction, PolicyRuleConfig, RenderBinding, RenderMode, RouteConfig,
-    SpanningTreeConfig, SpanningTreeProtocol,
+    LinkAggregationProtocol, ListenerConfig, LoadedAppliance, MouldControlCabinetConfig,
+    MouldUtilityCabinetConfig, MouldUtilityCircuitConfig, MultiChassisConfig, MultiChassisRole,
+    NatTranslationConfig, OperatorControlMode, OperatorModeSelectorConfig, OperatorParameterConfig,
+    OperatorRecipeConfig, OperatorStationConfig, OperatorStationType, PolicyAction,
+    PolicyRuleConfig, RenderBinding, RenderMode, RobotArchitectureConfig, RobotFrameConfig,
+    RobotHandoffConfig, RobotMotionProfileConfig, RobotPayloadConfig, RobotPoseConfig,
+    RobotTaughtPositionConfig, RobotToolConfig, RobotWorkspaceConfig, RouteConfig,
+    SpanningTreeConfig, SpanningTreeProtocol, SupervisoryAssetConfig,
+    SupervisoryDeploymentNodeConfig, SupervisoryHistoryConfig, SupervisoryIdentityConfig,
+    SupervisoryNodeRoleConfig, SupervisoryNodeStateConfig, SupervisoryProfileConfig,
+    SupervisoryRepositoryConfig, SupervisoryRoleConfig, SupervisoryTemplateConfig,
+    UtilityMediumConfig,
 };
 pub use connection::{
     CONNECTION_SCHEMA_VERSION, ConnectionConfig, ConnectionDirection, ConnectionEndpoint,
@@ -31,9 +40,13 @@ pub use connection::{
 };
 pub use hmi::{
     HMI_SCHEMA_VERSION, HmiAction, HmiActionReport, HmiActionStatus, HmiActuator, HmiAlarm,
-    HmiAlarmSeverity, HmiAuditEntry, HmiControlProgramDocument, HmiControlProgramState,
-    HmiPermissive, HmiProcessFault, HmiProcessPhase, HmiProcessState, HmiSafety, HmiSession,
-    HmiSessionStore, HmiSignal, HmiSnapshot, HmiTraceEntry, build_forming_telemetry_packet,
+    HmiAlarmSeverity, HmiAuditEntry, HmiCellGuardState, HmiControlMode, HmiControlProgramDocument,
+    HmiControlProgramState, HmiControlStation, HmiGuardedCellState, HmiHandoffStationState,
+    HmiMouldProcessState, HmiParameter, HmiPermissive, HmiProcessFault, HmiProcessPhase,
+    HmiProcessState, HmiRecipe, HmiRobotAxis, HmiRobotCoordinateSystem, HmiRobotMotionState,
+    HmiRobotPose, HmiRobotProgramLine, HmiRobotProgramState, HmiRobotState, HmiRobotTaughtPosition,
+    HmiRobotWorkspace, HmiSafety, HmiSession, HmiSessionStore, HmiSignal, HmiSnapshot,
+    HmiStationStatus, HmiTraceEntry, build_forming_telemetry_packet,
 };
 pub use runtime::{
     ConfiguredAppliance, ConfiguredNetwork, RuntimeDeviceSnapshot, RuntimeFirewallSessionEntry,

@@ -1,0 +1,346 @@
+.robot-status-workspace,
+.robot-jog-workspace,
+.robot-program-workspace {
+  display: grid;
+  padding: 12px;
+  gap: 10px;
+}
+
+.robot-status-workspace {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.robot-status-workspace section,
+.robot-jog-workspace section,
+.robot-program-workspace section {
+  min-width: 0;
+  border: 1px solid #aeb9b2;
+  background: #fff;
+}
+
+.robot-status-workspace dl {
+  display: grid;
+  margin: 0;
+  padding: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.robot-status-workspace dl div {
+  display: grid;
+  min-height: 55px;
+  padding: 7px;
+  align-content: center;
+  border: 1px solid #d4dbd7;
+  background: #f7f9f7;
+}
+
+.robot-status-workspace dt {
+  color: #68766e;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.robot-status-workspace dd {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.robot-status-workspace dd small {
+  margin-left: 4px;
+  font-weight: 500;
+}
+
+.robot-position-summary {
+  grid-column: 1 / -1;
+}
+
+.robot-position-summary article,
+.robot-taught-list button {
+  display: grid;
+  min-height: 46px;
+  padding: 7px 9px;
+  align-items: center;
+  grid-template-columns: minmax(130px, 0.8fr) minmax(170px, 1.2fr) auto;
+  gap: 8px;
+  border: 0;
+  border-bottom: 1px solid #e0e5e2;
+  background: #fff;
+  text-align: left;
+}
+
+.robot-position-summary article span,
+.robot-taught-list button span {
+  display: grid;
+}
+
+.robot-position-summary em,
+.robot-taught-list em {
+  color: #586860;
+  font-size: 9px;
+  font-style: normal;
+}
+
+.robot-jog-workspace {
+  grid-template-columns: minmax(420px, 1.35fr) minmax(280px, 0.8fr);
+}
+
+.robot-jog-controls {
+  grid-row: span 2;
+}
+
+.robot-jog-settings {
+  display: grid;
+  padding: 8px;
+  grid-template-columns: auto 150px minmax(220px, 1fr);
+  gap: 7px;
+}
+
+.robot-segmented {
+  display: flex;
+}
+
+.robot-segmented button,
+.robot-jog-settings select,
+.robot-axis-grid button,
+.robot-primary-command,
+.robot-teach-row button {
+  min-height: 32px;
+  border: 1px solid #9faca4;
+  border-radius: 3px;
+  color: #3c4e45;
+  background: #fff;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.robot-segmented button.active {
+  color: #fff;
+  background: #39765a;
+}
+
+.robot-jog-settings label,
+.robot-position-panel label,
+.robot-program-editor label {
+  display: grid;
+  gap: 4px;
+  color: #68766e;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.robot-speed-control {
+  grid-template-columns: auto minmax(100px, 1fr) 40px;
+  align-items: center;
+}
+
+.robot-speed-control span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.robot-axis-grid {
+  display: grid;
+  padding: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.robot-axis-grid article {
+  display: grid;
+  min-height: 48px;
+  padding: 6px;
+  align-items: center;
+  grid-template-columns: 28px 34px minmax(70px, 1fr) 34px;
+  gap: 5px;
+  border: 1px solid #d0d8d3;
+  background: #f7f9f7;
+}
+
+.robot-axis-grid article > span {
+  text-align: center;
+  font-family: "JetBrains Mono", "Roboto Mono", monospace;
+  font-size: 10px;
+}
+
+.robot-sequence-commands {
+  display: flex;
+  padding: 0 8px 8px;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.robot-sequence-commands button {
+  min-height: 30px;
+  padding: 5px 8px;
+  border: 1px solid #9faca4;
+  border-radius: 3px;
+  color: #3c4e45;
+  background: #fff;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.robot-sequence-commands button.active {
+  color: #fff;
+  border-color: #32654f;
+  background: #39765a;
+}
+
+.robot-coordinate-inputs {
+  display: grid;
+  padding: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.robot-position-panel input,
+.robot-teach-row input,
+.robot-program-editor input,
+.robot-program-editor textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 32px;
+  padding: 6px 7px;
+  border: 1px solid #aeb9b2;
+  border-radius: 2px;
+  color: #25372f;
+  background: #fff;
+  font: 10px "JetBrains Mono", "Roboto Mono", monospace;
+}
+
+.robot-primary-command {
+  display: flex;
+  margin: 0 8px 8px;
+  padding: 6px 10px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #fff;
+  border-color: #32654f;
+  background: #39765a;
+}
+
+.robot-taught-list {
+  max-height: 225px;
+  overflow: auto;
+}
+
+.robot-taught-list button {
+  width: 100%;
+}
+
+.robot-teach-row {
+  display: grid;
+  padding: 8px;
+  grid-template-columns: 0.8fr 1fr 34px;
+  gap: 5px;
+}
+
+.robot-program-workspace {
+  grid-template-columns: minmax(460px, 1.35fr) minmax(300px, 0.75fr);
+}
+
+.robot-program-browser > header > span,
+.robot-program-browser > header > div {
+  display: grid;
+  gap: 2px;
+}
+
+.robot-program-browser > header > div {
+  grid-template-columns: 8px auto;
+  align-items: center;
+}
+
+.robot-program-browser > header i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #8c9891;
+}
+
+.robot-program-browser > header i.running {
+  background: #3d8b66;
+}
+
+.robot-program-toolbar {
+  display: flex;
+  min-height: 42px;
+  padding: 5px 8px;
+  align-items: center;
+  gap: 4px;
+  border-bottom: 1px solid #d0d8d3;
+}
+
+.robot-program-toolbar > span {
+  margin-left: auto;
+  color: #5c6b63;
+  font: 9px "JetBrains Mono", "Roboto Mono", monospace;
+}
+
+.robot-program-lines {
+  height: 390px;
+  margin: 0;
+  padding: 6px 0;
+  overflow: auto;
+  background: #1f2b26;
+  color: #d8e2dc;
+  list-style: none;
+}
+
+.robot-program-lines li {
+  display: grid;
+  min-height: 27px;
+  padding: 4px 8px;
+  align-items: center;
+  grid-template-columns: 34px minmax(0, 1fr) 100px;
+  gap: 7px;
+  border-left: 4px solid transparent;
+}
+
+.robot-program-lines li.active {
+  border-left-color: #e0bd48;
+  background: #344b42;
+}
+
+.robot-program-lines li > span,
+.robot-program-lines li > small {
+  color: #84958c;
+  font: 8px "JetBrains Mono", "Roboto Mono", monospace;
+}
+
+.robot-program-lines code {
+  overflow-wrap: anywhere;
+  color: #d8e2dc;
+  font: 10px "JetBrains Mono", "Roboto Mono", monospace;
+}
+
+.robot-program-lines li.executable code {
+  color: #f0d981;
+}
+
+.robot-program-editor {
+  display: grid;
+  align-content: start;
+}
+
+.robot-program-editor > label {
+  margin: 8px 8px 0;
+}
+
+.robot-program-editor > input[type="file"] {
+  display: none;
+}
+
+.robot-program-editor textarea {
+  height: 300px;
+  margin-top: 8px;
+  border-inline: 0;
+  border-radius: 0;
+  resize: vertical;
+  line-height: 1.55;
+}

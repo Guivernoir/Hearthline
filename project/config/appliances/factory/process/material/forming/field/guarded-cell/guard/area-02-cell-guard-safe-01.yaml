@@ -1,0 +1,26 @@
+schema_version: "0.10.0"
+id: "area-02-cell-guard-safe-01"
+label: "AREA-02-CELL-GUARD-SAFE-01"
+kind: "safety-interface"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Guarded-cell access and motion safety interface"
+summary: "Inhibits hazardous mould, robot, and transfer-station motion while the personnel gate is open and requires a deliberate reset after a motion demand."
+lifecycle: "simulated"
+tags: ["ot-area-02", "safety interface", "guarded-cell", "security-fence", "access-gate"]
+render:
+  - { view: "factory/process/forming", node: "area-02-cell-guard-safe-01", mode: "any" }
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "safety"
+  permissives: ["area-02-cell-gate-pos-01", "emergency-stop-healthy", "guard-lock-healthy"]
+  latched_trip: false
+  initially_permissive: ["area-02-cell-gate-pos-01", "emergency-stop-healthy", "guard-lock-healthy"]

@@ -25,20 +25,25 @@
     findProcessArea,
     SUPPORTED_PROCESS_VIEW_SCHEMA,
   } from "./process-model";
-  import type { ProcessEquipment } from "./process-model";
   import type { ViewMode } from "../shared/types";
   import {
     logicalSlotPositions,
     physicalSlotPositions,
-    type EquipmentPresentation,
     type EquipmentView,
   } from "./layout/process-area-layout";
   import {
     buildFormingEquipment,
-    FORMING_WORLD_HEIGHT,
+    FORMING_LOGICAL_WORLD_HEIGHT,
+    FORMING_PHYSICAL_WORLD_HEIGHT,
     FORMING_WORLD_WIDTH,
   } from "./layout/forming-area-layout";
+  import FormingPhysicalMarker from "./layout/FormingPhysicalMarker.svelte";
   import ProcessAreaBackdrop from "./layout/ProcessAreaBackdrop.svelte";
+  import {
+    connectionPath,
+    equipmentPresentation,
+    isOperatorEquipment,
+  } from "./layout/process-area-paths";
 
   export let routeKey: string;
   export let onBack: () => void = () => {};
@@ -51,8 +56,6 @@
   const MIN_ZOOM = 0.25;
   const MAX_ZOOM = 1.6;
   const ZOOM_STEP = 0.1;
-  const NODE_WIDTH = 190;
-  const NODE_HEIGHT = 105;
 
   let viewport: HTMLDivElement;
   let zoom = 0.9;
@@ -68,7 +71,11 @@
 
   $: area = findProcessArea(routeKey);
   $: worldWidth = routeKey === "forming" ? FORMING_WORLD_WIDTH : DEFAULT_WORLD_WIDTH;
-  $: worldHeight = routeKey === "forming" ? FORMING_WORLD_HEIGHT : DEFAULT_WORLD_HEIGHT;
+  $: worldHeight = routeKey === "forming"
+    ? viewMode === "physical"
+      ? FORMING_PHYSICAL_WORLD_HEIGHT
+      : FORMING_LOGICAL_WORLD_HEIGHT
+    : DEFAULT_WORLD_HEIGHT;
   $: equipment = routeKey === "forming"
     ? buildFormingEquipment(viewMode)
     : (area?.equipment ?? []).map((item) => ({
@@ -79,7 +86,7 @@
       })) as EquipmentView[];
   $: selectedEquipment = equipment.find((item) => item.id === selectedId) ?? null;
   $: selectedPresentation = selectedEquipment
-    ? equipmentPresentation(selectedEquipment)
+    ? equipmentPresentation(selectedEquipment, viewMode)
     : null;
   $: selectedAppliances = selectedEquipment
     ? findAppliancesForNode(
@@ -127,12 +134,15 @@
       (viewport.clientHeight - verticalPadding) / worldHeight,
     );
 
-    zoom = Number(clampZoom(compact ? Math.max(0.65, fitted) : fitted).toFixed(2));
+    const readableMinimum = compact || routeKey === "forming" ? 0.65 : MIN_ZOOM;
+    zoom = Number(clampZoom(Math.max(readableMinimum, fitted)).toFixed(2));
     await tick();
-    viewport.scrollLeft = compact
+    viewport.scrollLeft = compact || routeKey === "forming"
       ? 0
       : Math.max(0, (worldWidth * zoom - viewport.clientWidth) / 2);
-    viewport.scrollTop = Math.max(0, (worldHeight * zoom - viewport.clientHeight) / 2);
+    viewport.scrollTop = routeKey === "forming"
+      ? 0
+      : Math.max(0, (worldHeight * zoom - viewport.clientHeight) / 2);
   }
 
   async function resetView() {
@@ -142,54 +152,10 @@
     viewport.scrollTop = 0;
   }
 
-  function equipmentCenter(item: EquipmentView) {
-    return {
-      x: item.x + NODE_WIDTH / 2,
-      y: item.y + NODE_HEIGHT / 2,
-    };
-  }
-
   function upstreamFor(item: EquipmentView) {
     return viewMode === "physical" && item.physicalUpstream !== undefined
       ? item.physicalUpstream
       : item.upstream;
-  }
-
-  function equipmentPresentation(item: ProcessEquipment): EquipmentPresentation {
-    if (viewMode === "physical" && item.physical) {
-      return item.physical;
-    }
-
-    return {
-      label: item.label,
-      kind: item.kind,
-      role: item.role,
-      icon: item.icon,
-      facts: item.facts,
-    };
-  }
-
-  function connectionPath(item: EquipmentView) {
-    const upstream = equipment.find((candidate) => candidate.id === upstreamFor(item));
-    if (!upstream) return "";
-    const source = equipmentCenter(upstream);
-    const target = equipmentCenter(item);
-    if (routeKey === "forming") {
-      if (item.linkKind === "io" || item.linkKind === "safety-status") {
-        const fieldBus = 700;
-        return `M${source.x} ${source.y} V${fieldBus} H${target.x} V${target.y}`;
-      }
-      if (item.kind === "module HMI") {
-        const operatorBus = 475;
-        return `M${source.x} ${source.y} V${operatorBus} H${target.x} V${target.y}`;
-      }
-    }
-    if (item.linkKind === "safety-status") {
-      const lowerRoute = 810;
-      return `M${source.x} ${source.y} V${lowerRoute} H${target.x} V${target.y}`;
-    }
-    const midpoint = source.x + (target.x - source.x) / 2;
-    return `M${source.x} ${source.y} H${midpoint} V${target.y} H${target.x}`;
   }
 
   function handleWheel(event: WheelEvent) {
@@ -376,22 +342,24 @@
             <svg class="process-area-drawing" viewBox={`0 0 ${worldWidth} ${worldHeight}`} aria-hidden="true">
               <ProcessAreaBackdrop {routeKey} />
 
-              <g class="process-area-connections">
-                {#each equipment.filter((item) => upstreamFor(item)) as item (item.id)}
-                  <path
-                    class:process-io-link={item.linkKind === "io"}
-                    class:process-safety-link={item.linkKind === "safety-status"}
-                    class:process-sensor-link={item.kind === "process input"}
-                    class:process-actuator-link={item.kind === "process output"}
-                    class:process-supervisory-link={item.kind === "module HMI" || item.kind === "SCADA workstation"}
-                    d={connectionPath(item)}
-                  ></path>
-                {/each}
-              </g>
+              {#if viewMode === "logical" || routeKey !== "forming"}
+                <g class="process-area-connections">
+                  {#each equipment.filter((item) => upstreamFor(item)) as item (item.id)}
+                    <path
+                      class:process-io-link={item.linkKind === "io"}
+                      class:process-safety-link={item.linkKind === "safety-status"}
+                      class:process-sensor-link={item.kind === "process input"}
+                      class:process-actuator-link={item.kind === "process output"}
+                      class:process-supervisory-link={isOperatorEquipment(item)}
+                      d={connectionPath(item, equipment, viewMode, routeKey)}
+                    ></path>
+                  {/each}
+                </g>
+              {/if}
             </svg>
 
             {#each equipment as item (item.id)}
-              {@const presentation = equipmentPresentation(item)}
+              {@const presentation = equipmentPresentation(item, viewMode)}
               {@const Icon = processIconByKey[presentation.icon]}
               <button
                 type="button"
@@ -404,7 +372,11 @@
                 onclick={() => (selectedId = item.id)}
               >
                 {#if viewMode === "physical"}
-                  <PhysicalDeviceMarker icon={Icon} label={presentation.label} />
+                  {#if routeKey === "forming"}
+                    <FormingPhysicalMarker id={item.id} kind={presentation.kind} label={presentation.label} />
+                  {:else}
+                    <PhysicalDeviceMarker icon={Icon} label={presentation.label} />
+                  {/if}
                 {:else}
                   <span class="node-accent"></span>
                   <span class="lan-device-header">
@@ -417,20 +389,37 @@
               </button>
             {/each}
 
-            <div class="lan-key" aria-label={`${area.label} legend`}>
-              {#if viewMode === "physical"}
-                <span><Cable size={13} strokeWidth={1.8} /><i class="cable-key copper"></i>Industrial Ethernet</span>
-                <span><i class="cable-key process-io"></i>Field I/O</span>
-                <span><ShieldCheck size={13} strokeWidth={1.8} />Safety/status interface</span>
-              {:else}
-                <span><i class="cable-key copper"></i>Network relationship</span>
-                <span><i class="cable-key process-io"></i>I/O binding</span>
-                <span><ShieldCheck size={13} strokeWidth={1.8} />Safety/status interface</span>
-              {/if}
-            </div>
+            {#if routeKey !== "forming"}
+              <div class="lan-key" aria-label={`${area.label} legend`}>
+                {#if viewMode === "physical"}
+                  <span><Cable size={13} strokeWidth={1.8} /><i class="cable-key copper"></i>Industrial Ethernet</span>
+                  <span><i class="cable-key process-io"></i>Field I/O</span>
+                  <span><ShieldCheck size={13} strokeWidth={1.8} />Safety/status interface</span>
+                {:else}
+                  <span><i class="cable-key copper"></i>Network relationship</span>
+                  <span><i class="cable-key process-io"></i>I/O binding</span>
+                  <span><ShieldCheck size={13} strokeWidth={1.8} />Safety/status interface</span>
+                {/if}
+              </div>
+            {/if}
           </section>
         </div>
       </div>
+
+      {#if routeKey === "forming"}
+        <div class="forming-view-legend" aria-label={`Forming ${viewMode} line legend`}>
+          {#if viewMode === "logical"}
+            <span><i class="forming-key network"></i>Network / control</span>
+            <span><i class="forming-key io"></i>I/O binding</span>
+            <span><i class="forming-key safety"></i>Safety / status</span>
+          {:else}
+            <span><i class="forming-key transfer"></i>Transfer path</span>
+            <span><i class="forming-key guard"></i>Guarded boundary</span>
+            <span><i class="forming-key utility"></i>Utility header</span>
+            <span><i class="forming-key gate"></i>Gate movement</span>
+          {/if}
+        </div>
+      {/if}
     {:else}
       <div class="process-area-missing">
         <strong>Unknown process area</strong>

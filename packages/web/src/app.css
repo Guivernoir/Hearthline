@@ -4,6 +4,7 @@
 @import "./styles/sites/overview.css";
 @import "./styles/sites/factory.css";
 @import "./styles/environments/process-area.css";
+@import "./styles/environments/forming-physical.css";
 @import "./styles/sites/office.css";
 @import "./styles/sites/security-console.css";
 @import "./styles/sites/security-events.css";
@@ -21,6 +22,14 @@
 @import "./styles/workstation/runtime.css";
 @import "./styles/hmi/screen.css";
 @import "./styles/hmi/process.css";
+@import "./styles/hmi/station.css";
+@import "./styles/hmi/machine/mould.css";
+@import "./styles/hmi/machine/scada.css";
+@import "./styles/hmi/machine/scada-responsive.css";
+@import "./styles/hmi/machine/robot.css";
+@import "./styles/hmi/machine/robot-workspaces.css";
+@import "./styles/hmi/machine/robot-responsive.css";
+@import "./styles/hmi/machine/supervisory.css";
 @import "./styles/hmi/program.css";
 @import "./styles/hmi/events.css";
 @import "./styles/hmi/responsive.css";

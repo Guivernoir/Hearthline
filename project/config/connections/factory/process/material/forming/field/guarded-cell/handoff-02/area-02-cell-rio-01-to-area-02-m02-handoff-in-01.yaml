@@ -1,0 +1,11 @@
+schema_version: "0.2.0"
+id: "area-02-cell-rio-01-to-area-02-m02-handoff-in-01"
+label: "Mould 2 handoff robot-side position input"
+lifecycle: "simulated"
+transport: "field-io"
+medium: { type: "field-wiring", signal: "Mould 2 transfer in-cell position", length_m: 30.0 }
+endpoints:
+  a: { appliance: "area-02-cell-rio-01", interface: "field-io-07" }
+  b: { appliance: "area-02-m02-handoff-in-01", interface: "field-io" }
+properties: { capacity_mbps: 10, latency_ms: 0, loss_every: null, direction: "bidirectional", operational: true }
+tags: ["ot", "ot-area-02", "field-io", "guarded-cell", "station-handoff-02"]

@@ -1,0 +1,401 @@
+.hmi-mode-panel,
+.hmi-engineering-panel {
+  border-bottom: 1px solid #c8d0ca;
+  background: #f8faf8;
+}
+
+.hmi-mode-panel > header,
+.hmi-engineering-panel > header {
+  display: flex;
+  min-height: 42px;
+  padding: 7px 12px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid #d4dad5;
+  color: #33463c;
+  background: #edf1ee;
+}
+
+.hmi-mode-panel > header span,
+.hmi-engineering-panel > header > span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.hmi-mode-panel > header strong {
+  color: #627068;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.hmi-mode-panel.setup-active > header {
+  color: #87392e;
+  background: #f8e8e4;
+}
+
+.hmi-mode-selector {
+  display: grid;
+  padding: 14px 12px 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.hmi-mode-selector button {
+  position: relative;
+  display: grid;
+  min-height: 54px;
+  place-items: center;
+  gap: 4px;
+  border: 1px solid #aeb9b2;
+  border-radius: 4px;
+  color: #516159;
+  background: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.hmi-mode-selector button i {
+  width: 10px;
+  height: 10px;
+  border: 2px solid #89968e;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.hmi-mode-selector button.active {
+  border-color: #2f7657;
+  color: #fff;
+  background: #347759;
+}
+
+.hmi-mode-selector button.active i {
+  border-color: #fff;
+  background: #d9efe3;
+  box-shadow: 0 0 0 3px rgb(255 255 255 / 22%);
+}
+
+.hmi-mode-selector button.setup {
+  cursor: default;
+}
+
+.hmi-mode-selector button.setup.active {
+  border-color: #a84738;
+  background: #a84738;
+}
+
+.hmi-setup-auth {
+  display: grid;
+  padding: 0 12px 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+}
+
+.hmi-setup-auth label {
+  display: grid;
+  gap: 5px;
+}
+
+.hmi-setup-auth label span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #657169;
+  font-size: 9px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.hmi-setup-auth input,
+.hmi-parameter-groups input {
+  min-width: 0;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #acb7b0;
+  border-radius: 4px;
+  color: #2e3f36;
+  background: #fff;
+  font: inherit;
+}
+
+.hmi-setup-auth > button,
+.hmi-parameter-groups label > button {
+  display: grid;
+  min-width: 34px;
+  min-height: 32px;
+  padding: 0 10px;
+  place-items: center;
+  border: 1px solid #8e453a;
+  border-radius: 4px;
+  color: #fff;
+  background: #9d493c;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.hmi-setup-auth > button:disabled,
+.hmi-parameter-groups label > button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.hmi-protection-state {
+  display: flex;
+  padding: 8px 12px;
+  flex-wrap: wrap;
+  gap: 6px;
+  border-top: 1px solid #e0e5e1;
+  background: #f0f4f1;
+}
+
+.hmi-protection-state span {
+  display: flex;
+  min-height: 25px;
+  padding: 0 7px;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid #bad0c2;
+  border-radius: 4px;
+  color: #38604b;
+  background: #f7fbf8;
+  font-size: 8px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.hmi-protection-state span.bypass {
+  border-color: #d8a298;
+  color: #8e382d;
+  background: #fff5f2;
+}
+
+.hmi-engineering-panel > header nav {
+  display: flex;
+  gap: 3px;
+}
+
+.hmi-engineering-panel > header nav button {
+  min-height: 27px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #607067;
+  background: transparent;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.hmi-engineering-panel > header nav button.active {
+  border-color: #9daaa2;
+  color: #2f5744;
+  background: #fff;
+}
+
+.hmi-station-grid {
+  display: grid;
+  padding: 12px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.hmi-station-grid article {
+  display: grid;
+  min-width: 0;
+  min-height: 54px;
+  padding: 8px;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #c8d1cb;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.hmi-station-grid article > i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3b7a5d;
+}
+
+.hmi-station-grid article.bypass > i {
+  background: #ae493a;
+}
+
+.hmi-station-grid article span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.hmi-station-grid strong,
+.hmi-station-grid small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hmi-station-grid strong {
+  color: #34453c;
+  font-size: 9px;
+}
+
+.hmi-station-grid small {
+  color: #758078;
+  font-size: 8px;
+}
+
+.hmi-station-grid em {
+  color: #50635a;
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.hmi-parameter-groups {
+  display: grid;
+  max-height: 420px;
+  padding: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  overflow: auto;
+}
+
+.hmi-parameter-groups section {
+  min-width: 0;
+}
+
+.hmi-parameter-groups h3 {
+  margin: 0 0 6px;
+  color: #4b5c53;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.hmi-parameter-groups section > div {
+  display: grid;
+  gap: 5px;
+}
+
+.hmi-parameter-groups label {
+  display: grid;
+  padding: 6px;
+  grid-template-columns: minmax(110px, 1fr) 92px 34px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #d4dad6;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.hmi-parameter-groups label > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  color: #3e5147;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.hmi-parameter-groups label small {
+  color: #78837c;
+  font-size: 7px;
+  font-weight: 600;
+}
+
+.hmi-parameter-groups label > button {
+  padding: 0;
+  border-color: #397357;
+  background: #397357;
+}
+
+.hmi-recipe-list {
+  display: grid;
+  padding: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.hmi-recipe-list > button {
+  display: grid;
+  min-width: 0;
+  min-height: 68px;
+  padding: 9px;
+  grid-template-columns: 20px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #c5cec8;
+  border-radius: 4px;
+  color: #4b5d54;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hmi-recipe-list > button.active {
+  border-color: #3b795b;
+  color: #2f6249;
+  background: #f1f8f4;
+}
+
+.hmi-recipe-list span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.hmi-recipe-list strong {
+  font-size: 9px;
+}
+
+.hmi-recipe-list small {
+  color: #6f7a73;
+  font-size: 8px;
+  line-height: 1.35;
+}
+
+@media (max-width: 900px) {
+  .hmi-station-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hmi-parameter-groups {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .hmi-engineering-panel > header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .hmi-engineering-panel > header nav {
+    width: 100%;
+  }
+
+  .hmi-engineering-panel > header nav button {
+    flex: 1;
+  }
+
+  .hmi-station-grid,
+  .hmi-recipe-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hmi-parameter-groups label {
+    grid-template-columns: minmax(0, 1fr) 82px 34px;
+  }
+}

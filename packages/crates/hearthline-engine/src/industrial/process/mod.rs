@@ -11,7 +11,7 @@ pub use control::{Comparison, LogicRule, OperatorInterface, VirtualPlc};
 pub use field::{Actuator, FieldSensor};
 pub use forming::{
     FormingFault, FormingMeasurements, FormingOutputs, FormingPhase, FormingProcess,
-    FormingStartError, FormingTick, FormingTrip,
+    FormingSetpoints, FormingStartError, FormingTick, FormingTrip,
 };
 pub use io::{IoDirection, RemoteIo};
 pub use safety::SafetyInterface;

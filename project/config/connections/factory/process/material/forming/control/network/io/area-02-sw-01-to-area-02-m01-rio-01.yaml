@@ -1,0 +1,11 @@
+schema_version: "0.2.0"
+id: "area-02-sw-01-to-area-02-m01-rio-01"
+label: "Mould 1 distributed I/O network link"
+lifecycle: "simulated"
+transport: "ethernet"
+medium: { type: "copper", wiring: "straight-through", category: "cat6a", length_m: 24.0 }
+endpoints:
+  a: { appliance: "area-02-sw-01", interface: "mould-01-rio-access" }
+  b: { appliance: "area-02-m01-rio-01", interface: "cell-network" }
+properties: { capacity_mbps: 1000, latency_ms: 0, loss_every: null, direction: "bidirectional", operational: true }
+tags: ["ot", "ot-area-02", "remote-io", "station-mould-01"]

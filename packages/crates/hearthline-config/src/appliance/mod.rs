@@ -8,7 +8,17 @@ mod support;
 pub use application::{
     DnsRecordConfig, HttpInspectionRuleConfig, HttpInspectionTargetConfig, HttpMethodConfig,
 };
-pub use behavior::BehaviorConfig;
+pub use behavior::{
+    BehaviorConfig, MouldControlCabinetConfig, MouldUtilityCabinetConfig,
+    MouldUtilityCircuitConfig, OperatorControlMode, OperatorModeSelectorConfig,
+    OperatorParameterConfig, OperatorRecipeConfig, OperatorStationConfig, OperatorStationType,
+    RobotArchitectureConfig, RobotFrameConfig, RobotHandoffConfig, RobotMotionProfileConfig,
+    RobotPayloadConfig, RobotPoseConfig, RobotTaughtPositionConfig, RobotToolConfig,
+    RobotWorkspaceConfig, SupervisoryAssetConfig, SupervisoryDeploymentNodeConfig,
+    SupervisoryHistoryConfig, SupervisoryIdentityConfig, SupervisoryNodeRoleConfig,
+    SupervisoryNodeStateConfig, SupervisoryProfileConfig, SupervisoryRepositoryConfig,
+    SupervisoryRoleConfig, SupervisoryTemplateConfig, UtilityMediumConfig,
+};
 pub use frontend::{
     FrontendAppliance, FrontendApplianceCatalog, FrontendFirewallHa, FrontendFirstHop,
     FrontendInterface, FrontendLinkAggregation, FrontendLinkAggregationGroup, FrontendMultiChassis,

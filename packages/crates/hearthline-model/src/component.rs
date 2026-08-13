@@ -188,11 +188,12 @@ pub enum ComponentKind {
     RemoteIo,
     FieldSensor,
     FieldActuator,
+    RobotController,
     SafetyInterface,
 }
 
 impl ComponentKind {
-    pub const ALL: [Self; 37] = [
+    pub const ALL: [Self; 38] = [
         Self::Workstation,
         Self::PrivilegedWorkstation,
         Self::EngineeringWorkstation,
@@ -229,6 +230,7 @@ impl ComponentKind {
         Self::RemoteIo,
         Self::FieldSensor,
         Self::FieldActuator,
+        Self::RobotController,
         Self::SafetyInterface,
     ];
 
@@ -266,7 +268,7 @@ impl ComponentKind {
             Self::ScadaWorkstation | Self::Hmi => BehaviorFamily::OperatorInterface,
             Self::RemoteIo => BehaviorFamily::RemoteIo,
             Self::FieldSensor => BehaviorFamily::FieldSensor,
-            Self::FieldActuator => BehaviorFamily::FieldActuator,
+            Self::FieldActuator | Self::RobotController => BehaviorFamily::FieldActuator,
             Self::SafetyInterface => BehaviorFamily::Safety,
         }
     }
@@ -311,6 +313,7 @@ impl Display for ComponentKind {
             Self::RemoteIo => "remote-io",
             Self::FieldSensor => "field-sensor",
             Self::FieldActuator => "field-actuator",
+            Self::RobotController => "robot-controller",
             Self::SafetyInterface => "safety-interface",
         };
         formatter.write_str(name)
@@ -358,6 +361,7 @@ impl FromStr for ComponentKind {
             "remote-io" => Self::RemoteIo,
             "field-sensor" => Self::FieldSensor,
             "field-actuator" => Self::FieldActuator,
+            "robot-controller" => Self::RobotController,
             "safety-interface" => Self::SafetyInterface,
             _ => {
                 return Err(ComponentKindParseError(Text::try_new(value).ok()));

@@ -1,0 +1,104 @@
+schema_version: "0.10.0"
+id: "area-02-m01-rio-01"
+label: "AREA-02-M01-RIO-01"
+kind: "remote-io"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Mould 1 machine-mounted I/O station"
+summary: "Terminates the independent Mould 1 instrumentation, motion, manifold, and safety-status channels for the shared forming controller."
+lifecycle: "simulated"
+tags: ["ot-area-02", "distributed I/O", "station-mould-01"]
+render:
+  - { view: "factory/process/forming", node: "area-02-m01-rio-01", mode: "any" }
+interfaces:
+  - id: "cell-network"
+    hardware: "ethernet-rj45"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }
+    mode: "access"
+    addresses: []
+    vlans: [102]
+  - id: "field-io-01"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+  - id: "field-io-02"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+  - id: "field-io-03"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+  - id: "field-io-04"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+  - id: "field-io-05"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+  - id: "field-io-06"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+  - id: "field-io-07"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+  - id: "field-io-08"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+  - id: "field-io-09"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "remote-io"
+  controller: "area-02-vplc-01"
+  channels:
+    - "area-02-pt-02"
+    - "area-02-tt-02"
+    - "area-02-pos-01"
+    - "area-02-pos-02"
+    - "area-02-mt-02"
+    - "area-02-m01-inc-01"
+    - "area-02-mould-01"
+    - "area-02-m01-manifold-01"
+    - "area-02-safe-01"
+  control_cabinet:
+    target: "mould-01"
+    enclosure_rating: "IP54"
+    control_voltage_vdc: 24
+    safety_relay: "dual-channel monitored safety relay"
+    utility_cabinet: "area-02-m01-manifold-01"
+    modules: ["network coupler", "analog input", "digital input", "digital output", "safety status interface"]

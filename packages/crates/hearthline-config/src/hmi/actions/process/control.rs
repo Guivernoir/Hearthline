@@ -33,24 +33,6 @@ impl ConfiguredControlProgram {
         forming_phase(name).expect("compiled phase name is valid")
     }
 
-    pub(crate) fn output_states(&self) -> Vec<(String, String)> {
-        self.binding
-            .outputs
-            .iter()
-            .map(|output| {
-                let value = self
-                    .runtime
-                    .current_assignment(&output.variable)
-                    .expect("compiled sequence has every output assignment");
-                let state = output
-                    .states
-                    .get(&value)
-                    .expect("compiled output value is mapped");
-                (output.command_tag.clone(), state.clone())
-            })
-            .collect()
-    }
-
     pub(crate) const fn runtime(&self) -> &SequenceRuntime {
         &self.runtime
     }
@@ -63,12 +45,14 @@ impl ConfiguredControlProgram {
         self.runtime.execute_scan(inputs)
     }
 
-    pub(crate) fn elapse(
+    pub(crate) fn elapse_with_timer_override(
         &mut self,
         elapsed_ms: u64,
         inputs: SequenceInputs,
+        timer_override_ms: Option<u64>,
     ) -> Option<SequenceScan> {
-        self.runtime.elapse(elapsed_ms, inputs)
+        self.runtime
+            .elapse_with_timer_override(elapsed_ms, inputs, timer_override_ms)
     }
 
     pub(crate) fn force_fault(&mut self) -> SequenceScan {

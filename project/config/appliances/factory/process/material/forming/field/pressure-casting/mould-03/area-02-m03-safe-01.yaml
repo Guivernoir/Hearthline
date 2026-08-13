@@ -1,0 +1,26 @@
+schema_version: "0.10.0"
+id: "area-02-m03-safe-01"
+label: "AREA-02-M03-SAFE-01"
+kind: "safety-interface"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Mould 3 hardwired safety and process-permissive interface"
+summary: "Separates non-bypassable emergency-stop and hardwired travel limits from ordinary process-sensor permissives used by Mould 3 control."
+lifecycle: "simulated"
+tags: ["ot-area-02", "safety interface", "station-mould-03"]
+render:
+  - { view: "factory/process/forming", node: "area-02-m03-safe-01", mode: "any" }
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "safety"
+  permissives: ["emergency-stop-healthy", "hard-limit-open-healthy", "hard-limit-closed-healthy", "guard-closed", "mould-installed", "slip-supply-ready", "process-sensors-ready"]
+  latched_trip: false
+  initially_permissive: ["emergency-stop-healthy", "hard-limit-open-healthy", "hard-limit-closed-healthy", "guard-closed", "mould-installed", "slip-supply-ready", "process-sensors-ready"]

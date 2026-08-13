@@ -1,0 +1,11 @@
+schema_version: "0.2.0"
+id: "area-02-cell-rio-01-to-area-02-cell-guard-safe-01"
+label: "Guarded-cell safety status"
+lifecycle: "simulated"
+transport: "field-io"
+medium: { type: "field-wiring", signal: "Guard safety status and reset", length_m: 35.0 }
+endpoints:
+  a: { appliance: "area-02-cell-rio-01", interface: "field-io-02" }
+  b: { appliance: "area-02-cell-guard-safe-01", interface: "field-io" }
+properties: { capacity_mbps: 10, latency_ms: 0, loss_every: null, direction: "bidirectional", operational: true }
+tags: ["ot", "ot-area-02", "field-io", "guarded-cell", "safety"]

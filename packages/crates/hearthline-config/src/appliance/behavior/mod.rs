@@ -1,13 +1,39 @@
 use hearthline_model::BehaviorFamily;
 use serde::Deserialize;
 
+mod cabinet;
+mod facts;
+mod operator;
+mod robot;
 mod services;
+mod supervisory;
+
+pub use cabinet::{
+    MouldControlCabinetConfig, MouldUtilityCabinetConfig, MouldUtilityCircuitConfig,
+    UtilityMediumConfig,
+};
+
+pub use operator::{
+    OperatorControlMode, OperatorModeSelectorConfig, OperatorParameterConfig, OperatorRecipeConfig,
+    OperatorStationConfig, OperatorStationType,
+};
+pub use robot::{
+    RobotArchitectureConfig, RobotFrameConfig, RobotHandoffConfig, RobotMotionProfileConfig,
+    RobotPayloadConfig, RobotPoseConfig, RobotTaughtPositionConfig, RobotToolConfig,
+    RobotWorkspaceConfig,
+};
+pub use supervisory::{
+    SupervisoryAssetConfig, SupervisoryDeploymentNodeConfig, SupervisoryHistoryConfig,
+    SupervisoryIdentityConfig, SupervisoryNodeRoleConfig, SupervisoryNodeStateConfig,
+    SupervisoryProfileConfig, SupervisoryRepositoryConfig, SupervisoryRoleConfig,
+    SupervisoryTemplateConfig,
+};
 
 use super::{
     ApplicationUpstreamConfig, ConfigError, DnsRecordConfig, FirewallZoneConfig,
     HttpInspectionRuleConfig, HttpMethodConfig, HttpSiteConfig, ListenerConfig,
-    NatTranslationConfig, PolicyAction, PolicyRuleConfig, RouteConfig, application_gateway_facts,
-    default_true, join_numbers, validate_application_gateway, validate_dns_records,
+    NatTranslationConfig, PolicyAction, PolicyRuleConfig, RouteConfig, default_true,
+    validate_application_gateway, validate_dns_records,
 };
 
 #[derive(Clone, Debug, Deserialize)]
@@ -121,10 +147,24 @@ pub enum BehaviorConfig {
         signal_tags: Vec<String>,
         #[serde(default)]
         command_tags: Vec<String>,
+        #[serde(default)]
+        safety_components: Vec<String>,
+        #[serde(default)]
+        control_station: Option<OperatorStationConfig>,
+        #[serde(default)]
+        parameters: Vec<OperatorParameterConfig>,
+        #[serde(default)]
+        recipes: Vec<OperatorRecipeConfig>,
+        #[serde(default)]
+        active_recipe: Option<String>,
+        #[serde(default)]
+        supervisory_profile: Option<SupervisoryProfileConfig>,
     },
     RemoteIo {
         controller: String,
         channels: Vec<String>,
+        #[serde(default)]
+        control_cabinet: Option<MouldControlCabinetConfig>,
     },
     FieldSensor {
         signal_tag: String,
@@ -141,6 +181,10 @@ pub enum BehaviorConfig {
         feedback_tag: Option<String>,
         #[serde(default)]
         states: Vec<String>,
+        #[serde(default)]
+        motion_profile: Option<RobotMotionProfileConfig>,
+        #[serde(default)]
+        utility_cabinet: Option<MouldUtilityCabinetConfig>,
     },
     Safety {
         permissives: Vec<String>,
@@ -297,198 +341,6 @@ impl BehaviorConfig {
         match self {
             Self::ServiceHost { dns_records, .. } => dns_records,
             _ => &[],
-        }
-    }
-
-    pub(super) fn facts(&self) -> Vec<String> {
-        match self {
-            Self::Endpoint {
-                respond_to_icmp, ..
-            }
-            | Self::ServiceHost {
-                respond_to_icmp, ..
-            } => vec![format!("ICMP response: {respond_to_icmp}")],
-            Self::PolicyService {
-                decision_inputs, ..
-            } => vec![format!("Decision inputs: {}", decision_inputs.join(", "))],
-            Self::TransparentLink { operational } => {
-                vec![format!("Operational: {operational}")]
-            }
-            Self::ImpairedLink {
-                operational,
-                delay_ms,
-                loss_every,
-            } => vec![
-                format!("Operational: {operational}"),
-                format!("Modeled delay: {delay_ms} ms"),
-                format!(
-                    "Deterministic loss: {}",
-                    loss_every.map_or_else(|| "disabled".into(), |value| format!("1/{value}"))
-                ),
-            ],
-            Self::EthernetSwitch {
-                vlans,
-                management_vlan,
-                spanning_tree,
-            } => vec![
-                format!("VLANs: {}", join_numbers(vlans)),
-                format!(
-                    "Management VLAN: {}",
-                    management_vlan.map_or_else(|| "none".into(), |value| value.to_string())
-                ),
-                format!("Spanning tree: {spanning_tree}"),
-            ],
-            Self::Router { routes, forwarding } => vec![
-                format!("Forwarding: {forwarding}"),
-                format!("Routes: {}", routes.len()),
-            ],
-            Self::NatRouter {
-                routes,
-                inside_interfaces,
-                outside_interfaces,
-                translations,
-            } => vec![
-                format!("Routes: {}", routes.len()),
-                format!("Inside: {}", inside_interfaces.join(", ")),
-                format!("Outside: {}", outside_interfaces.join(", ")),
-                format!("Static translations: {}", translations.len()),
-            ],
-            Self::StatefulFirewall {
-                stateful,
-                default_action,
-                zones,
-                routes,
-                rules,
-            } => vec![
-                format!("Stateful inspection: {stateful}"),
-                format!("Default action: {default_action}"),
-                format!("Security zones: {}", zones.len()),
-                format!("Routes: {}", routes.len()),
-                format!("Policy rules: {}", rules.len()),
-            ],
-            Self::ApplicationGateway {
-                listeners,
-                allowed_hosts,
-                allowed_methods,
-                inspection_rules,
-                upstreams,
-                routes,
-                max_request_bytes,
-            } => application_gateway_facts(
-                listeners,
-                allowed_hosts,
-                allowed_methods,
-                inspection_rules,
-                upstreams,
-                routes,
-                *max_request_bytes,
-            ),
-            Self::WirelessBridge {
-                ssid,
-                client_vlan,
-                client_isolation,
-            } => vec![
-                format!("SSID: {ssid}"),
-                format!("Client VLAN: {client_vlan}"),
-                format!("Client isolation: {client_isolation}"),
-            ],
-            Self::PassiveMonitor {
-                capture_sources,
-                inline,
-            } => vec![
-                format!("Capture sources: {}", capture_sources.join(", ")),
-                format!("Inline: {inline}"),
-            ],
-            Self::Voice {
-                extension,
-                call_controller,
-                ..
-            } => vec![
-                format!(
-                    "Extension: {}",
-                    extension.clone().unwrap_or_else(|| "not assigned".into())
-                ),
-                format!(
-                    "Call controller: {}",
-                    call_controller
-                        .clone()
-                        .unwrap_or_else(|| "not assigned".into())
-                ),
-            ],
-            Self::ComputeHost { workloads, .. } => {
-                vec![format!("Workloads: {}", workloads.join(", "))]
-            }
-            Self::VirtualController {
-                scan_interval_ms,
-                program_ref,
-                io_binding,
-            } => vec![
-                format!("Scan interval: {scan_interval_ms} ms"),
-                format!("Program: {program_ref}"),
-                format!("I/O binding: {io_binding}"),
-            ],
-            Self::OperatorInterface {
-                controller,
-                permissions,
-                signal_tags,
-                command_tags,
-            } => vec![
-                format!("Controller: {controller}"),
-                format!("Permissions: {}", permissions.join(", ")),
-                format!(
-                    "Signal scope: {}",
-                    if signal_tags.is_empty() {
-                        "all area signals".into()
-                    } else {
-                        signal_tags.join(", ")
-                    }
-                ),
-                format!("Command tags: {}", command_tags.join(", ")),
-            ],
-            Self::RemoteIo {
-                controller,
-                channels,
-            } => vec![
-                format!("Controller: {controller}"),
-                format!("Channels: {}", channels.join(", ")),
-            ],
-            Self::FieldSensor {
-                signal_tag,
-                unit,
-                minimum,
-                maximum,
-                initial_value,
-            } => vec![
-                format!("Signal: {signal_tag}"),
-                format!("Range: {minimum} to {maximum} {unit}"),
-                format!(
-                    "Initial value: {}",
-                    initial_value.map_or_else(|| "not set".into(), |value| value.to_string())
-                ),
-            ],
-            Self::FieldActuator {
-                command_tag,
-                safe_state,
-                feedback_tag,
-                states,
-            } => vec![
-                format!("Command: {command_tag}"),
-                format!("Safe state: {safe_state}"),
-                format!("States: {}", states.join(", ")),
-                format!(
-                    "Feedback: {}",
-                    feedback_tag.clone().unwrap_or_else(|| "none".into())
-                ),
-            ],
-            Self::Safety {
-                permissives,
-                latched_trip,
-                initially_permissive,
-            } => vec![
-                format!("Permissives: {}", permissives.join(", ")),
-                format!("Initially permissive: {}", initially_permissive.join(", ")),
-                format!("Trip latched: {latched_trip}"),
-            ],
         }
     }
 }

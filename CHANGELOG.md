@@ -5,14 +5,78 @@ All notable changes to Hearthline are recorded here. Releases follow
 development, so minor releases may include documented configuration or API
 migrations.
 
-## 0.3.1 2026-08-09
+## 0.3.1 - 2026-08-12
 
 ### Added
 
-- A detailed YAML-defined ceramic-slip Forming cell with 32 components,
-  cell-wide SCADA, four module HMIs, 17 process inputs, six process outputs,
-  one 24-channel remote-I/O station, and explicit field and control-network
-  connections.
+- Expanded Forming into four equal mould stations, each with one local HMI,
+  local remote I/O, six process signals, a valve manifold, movement output,
+  and safety interface. The cell also has an embedded machine-PC supervisory
+  application and an independent robot pendant and safety interface.
+- Added one machine-PC tab per mould and a live mould schematic to both the PC
+  and each local HMI, including mould inclination, position, fill-head,
+  pressure, temperature, moisture, selector, and active-circuit state.
+- Added machine-PC object navigation for moulds, slip supply, production,
+  trends, alarms, and audit records, plus a live robot-pendant view with
+  retained manual motion commands.
+- Added typed manual, auto, and authenticated setup selector state. Setup
+  bypasses declared process-sensor permissives while retaining emergency-stop
+  and hardwired-travel-limit protections.
+- Added 28 range-checked mould parameters, three development recipe identities,
+  shared station status, local-manual valve authorization, and explicit denial
+  of machine-PC robot commands.
+- Added mould-local Start, phase-boundary Stop, and cycle-boundary End controls,
+  continuous production, independent mould phase state, and identified mould
+  telemetry.
+- Added regression coverage for independent phase offsets, continuous cycles,
+  Stop/End boundaries, retained commands, selector authority, setup
+  protections, scoped safety trips, telemetry, and machine-PC/robot separation.
+- Added a first-class robot-controller appliance with six-axis motion-group
+  metadata, controller/manipulator/pendant/safety boundaries, five user
+  frames, tool and payload records, 17 taught positions, four separately
+  assigned pickup and operator-handoff definitions, and a default bounded
+  `.g` motion program.
+- Added Rust-owned Cartesian and joint interpolation, workspace enforcement,
+  jog and coordinate targets, pendant motion-enable authority, taught-position
+  updates, program loading, single-line execution, and active-line reporting.
+- Rebuilt the robot pendant with an always-live cell view, motion percentage,
+  TCP and joint values, sequence commands, Cartesian and joint jog controls,
+  taught positions, source editing/import, and executing-line highlighting.
+- Added a bounded FIFO robot-cell arbiter. Concurrent mould requests now wait
+  for exclusive robot ownership, and pickup/delivery PLC transitions remain
+  held until the selected station's motion and handoff states complete.
+- Added four complete mould-specific robot routines (`O0201` through `O0204`)
+  to the canonical `.g` source. Automatic motion now executes those
+  coordinates directly and reports the active assigned routine.
+- Added pickup and operator-handoff geometry validation. A `.g` coordinate
+  outside its YAML-defined translation or orientation tolerance stops the
+  robot cell and raises a named trip alarm, with a negative-path regression
+  test using a deliberately incorrect pickup coordinate.
+- Bound all seven independently configured values per mould to the executing
+  sequence and Rust plant dynamics. Fill, dwell, drain, pickup-delay, wash,
+  and vacuum values override timer transitions; casting pressure drives the
+  simulated pressure profile.
+- Added one YAML-defined external control cabinet and one mould-embedded
+  utility section per mould, including local I/O modules and independently
+  addressed slip, compressed-air, water, vacuum, and hydraulic circuits with
+  live state projection.
+- Added a YAML-defined fenced robot cell with an interlocked personnel gate,
+  dedicated guard remote I/O, and four mould-specific transfer stations with
+  in-cell and operator-side position feedback.
+- Added Rust-owned guard inhibition and trip behavior. Motion requested with
+  the gate open is denied, opening the gate during motion stops affected state
+  machines, and a latched trip can be reset only after the gate is closed.
+- Added live machine-PC guarded-cell controls and transfer status, including
+  gate state, motion permissive, alarm/reset state, travel progress, piece
+  state, and both end-position sensors for each handoff.
+- Added an object-based supervisory runtime with reusable templates, asset
+  instances, quality-aware timestamped tags, bounded trends, alarm/event and
+  operator-audit projection, role identity, repository revision state, and
+  active/standby deployment nodes.
+- A detailed YAML-defined ceramic-slip Forming cell with 84 components,
+  object-based machine supervision, four mould HMIs, shared and mould-local
+  remote I/O, external control cabinets, mould-embedded utility sections, and
+  explicit field, motion, safety, and control-network connections.
 - A deterministic Rust process model for mould filling, compressed-air
   pressure and dwell, excess-slip drainage, depressurization, sequential
   release water and air, robotic pickup and operator handoff, mould washing,
@@ -79,6 +143,23 @@ migrations.
 
 ### Changed
 
+- Advanced the HMI API schema to `0.8.0` for runtime-bound mould setpoints,
+  cabinet state, robot architecture and arbitration, and typed supervisory
+  objects, history, security, and deployment state.
+- Reduced the Forming physical architecture to a top-down machine-floor view
+  of four moulds with embedded utility sections, their external control
+  cabinets and operator HMIs, four transfer stations, the fenced robot cell,
+  and the operator-side robot controller, pendant, and machine PC. The logical
+  view continues to show all 84 configured control, I/O, field, and safety
+  components and their relationships.
+- Improved reduced-zoom Forming readability with larger physical labels,
+  viewport-fixed physical and logical line legends, pattern-distinct network,
+  I/O, safety, transfer, guard, utility, and gate paths, a horizontal guarded
+  boundary label, and utility routing separated from the access-gate area.
+- Moved production authority to each mould-local HMI while retaining
+  supervisory, parameter, recipe, historian, and valve-service functions on
+  the machine PC. The robot controller now arbitrates all four stations while
+  the independent pendant retains manual/setup motion authority.
 - Migrated appliance configuration to schema `0.10.0`, the generated catalog
   to `0.9.0`, and the HMI API to `0.4.0`.
 - Replaced the provisional dry-powder hydraulic-press representation with the

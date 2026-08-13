@@ -15,60 +15,47 @@
 
 {#if routeKey === "forming"}
   <g class="process-area-physical-layer">
-    <rect class="area-facility-shell" x="20" y="105" width="1860" height="1205"></rect>
-    <rect class="area-control-room" x="40" y="130" width="1000" height="300"></rect>
-    <rect class="area-compute-bay" x="60" y="165" width="440" height="225"></rect>
-    <rect class="area-operator-bay" x="520" y="165" width="500" height="225"></rect>
-    <rect class="area-field-room forming-machine-bay" x="1060" y="130" width="800" height="300"></rect>
-    <path class="forming-machine-shape" d="M1105 215 H1235 V335 H1105 Z M1120 195 H1220 V215 M1130 255 H1210"></path>
-    <path class="forming-machine-shape forming-press-frame" d="M1320 190 H1485 V350 H1455 V220 H1350 V350 H1320 Z M1370 240 H1435 V300 H1370 Z"></path>
-    <path class="forming-machine-shape" d="M1550 330 H1785 V350 H1550 Z M1580 330 V285 L1635 250 L1680 285 M1635 250 V215 M1618 215 H1652"></path>
-    <circle class="forming-utility-vessel" cx="1575" cy="205" r="24"></circle>
-    <circle class="forming-utility-vessel" cx="1710" cy="205" r="24"></circle>
-    <circle class="forming-utility-vessel" cx="1780" cy="205" r="24"></circle>
-    <path class="forming-machine-flow" d="M1060 290 H1105 M1235 290 H1320 M1485 290 H1550"></path>
-    <path class="forming-machine-arrow" d="M1095 290 l-13 -8 v16 Z M1310 290 l-13 -8 v16 Z M1540 290 l-13 -8 v16 Z"></path>
-    <rect class="forming-module forming-feed-module" x="35" y="520" width="435" height="690"></rect>
-    <rect class="forming-module forming-press-module" x="495" y="520" width="435" height="690"></rect>
-    <rect class="forming-module forming-transfer-module" x="955" y="520" width="435" height="690"></rect>
-    <rect class="forming-module forming-utilities-module" x="1415" y="520" width="435" height="690"></rect>
-    <path class="area-cable-tray" d="M160 350 H910 V470 H250 V565 M910 470 H1630 V565"></path>
-    <path class="area-material-line forming-material-flow" d="M120 1260 H1370"></path>
-    <path class="forming-flow-arrow" d="M450 1260 l-18 -10 v20 Z M910 1260 l-18 -10 v20 Z M1370 1260 l-18 -10 v20 Z"></path>
-    <path class="forming-utility-line" d="M1630 1175 H710 V1210"></path>
-    <text class="area-zone-label" x="75" y="155">CELL NETWORK / HOSTED CONTROL RUNTIME</text>
-    <text class="area-zone-label" x="540" y="155">SCADA AND DISTRIBUTED I/O CABINETS</text>
-    <text class="area-zone-label" x="1080" y="155">FORMING MACHINE ENVELOPE</text>
-    <text class="area-detail-label" x="1068" y="275">FROM BODY PREPARATION</text>
-    <text class="area-detail-label" x="1115" y="390">SLIP TANK / 40 C</text>
-    <text class="area-detail-label" x="1350" y="390">PRESSURE-CASTING MOULD</text>
-    <text class="area-detail-label" x="1560" y="390">ROBOT / OPERATOR HANDOFF</text>
-    <text class="area-detail-label" x="1545" y="170">WATER</text>
-    <text class="area-detail-label" x="1682" y="170">AIR</text>
-    <text class="area-detail-label" x="1748" y="170">VACUUM</text>
-    <text class="forming-module-label" x="55" y="550">01 / CERAMIC-SLIP SUPPLY</text>
-    <text class="forming-module-label" x="515" y="550">02 / PRESSURE CASTING AND MOULD</text>
-    <text class="forming-module-label" x="975" y="550">03 / ROBOTIC DEMOULD AND HANDOFF</text>
-    <text class="forming-module-label" x="1435" y="550">SUPPORT / WATER, AIR, VACUUM</text>
-    <text class="area-detail-label" x="85" y="1250">SLIP CASTING TO GREEN-PIECE HANDOFF</text>
-    <text class="area-detail-label" x="1435" y="1205">RELEASE, CLEANING, AND DRYING UTILITIES</text>
+    <rect class="forming-floor" x="20" y="105" width="2270" height="1030"></rect>
+    <rect class="forming-cabinet-zone" x="40" y="145" width="250" height="965"></rect>
+    <rect class="forming-operator-zone" x="1790" y="125" width="480" height="985"></rect>
+    <path class="forming-cell-fence" d="M390 1100 V155 H1755 V1100 H1680 M1510 1100 H390"></path>
+    <path class="forming-guard-aisle" d="M390 370 H1755 M390 590 H1755 M390 810 H1755 M390 1030 H1540"></path>
+    <path class="forming-robot-envelope" d="M985 245 Q1580 585 985 985 Q690 585 985 245 Z"></path>
+    <path class="forming-utility-trench" d="M470 985 V250 M470 250 H515 M470 470 H515 M470 690 H515 M470 910 H515"></path>
+    <path class="forming-handoff-line" d="M1530 250 H1885 M1530 470 H1885 M1530 690 H1885 M1530 910 H1885"></path>
+    <path class="forming-gate-swing" d="M1680 1100 A120 120 0 0 0 1560 980"></path>
+    <path class="forming-transfer-boundary" d="M1755 175 V960"></path>
+    <text class="area-zone-label" x="55" y="175">EXTERNAL MOULD CONTROL CABINETS</text>
+    <text class="area-zone-label" x="415" y="180">INTERLOCKED FORMING AND ROBOT CELL / TOP VIEW</text>
+    <text class="area-zone-label forming-boundary-label" x="1495" y="180">GUARDED TRANSFER BOUNDARY</text>
+    <text class="area-zone-label" x="1815" y="155">OPERATOR AND ROBOT CONTROL AREA</text>
   </g>
 
   <g class="process-area-logical-layer">
-    <rect class="area-logical-zone area-control-zone" x="35" y="115" width="1010" height="330"></rect>
-    <rect class="area-logical-zone area-network-zone" x="1065" y="115" width="800" height="330"></rect>
-    <rect class="forming-module forming-feed-module" x="35" y="520" width="435" height="690"></rect>
-    <rect class="forming-module forming-press-module" x="495" y="520" width="435" height="690"></rect>
-    <rect class="forming-module forming-transfer-module" x="955" y="520" width="435" height="690"></rect>
-    <rect class="forming-module forming-utilities-module" x="1415" y="520" width="435" height="690"></rect>
-    <text class="area-zone-label" x="55" y="145">CONTROL AUTHORITY, SUPERVISION, AND I/O EXCHANGE</text>
-    <text class="area-zone-label" x="1085" y="145">CELL ACCESS NETWORK / LEVEL 3 UPLINK BOUNDARY</text>
-    <text class="forming-module-label" x="55" y="550">CERAMIC-SLIP SUPPLY MODULE</text>
-    <text class="forming-module-label" x="515" y="550">PRESSURE-CASTING MOULD MODULE</text>
-    <text class="forming-module-label" x="975" y="550">ROBOTIC DEMOULDING MODULE</text>
-    <text class="forming-module-label" x="1435" y="550">WATER / AIR / VACUUM MODULE</text>
-    <text class="forming-flow-note" x="55" y="1290">Inputs: sensor -> remote I/O -> PLC -> operator interfaces</text>
-    <text class="forming-flow-note" x="1000" y="1290">Commands: operator interface -> PLC -> remote I/O -> actuator</text>
+    <rect class="area-logical-zone area-control-zone" x="40" y="130" width="1030" height="310"></rect>
+    <rect class="area-logical-zone area-network-zone" x="1090" y="130" width="1180" height="310"></rect>
+    <rect class="forming-station-bay forming-shared-bay" x="40" y="520" width="410" height="1035"></rect>
+    <rect class="forming-station-bay forming-mould-bay" x="480" y="520" width="410" height="1035"></rect>
+    <rect class="forming-station-bay forming-mould-bay" x="940" y="520" width="410" height="1035"></rect>
+    <rect class="forming-station-bay forming-mould-bay" x="1400" y="520" width="410" height="1035"></rect>
+    <rect class="forming-station-bay forming-mould-bay" x="1860" y="520" width="410" height="1035"></rect>
+    <rect class="forming-station-bay forming-robot-bay" x="480" y="1625" width="1790" height="500"></rect>
+
+    <path class="forming-authority-line" d="M625 470 H2210"></path>
+    <path class="forming-authority-line forming-safety-authority" d="M680 1600 H2210"></path>
+
+    <text class="area-zone-label" x="60" y="160">PLC CONTROL AUTHORITY / EMBEDDED SCADA SUPERVISION</text>
+    <text class="area-zone-label" x="1110" y="160">CELL ETHERNET / FACTORY LEVEL 3 UPLINK BOUNDARY</text>
+    <text class="forming-flow-note" x="60" y="415">Machine PC: logs, live values, mould parameters, recipes, valve service, and controller-source view</text>
+    <text class="forming-flow-note" x="1110" y="415">Automatic commands: PLC to station I/O / Manual movement: local keyed selector</text>
+    <text class="forming-module-label" x="60" y="552">SHARED MATERIAL CONDITIONING INPUTS</text>
+    <text class="forming-module-label" x="500" y="552">MOULD 1 / HMI 1 / RIO 1</text>
+    <text class="forming-module-label" x="960" y="552">MOULD 2 / HMI 2 / RIO 2</text>
+    <text class="forming-module-label" x="1420" y="552">MOULD 3 / HMI 3 / RIO 3</text>
+    <text class="forming-module-label" x="1880" y="552">MOULD 4 / HMI 4 / RIO 4</text>
+    <text class="forming-module-label" x="500" y="1657">ROBOT, GUARDED-CELL SAFETY, AND FOUR OPERATOR HANDOFF TRANSFER STATIONS</text>
+    <text class="forming-flow-note" x="60" y="1588">Sensor data and actuator feedback return through the owning remote-I/O station</text>
+    <text class="forming-flow-note" x="1510" y="1588">Setup bypasses process sensors, never E-stops or hardwired travel limits</text>
   </g>
 {:else}
   <g class="process-area-physical-layer">

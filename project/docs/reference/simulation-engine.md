@@ -32,8 +32,8 @@ to reproduce vendor firmware or every byte exchanged by a production protocol.
 | Services | Explicit service acceptance, ICMP echo response, authoritative test-record DNS responses, configured bounded HTTP documents, typed bounded process telemetry, and operational state |
 | Web gateway | HTTP redirect, published-host validation, configuration-owned method allowlists and path/body inspection rules, body limits, configured static routing, bounded request correlation, upstream request origination, and response relay |
 | Monitoring | Passive frame observation without forwarding |
-| OT control | Periodic virtual-controller scans, a bounded Structured Text sequence parser/runtime, explicit Forming I/O binding validation, and Rust-owned Forming plant dynamics and trips |
-| Operator interface | HMI/SCADA allowed-tag command submission, scoped observation, shared Forming cell state, automatic-cycle control, fault injection, alarm handling, and audit history |
+| OT control | Periodic virtual-controller scans, bounded Structured Text and robot `.g` parsers/runtimes, explicit Forming I/O binding validation, Rust-owned Forming dynamics and trips, and workspace-limited robot motion interpolation |
+| Operator interface | HMI/SCADA allowed-tag command submission, scoped observation, shared Forming cell state, mould-local production control, retained manual commands, fault injection, alarm handling, and audit history |
 | Distributed I/O | Declared input and output channels, channel validation, and output effects |
 | Field devices | Scaled sensor samples, actuator commands, failures, and safe-state handling |
 | Safety interface | Required permissives, latched trips, safe denial, and authorized reset |
@@ -44,14 +44,14 @@ to reproduce vendor firmware or every byte exchanged by a production protocol.
 The `hearthline-model` and `hearthline-engine` crates compile independently as
 `no_std` code and use fixed-capacity storage. Host allocation, filesystem
 access, YAML parsing, generated projection, HTTP, and CLI concerns are isolated
-in adapter crates. The workspace currently contains 37 appliance kinds and 44
+in adapter crates. The workspace currently contains 38 appliance kinds and 45
 rendered-role contracts. The manually maintained coverage register records a
 Rust kind for every currently identified rendered appliance role, and external
 integration tests ensure those kinds exist in the catalog. It cannot
 independently discover Svelte inventory drift and does not prove that every
 node is instantiated in a running topology.
 
-The configuration repositories discover 185 per-appliance and 231
+The configuration repositories discover 222 per-appliance and 271
 per-connection YAML documents. They dispatch appliance behavior, validate
 render bindings, resolve connection endpoints and ports, enforce appliance
 port capabilities, port-to-medium compatibility, endpoint speed and medium
@@ -84,24 +84,33 @@ uses 12 appliances and 11 links to prove default-denied public SSH. The factory
 pair uses a separate seven-appliance, six-link subgraph to prove named HTTPS
 delivery of a typed telemetry frame from the OT DMZ historian replica to
 Central Office analytics and default-denied SSH at the northbound firewall.
-Forming SCADA can replace the canonical payload with its current process phase,
-controller scan sequence, and selected live measurements for one
+Forming SCADA can replace the canonical payload with an identified active-mould
+phase, controller scan sequence, and selected live measurements for one
 request-scoped run. Each Business IT path uses five
 appliances and four links to prove user VLAN access, Core-01 inter-VLAN routing,
 internal DNS or HTTPS response, and return delivery. Complete-project graph
 construction remains unfinished.
 
 Forming is the first area-specific plant-process implementation. One shared
-Rust session supplies its SCADA workstation and four module HMIs. A bounded
-Structured Text sequence with 14 seconds of timer presets advances mould filling, pressurization and
-dwell, excess-slip drainage, depressurization, sequential release water and
-air, mould opening, robot pickup and operator handoff, mould wash, air purge,
-vacuum drying, and mould closure. Seventeen measurements and six outputs change
-with phase. Five injected disturbances produce bounded trips; mould
-overpressure also latches the separate machine-safety state. Timer completion
-is observed on 20-millisecond scan boundaries. This is a tested Hearthline
-subset, not ceramic-process physics, complete IEC 61131-3 conformance, or a
-vendor-equivalent runtime.
+Rust session supplies its embedded machine-PC supervisory application, four
+mould-local HMIs, and independent robot pendant. Each mould owns an
+independently started runtime of the same bounded Structured Text sequence.
+Seven mould-specific values bind timer transitions and the casting-pressure
+profile while Start, Stop, and End retain mould-local production authority.
+Executable measurements, outputs, and utility-circuit states change with each
+mould's phase. Five injected disturbances produce bounded trips; overpressure
+latches only the applicable mould safety interface. Timer completion remains
+quantized to 20-millisecond scan boundaries. A dedicated robot-controller
+runtime parses four mould-specific routines from the authoritative bounded `.g`
+source, interpolates Cartesian and projected joint state, enforces YAML
+workspace and speed limits, validates pickup and handoff poses against
+configured geometry and tolerances, and arbitrates concurrent
+mould pickup requests through a bounded FIFO with exclusive ownership and
+pickup/handoff completion gates. The supervisory runtime projects reusable
+templates, assets, quality-aware timestamped tags, bounded history, events,
+roles, repository revision, and active/standby nodes. This is a tested
+Hearthline subset, not ceramic-process physics, complete IEC 61131-3
+conformance, or a production controller or supervisory runtime.
 
 The factory local-autonomy scenario combines two independent execution roots.
 Both factory-facing inter-site handoffs are down, and the historian HTTPS
@@ -344,7 +353,9 @@ route-discovery engine. Runtime mutation, connector inspection, privileged
 management protocols, and arbitrary topology discovery remain planned.
 `GET /api/hmis/{id}` returns a configured HMI or SCADA snapshot, while
 `POST /api/hmis/{id}/actions` executes permission, safety-reset,
-acknowledgement, actuator-command, Forming-cycle, and Forming-fault behavior
+acknowledgement, selector-mode, parameter, recipe, actuator-command,
+Forming-cycle, Forming-fault, robot motion, jog, teaching, and bounded robot
+program behavior
 against persistent shared cell state. A background API task advances active
 Forming sessions while any authorized interface may observe them.
 `GET /api/hmis/{id}/historian` is restricted to the authorized Forming SCADA
@@ -358,15 +369,19 @@ sequence, and payload to the canonical historian-replica-to-analytics
 scenario, and returns the standard scenario report.
 `GET /api/hmis/{id}/program` returns the validated Forming Structured Text and
 I/O-binding documents plus their task identity and combined source revision.
+The robot pendant's `GET /api/hmis/{id}` snapshot carries its canonical or
+session-loaded `.g` source, parsed operations, active line, active automatic
+routine, coordinate-fault state, pose, projected joint state, taught positions,
+workspace, and motion progress.
 `GET /api/security/consoles/{id}` returns the current modeled event queue;
 event acknowledgement and queue clearing affect only the running local API
 session.
 
 ## Next Milestones
 
-1. Extend the Forming control contract with reviewed process-condition
-   transitions, recipes, retries, quality handling, and cross-area slip-tank
-   replenishment while preserving the Rust plant/control boundary.
+1. Add robot recovery states and collision-envelope checks, bind reviewed
+   Forming recipes into parameter deployment, then extend process-condition
+   transitions, retries, quality handling, and cross-area slip replenishment.
 2. Add further exact positive, negative, failover, isolation, and outage
    scenarios for
    routing, NAT, policy, and services.

@@ -13,14 +13,16 @@ permissive role.
 
 The ordered process canvas and ten process-area views are implemented. Nine
 areas still use bootstrap JSON for representative presentation relationships.
-Forming is the first detailed and executable area: its view derives 32
-components from the generated YAML catalog and separates ceramic-slip supply,
-pressure casting, robotic demoulding, water/air/vacuum utilities, SCADA,
-module HMIs, control, distributed I/O, and field equipment.
+Forming is the first detailed and executable area: its view derives 84
+components from the generated YAML catalog and separates shared ceramic-slip
+supply, four mould stations, robotic demoulding, the embedded machine-PC
+supervisory application, four mould-local HMIs, an independent robot pendant,
+a dedicated robot controller, four handoff transfer stations, guarded-cell
+safety, control, distributed I/O, and field equipment.
 
 The Rust workspace has provisional controller-scan, I/O, sensor, actuator,
-SCADA/HMI, safety, and connector primitives plus parsed YAML for 113 area
-components, both physical vPLC hosts, and the Level 3 aggregation pair. Every
+supervisory/HMI, safety, and connector primitives plus parsed YAML for the
+process-area components, both physical vPLC hosts, and the Level 3 aggregation pair. Every
 configured local operator interface is assembled from area YAML with declared
 signal and command scope, alarm and audit state, and a command path executed
 through the operator interface, vPLC, remote I/O, and actuator primitives.
@@ -33,7 +35,7 @@ pickup and handoff, mould washing, air purging, vacuum drying, and mould
 closure. Its bounded Structured Text sequence and explicit YAML I/O binding
 are executable; production-fidelity plant dynamics, the remaining nine area
 programs, and broader IEC 61131-3 language support remain unimplemented.
-The Forming SCADA can capture the current process scan and invoke the existing
+The Forming machine PC can capture the current process scan and invoke the existing
 brokered factory operations-data path. The resulting typed telemetry packet,
 analytics delivery result, and media trace are returned to the same operator
 session.
@@ -80,11 +82,15 @@ The Svelte views currently consume
 bootstrap view model for the process sequence and nine representative area
 views. Forming derives its component inventory and descriptions from the
 generated canonical configuration catalog; Svelte retains only its
-presentation grouping and coordinates. Its HMI state and accelerated process
-cycle, parsed control-source state, and resolved Forming I/O bindings are
-supplied by the Rust API. Broader connectivity results, remaining area control
-sources, and generated process-area topology will replace the remaining
-bootstrap records.
+presentation grouping and coordinates. Its HMI state, four independent
+accelerated mould cycles, station selector state, mutable development parameters and recipes,
+parsed control-source state, and resolved Forming I/O bindings are supplied by
+the Rust API. Each mould-local HMI owns production enable, Stop, and End for
+its own sequence; the machine PC supervises without production-start or robot
+authority. The dedicated robot controller provides bounded FIFO arbitration,
+exclusive robot ownership, and mould-specific pickup and handoff completion
+gates. Broader connectivity results, remaining area control sources, and
+generated process-area topology will replace the remaining bootstrap records.
 
 Svelte owns layout and interaction. Rust owns process state, material movement,
 faults, accelerated time, network decisions, and generated results. The virtual

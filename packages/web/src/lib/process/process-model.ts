@@ -15,6 +15,7 @@ export type ProcessIconKey =
   | "flame"
   | "gauge"
   | "globe"
+  | "joystick"
   | "monitor"
   | "network"
   | "package"

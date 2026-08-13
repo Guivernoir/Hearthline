@@ -5,8 +5,8 @@ kind: "remote-io"
 site: "Factory"
 environment: "Forming"
 zone: "OT-AREA-02"
-role: "Modular forming-machine field I/O station"
-summary: "Terminates slip, mould, pressure, water, air, vacuum, robot, and safety-status channels and exchanges them only with the assigned forming PLC."
+role: "Shared forming-cell field I/O station"
+summary: "Terminates shared slip-supply, utility-header, robot, and robot-safety channels; each mould uses an equal machine-mounted I/O station."
 lifecycle: "simulated"
 tags:
   - "ot-area-02"
@@ -192,6 +192,13 @@ interfaces:
     mode: "field-io"
     addresses: []
     vlans: []
+  - id: "field-io-25"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
 behavior:
   family: "remote-io"
   controller: "area-02-vplc-01"
@@ -203,15 +210,8 @@ behavior:
     - "area-02-ft-01"
     - "area-02-pt-01"
     - "area-02-slip-01"
-    - "area-02-pt-02"
-    - "area-02-tt-02"
-    - "area-02-pos-01"
-    - "area-02-pos-02"
-    - "area-02-mould-01"
-    - "area-02-safe-01"
     - "area-02-ft-02"
     - "area-02-ft-03"
-    - "area-02-mt-02"
     - "area-02-pt-04"
     - "area-02-vt-01"
     - "area-02-water-01"
@@ -220,3 +220,4 @@ behavior:
     - "area-02-pos-03"
     - "area-02-pe-01"
     - "area-02-robot-01"
+    - "area-02-robot-safe-01"

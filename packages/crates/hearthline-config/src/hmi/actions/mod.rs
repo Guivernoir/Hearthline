@@ -4,31 +4,84 @@ use hearthline_engine::{
 };
 use hearthline_model::{ProcessCommand, ProcessEvent, ProcessSignal, SignalValue, Text};
 
-use super::state::HmiSession;
-use super::support::{
+use super::builder::support::{
     component_id, forwards_command, ports, produces_output, produces_true_output,
     signal_value_text, trace_entry,
 };
+use super::state::HmiSession;
 use super::{HmiAction, HmiActionReport, HmiActionStatus, HmiAlarmSeverity};
 
+mod guard;
+mod operator;
 pub(super) mod process;
+mod robot;
 
 impl HmiSession {
     pub fn execute(&mut self, action: HmiAction) -> HmiActionReport {
         self.sequence = self.sequence.saturating_add(1);
+        if let Some(report) = self.inhibit_open_guard_motion(&action) {
+            return report;
+        }
         match action {
             HmiAction::Command { tag, value } => self.execute_command(tag, value),
             HmiAction::StartProcess => self.start_process(),
+            HmiAction::StartMould => self.start_mould(),
+            HmiAction::StopMouldAfterPhase => self.stop_mould_after_phase(),
+            HmiAction::EndMouldAfterCycle => self.end_mould_after_cycle(),
             HmiAction::ResetProcess => self.reset_process(),
             HmiAction::SetProcessFault { fault, active } => self.set_process_fault(fault, active),
             HmiAction::ResetSafety { safety_id } => self.reset_safety(safety_id),
+            HmiAction::SetGuardDoor { open } => self.set_guard_door(open),
             HmiAction::AcknowledgeAlarm { alarm_id } => self.acknowledge_alarm(alarm_id),
+            HmiAction::SetControlMode { mode, password } => self.set_control_mode(mode, password),
+            HmiAction::SetParameter {
+                parameter_id,
+                value,
+            } => self.set_parameter(parameter_id, value),
+            HmiAction::SelectRecipe { recipe_id } => self.select_recipe(recipe_id),
+            HmiAction::SetRobotMotionEnable { enabled } => self.set_robot_motion_enable(enabled),
+            HmiAction::MoveRobot {
+                target,
+                speed_percent,
+            } => self.move_robot(target, speed_percent),
+            HmiAction::MoveRobotToPosition {
+                position_id,
+                speed_percent,
+            } => self.move_robot_to_position(position_id, speed_percent),
+            HmiAction::JogRobot {
+                coordinate_system,
+                axis,
+                increment,
+                speed_percent,
+            } => self.jog_robot(coordinate_system, axis, increment, speed_percent),
+            HmiAction::TeachRobotPosition { position_id, label } => {
+                self.teach_robot_position(position_id, label)
+            }
+            HmiAction::RunRobotProgram => self.run_robot_program(false),
+            HmiAction::PauseRobotProgram => self.pause_robot_program(),
+            HmiAction::StepRobotProgram => self.run_robot_program(true),
+            HmiAction::ResetRobotProgram => self.reset_robot_program(),
+            HmiAction::LoadRobotProgram { name, source } => self.load_robot_program(name, source),
         }
     }
 
     fn execute_command(&mut self, tag: String, value: String) -> HmiActionReport {
         let mut trace = Vec::new();
-        if self.safety.iter().any(|state| state.trip_latched) {
+        if let Err(message) = self.authorize_manual_command(&tag) {
+            return self.finish(
+                HmiActionStatus::Denied,
+                message,
+                "command",
+                &tag,
+                "denied",
+                trace,
+            );
+        }
+        if self
+            .safety
+            .iter()
+            .any(|state| self.safety_in_scope(&state.component_id) && state.trip_latched)
+        {
             let source = self.id.clone();
             self.raise_alarm(
                 "HMI-COMMAND-INHIBITED",
@@ -45,10 +98,11 @@ impl HmiSession {
                 trace,
             );
         }
-        if self
-            .process
-            .as_ref()
-            .is_some_and(|process| process.running())
+        let target = self.local_mould_target().map(str::to_owned);
+        if target
+            .as_deref()
+            .is_some_and(|target| self.mould_running(target))
+            || (target.is_none() && self.any_mould_running())
         {
             return self.finish(
                 HmiActionStatus::Denied,
@@ -151,10 +205,30 @@ impl HmiSession {
             "accepted operator command".into(),
         ));
 
+        let Some(configured_remote_io) = self
+            .remote_io
+            .iter()
+            .find(|remote_io| {
+                remote_io
+                    .channels
+                    .iter()
+                    .any(|(channel, _)| channel == &tag)
+            })
+            .cloned()
+        else {
+            return self.finish(
+                HmiActionStatus::Denied,
+                "No configured remote I/O station maps this output.".into(),
+                "command",
+                &tag,
+                "denied",
+                trace,
+            );
+        };
         let mut remote_io = RemoteIo::new(
-            component_id(&self.remote_io.id),
-            ports(&self.remote_io.ports),
-            self.remote_io
+            component_id(&configured_remote_io.id),
+            ports(&configured_remote_io.ports),
+            configured_remote_io
                 .channels
                 .iter()
                 .map(|(channel, direction)| (Text::from(channel.as_str()), *direction)),
@@ -174,7 +248,7 @@ impl HmiSession {
             );
         }
         trace.push(trace_entry(
-            &self.remote_io.id,
+            &configured_remote_io.id,
             "output mapping",
             format!("mapped output channel {tag}"),
         ));
@@ -199,6 +273,11 @@ impl HmiSession {
             );
         }
         self.actuators[actuator_index].current_state = signal_value_text(actuator.value());
+        if tag == "area-02-robot-01-command"
+            && let Some(robot) = &mut self.robot
+        {
+            robot.apply_manual_state(&value);
+        }
         trace.push(trace_entry(
             &self.actuators[actuator_index].component_id,
             "field output",
@@ -220,6 +299,16 @@ impl HmiSession {
             return self.finish(
                 HmiActionStatus::Denied,
                 "HMI configuration does not grant safety-reset permission.".into(),
+                "reset-safety",
+                &safety_id,
+                "denied",
+                trace,
+            );
+        }
+        if !self.safety_in_scope(&safety_id) {
+            return self.finish(
+                HmiActionStatus::Denied,
+                "Safety interface is outside this HMI's configured authority.".into(),
                 "reset-safety",
                 &safety_id,
                 "denied",
@@ -295,16 +384,27 @@ impl HmiSession {
             "safety reset",
             "latched trip cleared".into(),
         ));
-        let process_reset = self
-            .process
-            .as_mut()
-            .is_some_and(|process| process.reset_after_trip(true));
-        if process_reset {
+        if safety_id == "area-02-cell-guard-safe-01" {
+            self.clear_guard_motion_trip();
+        }
+        let safety_ready = self.safety.iter().all(|safety| {
+            !safety.trip_latched
+                && safety
+                    .permissives
+                    .iter()
+                    .all(|permissive| permissive.satisfied)
+        });
+        let process_resets = if safety_ready {
+            self.reset_faulted_moulds()
+        } else {
+            0
+        };
+        if process_resets > 0 {
             self.clear_process_alarms();
             trace.push(trace_entry(
                 &self.controller.id,
                 "sequence reset",
-                "safety trip and faulted sequence cleared".into(),
+                format!("cleared {process_resets} faulted mould sequence(s)"),
             ));
         }
         self.finish(

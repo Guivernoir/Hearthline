@@ -6,7 +6,7 @@ site: "Factory"
 environment: "Forming"
 zone: "OT-AREA-02"
 role: "Forming-cell industrial access switch"
-summary: "Connects the SCADA station, module HMIs, distributed I/O, and redundant Level 3 uplinks on the isolated forming-cell VLAN."
+summary: "Connects the embedded machine PC, four mould HMIs, robot controller, operator pendant, six I/O stations, and redundant Level 3 uplinks on the isolated forming-cell VLAN."
 lifecycle: "design"
 tags:
   - "ot-area-02"
@@ -30,42 +30,98 @@ interfaces:
     mode: "trunk"
     addresses: []
     vlans: [102, 302]
-  - id: "scada-access"
+  - id: "machine-pc-access"
     hardware: "ethernet-rj45"
     state: { administrative: "up", initial_operational: "up" }
     settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }
     mode: "access"
     addresses: []
     vlans: [102]
-  - id: "hmi-slip-access"
+  - id: "supervisory-node-access"
     hardware: "ethernet-rj45"
     state: { administrative: "up", initial_operational: "up" }
     settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }
     mode: "access"
     addresses: []
     vlans: [102]
-  - id: "hmi-press-access"
+  - id: "mould-hmi-01-access"
     hardware: "ethernet-rj45"
     state: { administrative: "up", initial_operational: "up" }
     settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }
     mode: "access"
     addresses: []
     vlans: [102]
-  - id: "hmi-utilities-access"
+  - id: "mould-hmi-02-access"
     hardware: "ethernet-rj45"
     state: { administrative: "up", initial_operational: "up" }
     settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }
     mode: "access"
     addresses: []
     vlans: [102]
-  - id: "hmi-robot-access"
+  - id: "mould-hmi-03-access"
     hardware: "ethernet-rj45"
     state: { administrative: "up", initial_operational: "up" }
     settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }
     mode: "access"
     addresses: []
     vlans: [102]
-  - id: "remote-io-access"
+  - id: "mould-hmi-04-access"
+    hardware: "ethernet-rj45"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }
+    mode: "access"
+    addresses: []
+    vlans: [102]
+  - id: "robot-joystick-access"
+    hardware: "ethernet-rj45"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }
+    mode: "access"
+    addresses: []
+    vlans: [102]
+  - id: "robot-controller-access"
+    hardware: "ethernet-rj45"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }
+    mode: "access"
+    addresses: []
+    vlans: [102]
+  - id: "shared-rio-access"
+    hardware: "ethernet-rj45"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }
+    mode: "access"
+    addresses: []
+    vlans: [102]
+  - id: "guarded-cell-rio-access"
+    hardware: "ethernet-rj45"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }
+    mode: "access"
+    addresses: []
+    vlans: [102]
+  - id: "mould-01-rio-access"
+    hardware: "ethernet-rj45"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }
+    mode: "access"
+    addresses: []
+    vlans: [102]
+  - id: "mould-02-rio-access"
+    hardware: "ethernet-rj45"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }
+    mode: "access"
+    addresses: []
+    vlans: [102]
+  - id: "mould-03-rio-access"
+    hardware: "ethernet-rj45"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }
+    mode: "access"
+    addresses: []
+    vlans: [102]
+  - id: "mould-04-rio-access"
     hardware: "ethernet-rj45"
     state: { administrative: "up", initial_operational: "up" }
     settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }

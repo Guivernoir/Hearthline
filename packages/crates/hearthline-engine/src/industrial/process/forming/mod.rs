@@ -79,6 +79,45 @@ impl FormingPhase {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct FormingSetpoints {
+    pub fill_ms: u64,
+    pub pressure_bar: f64,
+    pub dwell_ms: u64,
+    pub drain_ms: u64,
+    pub pickup_delay_ms: u64,
+    pub wash_ms: u64,
+    pub vacuum_ms: u64,
+}
+
+impl Default for FormingSetpoints {
+    fn default() -> Self {
+        Self {
+            fill_ms: 1_500,
+            pressure_bar: 6.0,
+            dwell_ms: 2_500,
+            drain_ms: 1_000,
+            pickup_delay_ms: 400,
+            wash_ms: 1_000,
+            vacuum_ms: 1_500,
+        }
+    }
+}
+
+impl FormingSetpoints {
+    pub const fn phase_duration_ms(self, phase: FormingPhase) -> u64 {
+        match phase {
+            FormingPhase::Filling => self.fill_ms,
+            FormingPhase::PressureDwell => self.dwell_ms,
+            FormingPhase::Draining => self.drain_ms,
+            FormingPhase::ReleaseAir => self.pickup_delay_ms,
+            FormingPhase::MouldWash => self.wash_ms,
+            FormingPhase::VacuumDry => self.vacuum_ms,
+            _ => phase.duration_ms(),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum FormingFault {
     SlipSupplyLoss,
@@ -221,6 +260,7 @@ pub struct FormingProcess {
     measurements: FormingMeasurements,
     outputs: FormingOutputs,
     tank_level_at_cycle_start: f64,
+    setpoints: FormingSetpoints,
 }
 
 impl FormingProcess {
@@ -238,7 +278,22 @@ impl FormingProcess {
             measurements,
             outputs: FormingOutputs::idle(),
             tank_level_at_cycle_start: measurements.slip_tank_level_percent,
+            setpoints: FormingSetpoints::default(),
         }
+    }
+
+    pub fn with_setpoints(mut self, setpoints: FormingSetpoints) -> Self {
+        self.setpoints = setpoints;
+        self
+    }
+
+    pub fn set_setpoints(&mut self, setpoints: FormingSetpoints) {
+        self.setpoints = setpoints;
+        self.apply_measurements();
+    }
+
+    pub const fn setpoints(&self) -> FormingSetpoints {
+        self.setpoints
     }
 
     pub const fn phase(&self) -> FormingPhase {
@@ -318,9 +373,17 @@ impl FormingProcess {
         scan_count: u64,
         cycle_count: u64,
     ) {
+        let starting_cycle = !self.running
+            && running
+            && self.phase == FormingPhase::Idle
+            && phase == FormingPhase::Filling;
         if self.phase != phase {
             self.phase = phase;
             self.phase_elapsed_ms = 0;
+        }
+        if starting_cycle {
+            self.tank_level_at_cycle_start = self.measurements.slip_tank_level_percent;
+            self.measurements.piece_gripped = false;
         }
         self.running = running;
         self.scan_count = scan_count;
@@ -330,6 +393,19 @@ impl FormingProcess {
         }
         self.apply_phase_outputs();
         self.apply_measurements();
+    }
+
+    pub fn pause_controlled(&mut self, phase: FormingPhase, scan_count: u64, cycle_count: u64) {
+        self.phase = phase;
+        self.phase_elapsed_ms = 0;
+        self.scan_count = scan_count;
+        self.cycle_count = cycle_count;
+        self.running = false;
+        self.outputs = FormingOutputs::safe();
+        self.measurements.slip_feed_flow_l_min = 0.0;
+        self.measurements.water_flow_l_min = 0.0;
+        self.measurements.excess_slip_drain_flow_l_min = 0.0;
+        self.measurements.vacuum_pressure_kpa = 0.0;
     }
 
     pub fn set_fault(&mut self, fault: Option<FormingFault>) {
@@ -380,8 +456,9 @@ impl FormingProcess {
         }
 
         let mut changed = false;
-        while self.running && self.phase_elapsed_ms >= self.phase.duration_ms() {
-            self.phase_elapsed_ms -= self.phase.duration_ms();
+        while self.running && self.phase_elapsed_ms >= self.setpoints.phase_duration_ms(self.phase)
+        {
+            self.phase_elapsed_ms -= self.setpoints.phase_duration_ms(self.phase);
             self.phase = self.phase.next();
             changed = true;
             if self.phase == FormingPhase::Idle {

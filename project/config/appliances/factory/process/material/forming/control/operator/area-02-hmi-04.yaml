@@ -5,12 +5,13 @@ kind: "hmi"
 site: "Factory"
 environment: "Forming"
 zone: "OT-AREA-02"
-role: "Robotic demoulding and operator-handoff HMI"
-summary: "Local operator panel for robot position, gripped-piece presence, mould pickup, and operator-delivery commands through the forming PLC."
+role: "Mould 4 local operator panel"
+summary: "Keyed local panel for Mould 4 enable, automatic status, manual movement, and authenticated setup movement. Process-sensor bypass never overrides hardwired safety."
 lifecycle: "simulated"
 tags:
   - "ot-area-02"
-  - "module-robotic-demould"
+  - "station-mould-04"
+  - "mould-panel"
   - "operator interface"
   - "interactive"
 render:
@@ -28,9 +29,23 @@ interfaces:
 behavior:
   family: "operator-interface"
   controller: "area-02-vplc-01"
-  permissions: ["observe", "acknowledge-alarms", "authorized-command"]
+  permissions: ["observe", "acknowledge-alarms", "authorized-command", "reset-safety", "start-mould", "stop-mould-after-phase", "end-mould-after-cycle"]
   signal_tags:
-    - "area-02-pos-03"
-    - "area-02-pe-01"
+    - "area-02-m04-pt-01"
+    - "area-02-m04-tt-01"
+    - "area-02-m04-pos-01"
+    - "area-02-m04-pos-02"
+    - "area-02-m04-mt-01"
+    - "area-02-m04-inc-01"
   command_tags:
-    - "area-02-robot-01-command"
+    - "area-02-m04-mould-01-command"
+  safety_components: ["area-02-m04-safe-01", "area-02-cell-guard-safe-01"]
+  control_station:
+    station_type: "mould-panel"
+    target: "mould-04"
+    mode_selector:
+      positions: ["manual", "auto", "setup"]
+      initial_position: "auto"
+      setup_password_sha256: "0dd7fd00e4a8872cfa378eebdca94f9c8a898dd328f8b0aeb0b5dd0f69a09c72"
+      bypassed_permissives: ["process-sensor-permissives"]
+      retained_protections: ["emergency-stop-chain", "hardwired-travel-limits"]

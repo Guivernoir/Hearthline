@@ -1,0 +1,253 @@
+.forming-floor {
+  fill: #e7e9e5;
+  stroke: #7e8982;
+  stroke-width: 2;
+}
+
+.forming-cell-fence {
+  fill: none;
+  stroke: #8e7d42;
+  stroke-width: 6;
+  stroke-dasharray: 18 9;
+}
+
+.forming-cabinet-zone,
+.forming-operator-zone {
+  fill: #dce3df;
+  stroke: #839189;
+  stroke-width: 2;
+}
+
+.forming-operator-zone {
+  fill: #e2e8eb;
+  stroke: #81929b;
+}
+
+.forming-guard-aisle,
+.forming-utility-trench,
+.forming-handoff-line,
+.forming-gate-swing,
+.forming-transfer-boundary {
+  fill: none;
+  stroke: #a5aaa5;
+  stroke-width: 2;
+  stroke-dasharray: 14 10;
+}
+
+.forming-utility-trench {
+  stroke: #507c8e;
+  stroke-width: 7;
+  stroke-dasharray: 18 7 4 7;
+}
+
+.forming-handoff-line {
+  stroke: #9a654b;
+  stroke-width: 3;
+  stroke-dasharray: 3 6;
+}
+
+.forming-transfer-boundary {
+  stroke: #8e7d42;
+  stroke-width: 5;
+  stroke-dasharray: 12 8;
+}
+
+.forming-gate-swing {
+  stroke: #9e3f2f;
+  stroke-width: 4;
+  stroke-dasharray: 8 6;
+}
+
+.forming-robot-envelope {
+  fill: rgb(210 190 78 / 8%);
+  stroke: #9b8736;
+  stroke-width: 3;
+  stroke-dasharray: 12 8;
+}
+
+.forming-floor-label {
+  fill: #657069;
+  font-size: 14px;
+  font-weight: 800;
+  text-anchor: middle;
+}
+
+.forming-boundary-label {
+  fill: #675b36;
+}
+
+.forming-world.physical-view .process-area-device {
+  width: 190px;
+  height: 145px;
+}
+
+.forming-world.physical-view .physical-marker-label {
+  max-width: 220px;
+  padding: 3px 7px;
+  font-size: 20px !important;
+  line-height: 1.05;
+}
+
+.forming-world.physical-view .area-zone-label {
+  font-size: 16px;
+}
+
+.forming-physical-equipment {
+  display: grid;
+  width: 150px;
+  height: 100px;
+  place-items: center;
+  color: #55665d;
+}
+
+.forming-physical-equipment svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: #d6deda;
+  stroke: #55665d;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.forming-physical-equipment.screen,
+.forming-physical-equipment.pendant {
+  width: 108px;
+  height: 88px;
+}
+
+.forming-physical-equipment.handoff {
+  width: 150px;
+  height: 82px;
+  color: #76533f;
+}
+
+.forming-physical-equipment.gate {
+  width: 118px;
+  height: 92px;
+  color: #8b3b32;
+}
+
+.forming-physical-equipment.robot {
+  height: 112px;
+  color: #806b27;
+}
+
+.forming-physical-equipment.robot svg {
+  fill: #d8b43e;
+  stroke: #735e20;
+  stroke-width: 5;
+}
+
+.forming-physical-equipment .screen-status {
+  fill: #8eb6bd;
+}
+
+.forming-physical-equipment .mould-body {
+  fill: #dfe6e8;
+  stroke: #657b84;
+}
+
+.forming-physical-equipment .mould-axis,
+.forming-physical-equipment .cabinet-slots,
+.forming-physical-equipment .integrated-utility-lines,
+.forming-physical-equipment .handoff-rail,
+.forming-physical-equipment .gate-panel {
+  fill: none;
+}
+
+.forming-physical-equipment .integrated-utility-shell {
+  fill: #b8d0d1;
+  stroke: #47767a;
+}
+
+.forming-physical-equipment .integrated-utility-status {
+  fill: #48956f;
+  stroke: #276448;
+}
+
+.forming-physical-equipment .handoff-platform {
+  fill: #d4d9d5;
+}
+
+.forming-physical-equipment .handoff-piece {
+  fill: #d9c4aa;
+}
+
+.forming-physical-equipment .gate-sensor {
+  fill: #c94e3f;
+}
+
+.forming-physical-equipment .cabinet-light {
+  fill: #48956f;
+  stroke: #276448;
+}
+
+.forming-world.physical-view .process-area-device:hover .forming-physical-equipment,
+.forming-world.physical-view .process-area-device.selected .forming-physical-equipment {
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--node-accent) 55%, transparent));
+}
+
+.forming-view-legend {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  z-index: 12;
+  display: flex;
+  max-width: calc(100% - 32px);
+  min-height: 36px;
+  padding: 7px 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px 16px;
+  border: 1px solid #bfc8c1;
+  border-radius: 5px;
+  color: #39443e;
+  background: rgb(250 252 250 / 96%);
+  box-shadow: 0 2px 8px rgb(31 42 35 / 10%);
+  font-size: 10px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.forming-view-legend span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.forming-key {
+  display: inline-block;
+  width: 30px;
+  height: 0;
+  border-top: 3px solid #4d7379;
+}
+
+.forming-key.io,
+.forming-key.transfer {
+  border-color: #a65f38;
+  border-top-style: dotted;
+}
+
+.forming-key.safety {
+  border-top: 3px dashed #765d91;
+}
+
+.forming-key.guard {
+  border-color: #8e7d42;
+  border-top-style: dashed;
+}
+
+.forming-key.utility {
+  height: 4px;
+  border-top: 3px dashed #507c8e;
+  border-bottom: 1px dotted #507c8e;
+}
+
+.forming-key.gate {
+  border-color: #9e3f2f;
+  border-top-style: dashed;
+}

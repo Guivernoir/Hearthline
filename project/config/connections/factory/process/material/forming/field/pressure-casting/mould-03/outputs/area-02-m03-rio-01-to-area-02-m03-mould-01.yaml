@@ -1,0 +1,11 @@
+schema_version: "0.2.0"
+id: "area-02-m03-rio-01-to-area-02-m03-mould-01"
+label: "Mould 3 Mould motion output and feedback"
+lifecycle: "simulated"
+transport: "field-io"
+medium: { type: "field-wiring", signal: "Mould motion output and feedback", length_m: 23.0 }
+endpoints:
+  a: { appliance: "area-02-m03-rio-01", interface: "field-io-06" }
+  b: { appliance: "area-02-m03-mould-01", interface: "field-io" }
+properties: { capacity_mbps: 10, latency_ms: 0, loss_every: null, direction: "bidirectional", operational: true }
+tags: ["ot", "ot-area-02", "field-io", "station-mould-03"]

@@ -1,0 +1,28 @@
+schema_version: "0.10.0"
+id: "area-02-pt-02"
+label: "AREA-02-PT-02"
+kind: "field-sensor"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Mould casting-pressure transmitter"
+summary: "Measures compressed-air pressure applied to the slip inside the closed casting mould."
+lifecycle: "simulated"
+tags: ["ot-area-02", "sensor", "station-mould-01", "pressure", "mould"]
+render:
+  - { view: "factory/process/forming", node: "area-02-pt-02", mode: "any" }
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "field-sensor"
+  signal_tag: "area-02-pt-02"
+  unit: "bar"
+  minimum: 0
+  maximum: 10
+  initial_value: 0

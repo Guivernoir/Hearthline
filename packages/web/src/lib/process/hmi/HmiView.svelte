@@ -12,7 +12,9 @@
     Gauge,
     LoaderCircle,
     Network,
+    Pause,
     Play,
+    Power,
     RotateCcw,
     ShieldAlert,
     ShieldCheck,
@@ -23,12 +25,16 @@
     runHmiAction,
     type HmiAction,
     type HmiActionReport,
+    type HmiControlMode,
     type HmiSignal,
     type HmiSnapshot,
     type HmiProcessFault,
   } from "./hmi-api";
-  import HistorianPanel from "./HistorianPanel.svelte";
   import ControlProgramPanel from "./ControlProgramPanel.svelte";
+  import ControlStationPanel from "./ControlStationPanel.svelte";
+  import MachinePcWorkspace from "./machine/MachinePcWorkspace.svelte";
+  import MouldVisualization from "./machine/MouldVisualization.svelte";
+  import RobotPendant from "./machine/RobotPendant.svelte";
 
   export let applianceId: string;
   export let onBack: () => void = () => {};
@@ -52,11 +58,18 @@
   $: activeAlarms = snapshot?.alarms.filter((alarm) => alarm.active) ?? [];
   $: safetyTripped = snapshot?.safety.some((safety) => safety.tripLatched) ?? true;
   $: process = snapshot?.process ?? null;
+  $: station = snapshot?.controlStation ?? null;
+  $: isMachinePc = station?.stationType === "machine-pc";
+  $: isMouldPanel = station?.stationType === "mould-panel";
+  $: isRobotPendant = station?.stationType === "robot-joystick";
+  $: localMould = isMouldPanel
+    ? snapshot?.moulds.find((mould) => mould.target === station?.target) ?? null
+    : null;
   $: processFaulted = process?.phase === "faulted";
-  $: canRunProcess = snapshot?.permissions.includes("run-sequence") ?? false;
+  $: canStartMould = snapshot?.permissions.includes("start-mould") ?? false;
+  $: canResetSafety = snapshot?.permissions.includes("reset-safety") ?? false;
   $: canInjectFaults = snapshot?.permissions.includes("inject-faults") ?? false;
-  $: canPublishTelemetry = snapshot?.permissions.includes("publish-telemetry") ?? false;
-  $: activePhaseIndex = process?.phases.findIndex((phase) => phase.key === process?.phase) ?? -1;
+  $: activePhaseIndex = localMould?.phases.findIndex((phase) => phase.key === localMould?.phase) ?? -1;
 
   onMount(() => {
     void refreshSnapshot(true);
@@ -112,6 +125,28 @@
   function displayName(value: string) {
     return value.replaceAll("-", " ");
   }
+
+  function commandValue(actuator: HmiSnapshot["actuators"][number], state: string) {
+    return state === actuator.currentState ? actuator.safeState : state;
+  }
+
+  function manualCommandEnabled(tag: string) {
+    if (!station) return true;
+    if (["mould-panel", "robot-joystick"].includes(station.stationType)) {
+      return station.selectedMode !== "auto";
+    }
+    const mouldOneValve = [
+      "area-02-water-01-command",
+      "area-02-air-01-command",
+      "area-02-vac-01-command",
+    ].includes(tag);
+    const match = tag.match(/^area-02-m(0[1-4])-/);
+    const target = mouldOneValve ? "mould-01" : match ? `mould-${match[1]}` : null;
+    if (!target) return true;
+    return snapshot?.stationStatus.some(
+      (candidate) => candidate.target === target && candidate.selectedMode === "manual",
+    ) ?? false;
+  }
 </script>
 
 <svelte:head>
@@ -125,7 +160,7 @@
         <ArrowLeft size={18} strokeWidth={1.9} />
       </button>
       <span class="brand-mark hmi-mark" aria-hidden="true"><Activity size={20} /></span>
-      <div class="brand-copy"><strong>{snapshot?.label ?? applianceId}</strong><span>{snapshot?.interfaceKind === "scada-workstation" ? "SCADA workstation" : "Module HMI"}</span></div>
+      <div class="brand-copy"><strong>{snapshot?.label ?? applianceId}</strong><span>{isMachinePc ? "Embedded machine PC / SCADA" : isRobotPendant ? "Robot motion pendant" : isMouldPanel ? "Mould local HMI" : snapshot?.interfaceKind === "scada-workstation" ? "SCADA workstation" : "Operator interface"}</span></div>
     </div>
     <div class="view-context" aria-label="Current process area">
       <span>{snapshot?.environment ?? "Process area"}</span><Network size={14} /><strong>{snapshot?.zone ?? applianceId}</strong>
@@ -157,7 +192,7 @@
         </div>
         <dl>
           <div><dt>Controller</dt><dd>{snapshot.controller}</dd></div>
-          <div><dt>Remote I/O</dt><dd>{snapshot.remoteIo}</dd></div>
+          <div><dt>Remote I/O</dt><dd>{snapshot.remoteIoStations.length}</dd></div>
           <div><dt>PLC scans</dt><dd>{process?.scanCount ?? snapshot.sequence}</dd></div>
           <div><dt>Cycles</dt><dd>{process?.cycleCount ?? "-"}</dd></div>
         </dl>
@@ -169,40 +204,96 @@
         <div class:denied={report.status === "denied"} class="hmi-toast">{report.message}</div>
       {/if}
 
-      <div class="hmi-layout">
+      <div class:machine-pc={isMachinePc} class="hmi-layout">
+        {#if isMachinePc}
+          <MachinePcWorkspace
+            {snapshot}
+            {report}
+            {busyTarget}
+            onExecute={(action: HmiAction, target: string) => void execute(action, target)}
+          />
+        {:else}
         <section class="hmi-process-panel" aria-label="Process overview">
           <header><span><Waves size={17} />{snapshot.interfaceKind === "scada-workstation" ? "Cell overview" : "Module overview"}</span><small>{snapshot.role}</small></header>
 
-          {#if process}
-            <section class:tripped={process.phase === "faulted"} class="hmi-cycle-section" aria-label="Automatic forming cycle">
+          {#if isMouldPanel && localMould}
+            <MouldVisualization
+              signals={snapshot.signals}
+              actuators={snapshot.actuators}
+              stations={snapshot.stationStatus}
+              mould={localMould}
+            />
+          {/if}
+
+          {#if isRobotPendant && station && snapshot.robot}
+            <ControlStationPanel
+              {station}
+              busy={Boolean(busyTarget)}
+              onSelect={(mode: HmiControlMode, password?: string) => void execute(
+                { kind: "set-control-mode", mode, ...(password ? { password } : {}) },
+                `mode-${mode}`,
+              )}
+            />
+            <RobotPendant
+              {station}
+              robot={snapshot.robot}
+              guardedCell={snapshot.guardedCell}
+              actuators={snapshot.actuators}
+              safety={snapshot.safety}
+              {busyTarget}
+              onExecute={(action: HmiAction, target: string) => void execute(action, target)}
+            />
+          {/if}
+
+          {#if station && station.positions.length > 0 && !isRobotPendant}
+            <ControlStationPanel
+              {station}
+              busy={Boolean(busyTarget)}
+              onSelect={(mode: HmiControlMode, password?: string) => void execute(
+                { kind: "set-control-mode", mode, ...(password ? { password } : {}) },
+                `mode-${mode}`,
+              )}
+            />
+          {/if}
+
+          {#if localMould}
+            <section class:tripped={localMould.phase === "faulted"} class="hmi-cycle-section" aria-label="Automatic forming cycle">
               <header>
-                <span><Activity size={16} />Automatic cycle</span>
+                <span><Activity size={16} />Mould production</span>
                 <div class="hmi-cycle-actions">
-                  {#if canRunProcess}
+                  {#if canStartMould}
                     <button
                       type="button"
-                      disabled={process.running || process.phase === "faulted" || safetyTripped || Boolean(busyTarget)}
-                      onclick={() => void execute({ kind: "start-process" }, "start-process")}
+                      disabled={localMould.running || localMould.phase === "faulted" || safetyTripped || station?.selectedMode !== "auto" || Boolean(busyTarget)}
+                      onclick={() => void execute({ kind: "start-mould" }, "start-mould")}
                     >
-                      {#if busyTarget === "start-process"}<LoaderCircle class="spin" size={14} />{:else}<Play size={14} />{/if}
+                      {#if busyTarget === "start-mould"}<LoaderCircle class="spin" size={14} />{:else}<Play size={14} />{/if}
                       Start
                     </button>
                     <button
                       type="button"
-                      disabled={process.phase !== "faulted" || Boolean(process.fault) || safetyTripped || Boolean(busyTarget)}
-                      onclick={() => void execute({ kind: "reset-process" }, "reset-process")}
+                      disabled={!localMould.running || Boolean(localMould.stopRequest) || Boolean(busyTarget)}
+                      onclick={() => void execute({ kind: "stop-mould-after-phase" }, "stop-mould-after-phase")}
                     >
-                      {#if busyTarget === "reset-process"}<LoaderCircle class="spin" size={14} />{:else}<RotateCcw size={14} />{/if}
-                      Reset
+                      {#if busyTarget === "stop-mould-after-phase"}<LoaderCircle class="spin" size={14} />{:else}<Pause size={14} />{/if}
+                      Stop
+                    </button>
+                    <button
+                      type="button"
+                      disabled={(!localMould.running && !localMould.paused) || localMould.stopRequest === "after-cycle" || Boolean(busyTarget)}
+                      onclick={() => void execute({ kind: "end-mould-after-cycle" }, "end-mould-after-cycle")}
+                    >
+                      {#if busyTarget === "end-mould-after-cycle"}<LoaderCircle class="spin" size={14} />{:else}<Power size={14} />{/if}
+                      End
                     </button>
                   {/if}
                 </div>
               </header>
               <ol class="hmi-cycle-track">
-                {#each process.phases as phase, index}
+                {#each localMould.phases as phase, index}
                   <li
-                    class:active={phase.key === process.phase}
-                    class:complete={process.running && index > 0 && index < activePhaseIndex}
+                    class:active={phase.key === localMould.phase}
+                    class:complete={localMould.running && index > 0 && index < activePhaseIndex}
                   >
                     <i>{index + 1}</i><span>{phase.label}</span>
                   </li>
@@ -215,11 +306,11 @@
                     {#each processFaults as fault}
                       <button
                         type="button"
-                        class:active={process.fault === fault.id}
+                        class:active={localMould.fault === fault.id}
                         disabled={Boolean(busyTarget)}
-                        aria-pressed={process.fault === fault.id}
+                        aria-pressed={localMould.fault === fault.id}
                         onclick={() => void execute(
-                          { kind: "set-process-fault", fault: fault.id, active: process.fault !== fault.id },
+                          { kind: "set-process-fault", fault: fault.id, active: localMould.fault !== fault.id },
                           `fault-${fault.id}`,
                         )}
                       >
@@ -233,6 +324,7 @@
             </section>
           {/if}
 
+          {#if !isRobotPendant}
           <div class="hmi-signal-grid">
             {#each snapshot.signals as signal}
               <article class:bad-quality={!signal.qualityGood} class="hmi-instrument">
@@ -260,7 +352,7 @@
           </div>
 
           <section class="hmi-actuator-section" aria-label="Actuator controls">
-            <header><span><CircleGauge size={16} />Field outputs</span><small>{safetyTripped ? "Inhibited" : process?.running ? "Automatic sequence" : "Command enabled"}</small></header>
+            <header><span><CircleGauge size={16} />Field outputs</span><small>{safetyTripped ? "Inhibited" : localMould?.running ? "Automatic sequence" : "Command enabled"}</small></header>
             <div class="hmi-actuator-grid">
               {#each snapshot.actuators as actuator}
                 <article class="hmi-actuator">
@@ -275,8 +367,8 @@
                         type="button"
                         class:active={state === actuator.currentState}
                         aria-pressed={state === actuator.currentState}
-                        disabled={safetyTripped || Boolean(process?.running) || Boolean(busyTarget) || state === actuator.currentState}
-                        onclick={() => void execute({ kind: "command", tag: actuator.commandTag, value: state }, actuator.commandTag)}
+                        disabled={safetyTripped || Boolean(localMould?.running) || !manualCommandEnabled(actuator.commandTag) || Boolean(busyTarget)}
+                        onclick={() => void execute({ kind: "command", tag: actuator.commandTag, value: commandValue(actuator, state) }, actuator.commandTag)}
                       >
                         {#if busyTarget === actuator.commandTag}<LoaderCircle class="spin" size={13} />{/if}
                         {displayName(state)}
@@ -287,6 +379,7 @@
               {/each}
             </div>
           </section>
+          {/if}
 
           <section class="hmi-safety-section" aria-label="Safety status">
             <header><span><ShieldCheck size={16} />Safety circuit</span><small>{snapshot.safety.length} interface</small></header>
@@ -294,7 +387,7 @@
               <div class:tripped={safety.tripLatched} class="hmi-safety-row">
                 <div>
                   <strong>{safety.label}</strong>
-                  <span>{safety.tripLatched ? "RESET REQUIRED" : "HEALTHY"}</span>
+                  <span>{safety.tripLatched ? "RESET REQUIRED" : safety.permissives.some((item) => !item.satisfied) ? "INHIBITED" : "HEALTHY"}</span>
                 </div>
                 <ul>
                   {#each safety.permissives as permissive}
@@ -303,7 +396,7 @@
                 </ul>
                 <button
                   type="button"
-                  disabled={!safety.tripLatched || Boolean(busyTarget)}
+                  disabled={!canResetSafety || !safety.tripLatched || Boolean(busyTarget)}
                   onclick={() => void execute({ kind: "reset-safety", safetyId: safety.componentId }, safety.componentId)}
                 >
                   {#if busyTarget === safety.componentId}<LoaderCircle class="spin" size={14} />{:else}<RotateCcw size={14} />{/if}
@@ -338,10 +431,6 @@
             {/if}
           </section>
 
-          {#if canPublishTelemetry}
-            <HistorianPanel {applianceId} />
-          {/if}
-
           <section class="hmi-trace">
             <header><span><Network size={16} />Last command path</span><strong class:denied={report?.status === "denied"}>{report?.status ?? "idle"}</strong></header>
             {#if report?.trace.length}
@@ -362,6 +451,7 @@
             {/each}
           </section>
         </aside>
+        {/if}
       </div>
 
     {/if}

@@ -138,6 +138,7 @@ impl SimulatedComponent for FieldSensor {
 #[derive(Clone, Debug)]
 pub struct Actuator {
     id: ComponentId,
+    kind: ComponentKind,
     ports: Ports,
     tag: Text<64>,
     actual: SignalValue,
@@ -163,8 +164,31 @@ impl Actuator {
         initial: SignalValue,
         safe_value: SignalValue,
     ) -> Self {
+        Self::with_kind(
+            id,
+            ComponentKind::FieldActuator,
+            ports,
+            tag,
+            initial,
+            safe_value,
+        )
+    }
+
+    pub fn with_kind(
+        id: ComponentId,
+        kind: ComponentKind,
+        ports: impl IntoIterator<Item = PortId>,
+        tag: Text<64>,
+        initial: SignalValue,
+        safe_value: SignalValue,
+    ) -> Self {
+        debug_assert!(matches!(
+            kind,
+            ComponentKind::FieldActuator | ComponentKind::RobotController
+        ));
         Self {
             id,
+            kind,
             ports: collect_ports(ports),
             tag,
             actual: initial,
@@ -192,7 +216,7 @@ impl SimulatedComponent for Actuator {
     }
 
     fn kind(&self) -> ComponentKind {
-        ComponentKind::FieldActuator
+        self.kind
     }
 
     fn has_port(&self, port: &PortId) -> bool {

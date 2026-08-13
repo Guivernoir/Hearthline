@@ -1,0 +1,22 @@
+schema_version: "0.10.0"
+id: "area-02-m02-handoff-in-01"
+label: "AREA-02-M02-HANDOFF-IN-01"
+kind: "field-sensor"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Mould 2 handoff robot-side position sensor"
+summary: "Confirms that the Mould 2 transfer station is correctly positioned for robot loading inside the guarded cell."
+lifecycle: "simulated"
+tags: ["ot-area-02", "sensor", "guarded-cell", "transfer-station", "station-mould-02", "station-handoff-02"]
+render:
+  - { view: "factory/process/forming", node: "area-02-m02-handoff-in-01", mode: "logical" }
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior: { family: "field-sensor", signal_tag: "area-02-m02-handoff-in-01", unit: "boolean", minimum: 0, maximum: 1, initial_value: 1 }

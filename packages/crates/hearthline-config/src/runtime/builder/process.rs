@@ -84,8 +84,9 @@ pub(super) fn build_process_appliance(
             safe_state,
             ..
         } => Ok(ConfiguredAppliance::FieldActuator(Box::new(
-            Actuator::with_ports(
+            Actuator::with_kind(
                 id,
+                config.kind,
                 ports,
                 Text::try_new(command_tag).map_err(|error| ConfigError::new(error.to_string()))?,
                 SignalValue::Text(

@@ -141,6 +141,59 @@
   fill: #e8e9e5;
 }
 
+.forming-station-bay {
+  stroke-width: 1.5;
+}
+
+.forming-shared-bay {
+  fill: #e5ece7;
+  stroke: #799184;
+}
+
+.forming-mould-bay {
+  fill: #e8ecef;
+  stroke: #80949e;
+}
+
+.forming-robot-bay {
+  fill: #ebe7ed;
+  stroke: #94829d;
+}
+
+.forming-machine-line {
+  fill: none;
+  stroke: #718078;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.forming-supply-vessel {
+  fill: #dfe8e3;
+}
+
+.forming-press-frame {
+  fill: #d7dfe2;
+  stroke: #6f8792;
+}
+
+.forming-robot-shape {
+  stroke: #806f89;
+  stroke-width: 5;
+}
+
+.forming-selector {
+  fill: #f7f9f7;
+  stroke: #426d9d;
+}
+
+.forming-handoff-row {
+  fill: none;
+  stroke: #8a796f;
+  stroke-width: 2;
+  stroke-dasharray: 7 5;
+}
+
 .forming-machine-shape,
 .forming-utility-vessel {
   fill: #d8ded9;
@@ -196,6 +249,18 @@
   stroke: #4c7c91;
   stroke-width: 4;
   stroke-dasharray: 10 7;
+}
+
+.forming-authority-line {
+  fill: none;
+  stroke: #426d9d;
+  stroke-width: 3;
+  stroke-dasharray: 12 7;
+}
+
+.forming-safety-authority {
+  stroke: #765d91;
+  stroke-dasharray: 5 6;
 }
 
 .area-floor-marking {
@@ -268,6 +333,7 @@
 
 .process-area-connections .process-io-link {
   stroke: #aa673d;
+  stroke-dasharray: 3 5;
 }
 
 .process-area-connections .process-safety-link {
@@ -323,6 +389,22 @@
 
 .forming-world .process-area-device {
   width: 190px;
+}
+
+.forming-world .lan-device > strong {
+  font-size: 14px;
+}
+
+.forming-world .lan-device > span:last-child {
+  font-size: 10px;
+}
+
+.forming-world .lan-device-header small {
+  font-size: 8px;
+}
+
+.forming-world .physical-marker-label {
+  font-size: 15px !important;
 }
 
 .forming-world .area-zone-label {

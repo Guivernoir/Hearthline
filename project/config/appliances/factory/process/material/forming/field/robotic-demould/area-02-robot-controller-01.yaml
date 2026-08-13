@@ -1,0 +1,110 @@
+schema_version: "0.10.0"
+id: "area-02-robot-controller-01"
+label: "AREA-02-ROBOT-CONTROLLER-01"
+kind: "robot-controller"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Robot motion controller cabinet"
+summary: "Owns servo interpolation, frames, tool and payload data, cell arbitration, pendant authority, program execution, and safety coordination for the demoulding manipulator."
+lifecycle: "simulated"
+tags: ["ot-area-02", "robot-controller", "motion-control", "station-robot", "interactive-model"]
+render:
+  - { view: "factory/process/forming", node: "area-02-robot-controller-01", mode: "any" }
+interfaces:
+  - id: "cell-network"
+    hardware: "ethernet-rj45"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }
+    mode: "access"
+    addresses: []
+    vlans: [102]
+  - id: "cell-io"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "full", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+  - id: "motion-bus"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 100, duplex: "full", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+  - id: "pendant-link"
+    hardware: "ethernet-rj45"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 100, duplex: "full", mtu: 1500 }
+    mode: "access"
+    addresses: []
+    vlans: [102]
+  - id: "safety-link"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "full", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "field-actuator"
+  command_tag: "area-02-robot-controller-command"
+  safe_state: "servo-off"
+  feedback_tag: "area-02-robot-controller-state"
+  states: ["servo-off", "ready", "executing", "hold", "faulted"]
+  motion_profile:
+    architecture:
+      manipulator: "area-02-robot-01"
+      pendant: "area-02-joystick-01"
+      safety_interface: "area-02-robot-safe-01"
+      cell_controller: "area-02-robot-controller-01"
+      servo_axes: 6
+      motion_group: "motion-group-01"
+      interpolation_cycle_ms: 8
+    program_ref: "control/programs/forming/area-02-robot-01.g"
+    max_linear_speed_mm_s: 1200
+    max_joint_speed_deg_s: 95
+    default_speed_percent: 30
+    workspace:
+      minimum: { x: -1200, y: -1000, z: 180, w: -180, p: -180, r: -180 }
+      maximum: { x: 1200, y: 1300, z: 1900, w: 180, p: 180, r: 180 }
+      joint_minimum: [-170, -90, -150, -190, -125, -360]
+      joint_maximum: [170, 150, 150, 190, 125, 360]
+    home: { x: 0, y: 250, z: 1450, w: 0, p: 90, r: 0 }
+    taught_positions:
+      - { id: "home", label: "Home", pose: { x: 0, y: 250, z: 1450, w: 0, p: 90, r: 0 } }
+      - { id: "m01-approach", label: "Mould 1 approach", pose: { x: -780, y: -480, z: 1160, w: 0, p: 90, r: 0 } }
+      - { id: "m01-pickup", label: "Mould 1 pickup", pose: { x: -930, y: -480, z: 980, w: 0, p: 90, r: 0 } }
+      - { id: "m01-handoff", label: "Mould 1 operator handoff", pose: { x: 760, y: -520, z: 1040, w: 0, p: 90, r: 0 } }
+      - { id: "m01-retreat", label: "Mould 1 handoff retreat", pose: { x: 620, y: -420, z: 1260, w: 0, p: 90, r: 0 } }
+      - { id: "m02-approach", label: "Mould 2 approach", pose: { x: -780, y: 80, z: 1160, w: 0, p: 90, r: 0 } }
+      - { id: "m02-pickup", label: "Mould 2 pickup", pose: { x: -930, y: 80, z: 980, w: 0, p: 90, r: 0 } }
+      - { id: "m02-handoff", label: "Mould 2 operator handoff", pose: { x: 760, y: 40, z: 1040, w: 0, p: 90, r: 0 } }
+      - { id: "m02-retreat", label: "Mould 2 handoff retreat", pose: { x: 620, y: 140, z: 1260, w: 0, p: 90, r: 0 } }
+      - { id: "m03-approach", label: "Mould 3 approach", pose: { x: -780, y: 620, z: 1160, w: 0, p: 90, r: 0 } }
+      - { id: "m03-pickup", label: "Mould 3 pickup", pose: { x: -930, y: 620, z: 980, w: 0, p: 90, r: 0 } }
+      - { id: "m03-handoff", label: "Mould 3 operator handoff", pose: { x: 760, y: 580, z: 1040, w: 0, p: 90, r: 0 } }
+      - { id: "m03-retreat", label: "Mould 3 handoff retreat", pose: { x: 620, y: 680, z: 1260, w: 0, p: 90, r: 0 } }
+      - { id: "m04-approach", label: "Mould 4 approach", pose: { x: -780, y: 1120, z: 1160, w: 0, p: 90, r: 0 } }
+      - { id: "m04-pickup", label: "Mould 4 pickup", pose: { x: -930, y: 1120, z: 980, w: 0, p: 90, r: 0 } }
+      - { id: "m04-handoff", label: "Mould 4 operator handoff", pose: { x: 760, y: 1080, z: 1040, w: 0, p: 90, r: 0 } }
+      - { id: "m04-retreat", label: "Mould 4 handoff retreat", pose: { x: 620, y: 1160, z: 1260, w: 0, p: 90, r: 0 } }
+    frames:
+      - { id: "world", label: "World frame", pose: { x: 0, y: 0, z: 0, w: 0, p: 0, r: 0 } }
+      - { id: "mould-01-frame", label: "Mould 1 user frame", parent: "world", pose: { x: -930, y: -480, z: 0, w: 0, p: 0, r: 0 } }
+      - { id: "mould-02-frame", label: "Mould 2 user frame", parent: "world", pose: { x: -930, y: 80, z: 0, w: 0, p: 0, r: 0 } }
+      - { id: "mould-03-frame", label: "Mould 3 user frame", parent: "world", pose: { x: -930, y: 620, z: 0, w: 0, p: 0, r: 0 } }
+      - { id: "mould-04-frame", label: "Mould 4 user frame", parent: "world", pose: { x: -930, y: 1120, z: 0, w: 0, p: 0, r: 0 } }
+    payloads:
+      - { id: "green-piece", label: "Green ceramic piece", mass_kg: 22.5, center_of_mass_mm: [0, 0, 180] }
+    tools:
+      - { id: "demould-gripper", label: "Compliant demould gripper", tcp: { x: 0, y: 0, z: 420, w: 0, p: 0, r: 0 }, payload: "green-piece" }
+    active_user_frame: "world"
+    active_tool: "demould-gripper"
+    active_payload: "green-piece"
+    handoffs:
+      - { mould: "mould-01", program: "O0201", user_frame: "mould-01-frame", approach_position: "m01-approach", pickup_position: "m01-pickup", handoff_position: "m01-handoff", retreat_position: "m01-retreat", pickup_tolerance_mm: 25, handoff_tolerance_mm: 40, orientation_tolerance_deg: 3 }
+      - { mould: "mould-02", program: "O0202", user_frame: "mould-02-frame", approach_position: "m02-approach", pickup_position: "m02-pickup", handoff_position: "m02-handoff", retreat_position: "m02-retreat", pickup_tolerance_mm: 25, handoff_tolerance_mm: 40, orientation_tolerance_deg: 3 }
+      - { mould: "mould-03", program: "O0203", user_frame: "mould-03-frame", approach_position: "m03-approach", pickup_position: "m03-pickup", handoff_position: "m03-handoff", retreat_position: "m03-retreat", pickup_tolerance_mm: 25, handoff_tolerance_mm: 40, orientation_tolerance_deg: 3 }
+      - { mould: "mould-04", program: "O0204", user_frame: "mould-04-frame", approach_position: "m04-approach", pickup_position: "m04-pickup", handoff_position: "m04-handoff", retreat_position: "m04-retreat", pickup_tolerance_mm: 25, handoff_tolerance_mm: 40, orientation_tolerance_deg: 3 }

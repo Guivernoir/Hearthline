@@ -17,10 +17,14 @@ pub use catalog::{
 };
 pub use industrial::{
     Actuator, Comparison, FieldSensor, FormingFault, FormingMeasurements, FormingOutputs,
-    FormingPhase, FormingProcess, FormingStartError, FormingTick, FormingTrip, HistorianBuffer,
-    IoDirection, LogicRule, OperatorInterface, RemoteIo, SEQUENCE_OUTPUT_CAPACITY,
-    SEQUENCE_STEP_CAPACITY, SafetyInterface, SequenceAssignment, SequenceCondition, SequenceInputs,
-    SequenceProgram, SequenceRuntime, SequenceScan, SequenceStep, SequenceTransition, VirtualPlc,
+    FormingPhase, FormingProcess, FormingSetpoints, FormingStartError, FormingTick, FormingTrip,
+    HistorianBuffer, IoDirection, LogicRule, OperatorInterface, ROBOT_CELL_QUEUE_CAPACITY,
+    ROBOT_PROGRAM_CAPACITY, RemoteIo, RobotCartesianAxis, RobotCellArbiter, RobotCellRequestStatus,
+    RobotCellStage, RobotInstruction, RobotJoints, RobotMotionError, RobotMotionKind,
+    RobotMotionRuntime, RobotPose, RobotProgram, RobotProgramLine, RobotProgramRuntime,
+    RobotWorkspace, SEQUENCE_OUTPUT_CAPACITY, SEQUENCE_STEP_CAPACITY, SafetyInterface,
+    SequenceAssignment, SequenceCondition, SequenceInputs, SequenceProgram, SequenceRuntime,
+    SequenceScan, SequenceStep, SequenceTransition, VirtualPlc,
 };
 pub use network::{
     DnsServer, FirewallAction, FirewallHaRuntimeConfig, FirewallHaStatus, FirewallRule,

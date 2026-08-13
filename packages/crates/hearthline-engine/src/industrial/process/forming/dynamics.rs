@@ -88,11 +88,14 @@ impl FormingProcess {
             }
             FormingPhase::Pressurizing => {
                 self.measurements.fill_head_position_mm = 800.0 * (1.0 - progress);
-                self.measurements.mould_pressure_bar = 6.0 * progress;
+                self.measurements.mould_pressure_bar = self.setpoints.pressure_bar * progress;
             }
-            FormingPhase::PressureDwell => self.measurements.mould_pressure_bar = 6.0,
+            FormingPhase::PressureDwell => {
+                self.measurements.mould_pressure_bar = self.setpoints.pressure_bar;
+            }
             FormingPhase::Depressurizing => {
-                self.measurements.mould_pressure_bar = 6.0 * (1.0 - progress);
+                self.measurements.mould_pressure_bar =
+                    self.setpoints.pressure_bar * (1.0 - progress);
             }
             FormingPhase::Draining => {
                 self.measurements.excess_slip_drain_flow_l_min = 70.0 * (1.0 - progress);
@@ -187,7 +190,7 @@ impl FormingProcess {
     }
 
     fn progress(&self) -> f64 {
-        let duration = self.phase.duration_ms();
+        let duration = self.setpoints.phase_duration_ms(self.phase);
         if duration == 0 {
             0.0
         } else {

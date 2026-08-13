@@ -1,6 +1,6 @@
 # Hearthline
 
-**Current development release:** `0.3.0`
+**Current development release:** `0.3.1`
 
 See the [changelog](CHANGELOG.md) and
 [versioning policy](project/docs/reference/versioning.md).
@@ -116,8 +116,11 @@ The following capabilities are implemented in the Svelte application:
   analytics, and factory security views.
 - A ten-stage ceramics process with individual controllers, HMIs, sensors,
   distributed I/O, actuators, and safety or permissive interfaces; Forming is
-  the first detailed cell with 32 components, cell-wide SCADA, four module
-  HMIs, 17 process inputs, and six controlled outputs.
+  the first detailed cell with 84 components, an embedded machine-PC SCADA,
+  four equal mould stations, four mould-local HMIs, an independent robot
+  pendant, 45 configured process values, four fence-crossing handoff stations,
+  and guarded-cell safety. Its physical view is limited to the 21 machine-floor
+  items visible from above; the logical view retains all 84 components.
 - A bootstrap process view model loaded from
   [`process-view.json`](packages/web/src/generated/process-view.json), with the
   detailed Forming inventory derived from the generated YAML catalog.
@@ -161,14 +164,23 @@ The following capabilities are implemented in the Svelte application:
   `show` commands. This is per-workstation session instrumentation, not a
   global management plane or vendor CLI implementation.
 - Enterable operator interfaces for all ten process areas, including the
-  Forming SCADA workstation and four module-scoped HMIs, with YAML-derived
+  Forming machine PC, four mould-local HMIs, and independent robot joystick, with YAML-derived
   instruments, safety permissives, alarm acknowledgement, operator audit,
   equipment-specific actuator states, and commands executed through Rust HMI,
   vPLC, remote-I/O, and field-actuator primitives.
-- One shared Forming runtime across SCADA and module HMIs, with an accelerated
-  deterministic slip-casting cycle, 20-millisecond scan steps, live process
-  measurements, sequenced output state, named alarms, process reset, and five
+- One shared Forming cell session across the embedded SCADA and local stations,
+  with four independent mould sequence runtimes, mould-local Start/Stop/End,
+  continuous production, keyed manual/auto/setup selectors, retained manual
+  commands, object-scoped PC views, live equipment displays, and five
   injectable disturbances.
+- A separate six-axis robot controller, manipulator, pendant, and safety
+  boundary with bounded FIFO arbitration across four taught mould pickup and
+  operator-handoff definitions, frames, tool, payload, and live execution
+  state.
+- Four external mould-control cabinets and four mould-embedded utility
+  sections, seven runtime-bound setpoints per mould, and an object-based
+  supervisory model with quality-aware history, events, roles, revision state,
+  and active/standby deployment nodes.
 - Automatic one-second Forming telemetry collection with bounded local and OT
   DMZ stores, pending-record and loss accounting, 250-millisecond replication
   retry, and an authorized replica-backed analytics publication with all three
@@ -185,18 +197,18 @@ Current maturity is:
 
 | Layer | Status |
 | --- | --- |
-| Application release | `0.3.0`, initial development |
+| Application release | `0.3.1`, initial development |
 | Svelte architecture application | Implemented and buildable; rendered architecture remains provisional |
 | Physical and logical documentation captures | Implemented for every documented route |
 | Process view-model contract | Bootstrap JSON, schema `0.2.0` |
-| Canonical appliance YAML | Provisional baseline; 185 schema `0.10.0` files, one per appliance |
-| Canonical connection YAML | Provisional baseline; 231 schema `0.2.0` files, one per modeled connection |
+| Canonical appliance YAML | Provisional baseline; 237 schema `0.10.0` files, one per appliance |
+| Canonical connection YAML | Provisional baseline; 286 schema `0.2.0` files, one per modeled connection |
 | Rust component simulation | Allocator-free appliance runtime with Ethernet, ARP, switching, LACP aggregation, bounded multi-chassis split horizon, routing, NAT, active/standby stateful firewalls, service, media, and process primitives |
 | Rust YAML validation and frontend projection | Implemented for appliance behavior, port hardware and state, VRRP member consistency, Rapid-PVST bridge identities, LACP, multi-chassis and firewall-HA relationships, synchronized firewall policy, connection media, endpoint compatibility, capacity, exclusive point-to-point ports, file identity, and render bindings |
 | Local YAML editing | Implemented with revision checks, whole-project validation, atomic writes, and catalog regeneration |
 | Configured topology and end-to-end scenarios | Initial implementation; 30 versioned scenarios cover independent customer public paths, Business IT PC-01 through PC-04 internal DNS and HTTPS, deterministic Business IT core recovery, converged and protocol-timed northbound-firewall recovery, HA-sync, standby-state, stale-session, and fenced-isolation cases, Forming-to-Level-3 collection, Level-3-to-DMZ replication, a brokered OT-DMZ-to-analytics path with explicit HTTPS delivery and SSH default denial, a composite local-control/inter-site-outage case, three WAF-prevented security exercises, and one customer access-circuit outage with an explicit restoration expectation |
 | Offensive and defensive interaction | First controlled slice implemented through Customer PC-01 method- and body-aware `curl`, configuration-owned DMZ WAF policy, and a filterable session-local Central SOC queue; broader attack techniques, telemetry transport, correlation, and response automation remain planned |
-| HMI and process interaction | Fourteen operator sessions are configured across all ten process areas; Forming adds shared cell-wide SCADA/module state, a bounded source-driven process, control-source inspection, automatic historian collection and replication, and operator-triggered replica publication, while durable persistence and broader plant dynamics remain planned |
+| HMI and process interaction | Fifteen operator sessions are configured across all ten process areas; Forming adds four independent mould runtimes with bound timings and pressure, external control cabinets, mould-embedded utility sections, local production authority, four transfer stations, a guarded-cell interlock, live views, bounded shared-robot arbitration, and a workspace-limited pendant with jog/teach and four authoritative `.g` routines. Automatic pickup and handoff poses are checked against YAML geometry and fault on mismatch. Object-based supervisory state, historian collection and replication, and operator-triggered publication are also implemented. Production kinematics, recipe-to-setpoint deployment, durable persistence, and broader plant dynamics remain planned. |
 | Control sources and vPLC execution | Initial Forming slice implemented with versioned Structured Text, explicit YAML I/O binding, 20 ms scan execution, and Rust plant dynamics; broader language and area coverage remain planned |
 | Deployment or standards conformance | Not claimed |
 
@@ -340,17 +352,19 @@ corresponding current view.
 
 ## Next Planned Step
 
-The next engineering milestone strengthens the implemented Forming contract
-with process-condition transitions, reviewed parameters, recipe behavior, and
-cross-area replenishment of the approximately 40 C slip tank from Body
-Preparation. Broader Structured Text or Ladder support will require a declared
-IEC 61131-3 compatibility target before the parser is expanded.
+The three Forming fidelity tracks are implemented as bounded development
+models. The next milestone will connect Body Preparation to the approximately
+40 C Forming slip tank with explicit material balance, replenishment requests,
+availability and quality conditions, and deterministic cross-area tests. It
+will also add robot recovery/fault paths, recipe-to-setpoint deployment, and
+reviewed process-condition transitions without claiming production controller,
+robot, supervisory-platform, or process-physics equivalence.
 
 ## Roadmap
 
-1. Refine the Forming plant model and implemented I/O bindings with reviewed
-   setpoints, recipes, retries, process permissives, and executable material
-   balance between Body Preparation and the Forming slip tank.
+1. Implement and test material balance between Body Preparation and the
+   Forming slip tank, then deepen robot recovery, recipe deployment, and
+   process-condition handling around the completed fidelity tracks.
 2. Extend cross-file validation to addresses, VLANs, routes, NAT, services,
    policy references, and HA relationships.
 3. Extend configured component construction beyond the currently executable

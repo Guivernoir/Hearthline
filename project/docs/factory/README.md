@@ -23,19 +23,21 @@ Three selected data paths are executable: Forming to the Level 3 historian,
 Level 3 through the OT firewall to the DMZ replica, and the replica to Central
 Office analytics. The northbound pair includes a positive HTTPS result and a
 negative SSH result. Each process area also exposes deterministic YAML-derived operator
-sessions; Forming includes cell-wide SCADA and four module-local HMIs. These
-interfaces share one Rust-backed cell state, including a deterministic
-ceramic-slip pressure-casting cycle, live instruments, outputs, alarms, and
-fault injection. A bounded API-session historian samples once per second,
+sessions; Forming includes an embedded machine-PC SCADA, four mould-local HMIs,
+and an independent robot joystick. These
+interfaces share one Rust-backed cell session with four independently started
+mould runtimes, live instruments, outputs, alarms, and fault injection. A
+bounded API-session historian samples once per second,
 retries DMZ replication, and exposes local/replica state in Forming SCADA. The
 SCADA publication action sends the latest replica record through the governed
 inter-site path to Central Office analytics. A composite
 availability scenario drops both
 factory-facing conduit handoffs while the Body Preparation HMI resets its
 safety interface and commands its pump over an independently validated local
-path. Forming now executes one validated, bounded Structured Text sequence with
-an explicit YAML I/O map; Rust remains responsible for plant dynamics and
-independent trips. The other nine areas do not yet execute control sources.
+path. Forming now executes independent instances of one validated, bounded
+Structured Text sequence through an explicit YAML I/O map; Rust remains
+responsible for plant dynamics and scoped trips. The other nine areas do not
+yet execute control sources.
 
 ## Environments
 
@@ -84,10 +86,15 @@ Body Preparation
   -> Logistics
 ```
 
-The first executable area model represents accelerated Forming phases,
-selected process conditions, source-driven equipment commands, and five
-injected faults. Remaining areas, broader control-language support, and
-cross-area material state are planned.
+The first executable area model represents four independently controlled mould
+sequences with selected process conditions, runtime-bound setpoints,
+source-driven equipment commands, and five injected faults. Each equal mould
+station has local I/O, an external control cabinet, a mould-embedded utility
+section, local production authority, selector, live visualization, and safety
+state. A dedicated robot controller arbitrates mould pickup and four guarded
+operator-handoff transfer stations. Robot recovery and collision envelopes,
+remaining areas, broader control-language support, and cross-area material
+state are planned.
 
 ## Physical Deployment Requirements
 

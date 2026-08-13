@@ -1,0 +1,11 @@
+schema_version: "0.2.0"
+id: "area-02-sw-01-to-area-02-joystick-01"
+label: "Robot joystick control-network link"
+lifecycle: "simulated"
+transport: "ethernet"
+medium: { type: "copper", wiring: "straight-through", category: "cat6a", length_m: 34.0 }
+endpoints:
+  a: { appliance: "area-02-sw-01", interface: "robot-joystick-access" }
+  b: { appliance: "area-02-joystick-01", interface: "cell-network" }
+properties: { capacity_mbps: 1000, latency_ms: 0, loss_every: null, direction: "bidirectional", operational: true }
+tags: ["ot", "ot-area-02", "robot-joystick", "operator-interface"]

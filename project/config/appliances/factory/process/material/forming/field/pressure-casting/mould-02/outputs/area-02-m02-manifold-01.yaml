@@ -1,0 +1,39 @@
+schema_version: "0.10.0"
+id: "area-02-m02-manifold-01"
+label: "AREA-02-M02-MANIFOLD-01"
+kind: "field-actuator"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Mould 2 slip, water, air, drain, and vacuum valve bank"
+summary: "Mould-embedded utility section with a machine-PC and automatic-sequence valve interface for side-selective release and wash states."
+lifecycle: "simulated"
+tags: ["ot-area-02", "actuator", "station-mould-02", "valve-bank", "water", "air", "vacuum", "slip"]
+render:
+  - { view: "factory/process/forming", node: "area-02-m02-manifold-01", mode: "any" }
+interfaces:
+  - id: "field-io"
+    hardware: "field-io-channel"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10, duplex: "half", mtu: 256 }
+    mode: "field-io"
+    addresses: []
+    vlans: []
+behavior:
+  family: "field-actuator"
+  command_tag: "area-02-m02-manifold-01-command"
+  safe_state: "isolated"
+  feedback_tag: "area-02-m02-manifold-01-feedback"
+  states: ["isolated", "slip-fill", "casting-pressure", "drain-under-pressure", "release-water-left", "release-water-right", "release-water-both", "release-air-left", "release-air-right", "release-air-both", "wash-water-left", "wash-water-right", "wash-water-both", "cleaning-air-left", "cleaning-air-right", "cleaning-air-both", "vacuum-dry"]
+  utility_cabinet:
+    target: "mould-02"
+    enclosure_rating: "IP54"
+    control_voltage_vdc: 24
+    remote_io: "area-02-m02-rio-01"
+    isolation_state: "isolated"
+    circuits:
+      - { id: "m02-slip", label: "Slip fill and drain circuit", medium: "ceramic-slip", source: "shared-slip-header", nominal_pressure: 2.5, command_states: ["isolated", "slip-fill", "drain-under-pressure"] }
+      - { id: "m02-air", label: "Casting and release air circuit", medium: "compressed-air", source: "shared-air-header", nominal_pressure: 6.0, command_states: ["isolated", "casting-pressure", "release-air-left", "release-air-right", "release-air-both", "cleaning-air-left", "cleaning-air-right", "cleaning-air-both"] }
+      - { id: "m02-water", label: "Release and wash water circuit", medium: "water", source: "shared-water-header", nominal_pressure: 3.0, command_states: ["isolated", "release-water-left", "release-water-right", "release-water-both", "wash-water-left", "wash-water-right", "wash-water-both"] }
+      - { id: "m02-vacuum", label: "Mould drying vacuum circuit", medium: "vacuum", source: "shared-vacuum-header", nominal_pressure: -0.8, command_states: ["isolated", "vacuum-dry"] }
+      - { id: "m02-hydraulic", label: "Mould clamp circuit", medium: "hydraulic-oil", source: "machine-hydraulic-unit", nominal_pressure: 120, command_states: ["isolated", "clamp-enable"] }

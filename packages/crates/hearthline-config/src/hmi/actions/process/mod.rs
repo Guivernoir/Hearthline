@@ -1,8 +1,8 @@
-use hearthline_engine::{FormingFault, FormingPhase, FormingStartError, SequenceInputs};
+use hearthline_engine::FormingFault;
 
+use super::super::builder::support::trace_entry;
 use super::super::state::HmiSession;
-use super::super::support::trace_entry;
-use super::super::{HmiActionReport, HmiActionStatus, HmiProcessFault};
+use super::super::{HmiActionReport, HmiActionStatus, HmiControlMode, HmiProcessFault};
 
 mod binding;
 mod compiler;
@@ -13,138 +13,127 @@ pub(crate) use control::{ConfiguredControlProgram, load_control_program};
 
 impl HmiSession {
     pub(super) fn start_process(&mut self) -> HmiActionReport {
-        let mut trace = Vec::new();
-        if !self.has_permission("run-sequence") {
-            return self.finish(
-                HmiActionStatus::Denied,
-                "Operator interface is not authorized to start the automatic sequence.".into(),
-                "start-process",
-                "forming-cycle",
-                "denied",
-                trace,
-            );
-        }
-        let safety_ready = self.safety.iter().all(|safety| {
-            !safety.trip_latched
-                && safety
-                    .permissives
-                    .iter()
-                    .all(|permissive| permissive.satisfied)
-        });
-        let Some(process) = &mut self.process else {
-            return self.finish(
-                HmiActionStatus::Denied,
-                "This controller has no executable process model.".into(),
-                "start-process",
-                "forming-cycle",
-                "denied",
-                trace,
-            );
-        };
-        let start = if let Some(program) = &mut self.controller.program {
-            if process.running() {
-                Err(FormingStartError::AlreadyRunning)
-            } else if !safety_ready || process.phase() == FormingPhase::Faulted {
-                Err(FormingStartError::SafetyNotReady)
-            } else if process.fault().is_some() {
-                Err(FormingStartError::FaultActive)
-            } else {
-                program.execute_scan(SequenceInputs {
-                    start_request: true,
-                    safety_ready,
-                    ..SequenceInputs::default()
-                });
-                process.start_controlled(safety_ready, program.phase())
-            }
-        } else {
-            process.start(safety_ready)
-        };
-        if let Err(reason) = start {
-            let message = match reason {
-                FormingStartError::AlreadyRunning => "The forming cycle is already running.",
-                FormingStartError::SafetyNotReady => {
-                    "The forming cycle requires healthy, reset machine permissives."
-                }
-                FormingStartError::FaultActive => {
-                    "Clear the active simulated process fault before starting."
-                }
-            };
-            return self.finish(
-                HmiActionStatus::Denied,
-                message.into(),
-                "start-process",
-                "forming-cycle",
-                "denied",
-                trace,
-            );
-        }
-        trace.push(trace_entry(
-            &self.id,
-            "operator request",
-            "authorized automatic-cycle start".into(),
-        ));
-        trace.push(trace_entry(
-            &self.controller.id,
-            "sequence control",
-            "entered mould-filling phase on the next PLC scan".into(),
-        ));
-        self.tick(0);
         self.finish(
-            HmiActionStatus::Applied,
-            "Forming cycle started.".into(),
+            HmiActionStatus::Denied,
+            "Cell-wide start is not available. Start each mould from its local HMI.".into(),
             "start-process",
-            "forming-cycle",
+            "forming-cell",
+            "denied",
+            Vec::new(),
+        )
+    }
+
+    pub(super) fn start_mould(&mut self) -> HmiActionReport {
+        let Some(target) = self.authorize_local_mould_production("start-mould") else {
+            return self.mould_action_denied(
+                "start-mould",
+                "Only a mould-local HMI in auto can start its mould.",
+            );
+        };
+        let safety_ready = self.mould_safety_ready(&target);
+        let start = self
+            .moulds
+            .get_mut(&target)
+            .expect("local mould runtime exists")
+            .start(safety_ready);
+        if let Err(message) = start {
+            return self.mould_result(
+                HmiActionStatus::Denied,
+                "start-mould",
+                &target,
+                message,
+                "denied",
+            );
+        }
+        self.tick(0);
+        self.mould_result(
+            HmiActionStatus::Applied,
+            "start-mould",
+            &target,
+            "Production enabled. The mould will repeat cycles until Stop or End is requested.",
             "applied",
-            trace,
+        )
+    }
+
+    pub(super) fn stop_mould_after_phase(&mut self) -> HmiActionReport {
+        let Some(target) = self.authorize_local_mould_production("stop-mould-after-phase") else {
+            return self.mould_action_denied(
+                "stop-mould-after-phase",
+                "Only a mould-local HMI in auto can stop its mould.",
+            );
+        };
+        let stop = self
+            .moulds
+            .get_mut(&target)
+            .expect("local mould runtime exists")
+            .stop_after_phase();
+        if let Err(message) = stop {
+            return self.mould_result(
+                HmiActionStatus::Denied,
+                "stop-mould-after-phase",
+                &target,
+                message,
+                "denied",
+            );
+        }
+        self.mould_result(
+            HmiActionStatus::Applied,
+            "stop-mould-after-phase",
+            &target,
+            "Stop requested. The current phase will finish before the mould pauses.",
+            "applied",
+        )
+    }
+
+    pub(super) fn end_mould_after_cycle(&mut self) -> HmiActionReport {
+        let Some(target) = self.authorize_local_mould_production("end-mould-after-cycle") else {
+            return self.mould_action_denied(
+                "end-mould-after-cycle",
+                "Only a mould-local HMI in auto can end its mould production.",
+            );
+        };
+        let safety_ready = self.mould_safety_ready(&target);
+        let end = self
+            .moulds
+            .get_mut(&target)
+            .expect("local mould runtime exists")
+            .end_after_cycle(safety_ready);
+        if let Err(message) = end {
+            return self.mould_result(
+                HmiActionStatus::Denied,
+                "end-mould-after-cycle",
+                &target,
+                message,
+                "denied",
+            );
+        }
+        self.mould_result(
+            HmiActionStatus::Applied,
+            "end-mould-after-cycle",
+            &target,
+            "End requested. The mould will complete its current cycle and then stop.",
+            "applied",
         )
     }
 
     pub(super) fn reset_process(&mut self) -> HmiActionReport {
-        if !self.has_permission("run-sequence") {
+        if !self.has_permission("reset-safety") {
             return self.finish(
                 HmiActionStatus::Denied,
-                "Operator interface is not authorized to reset the process sequence.".into(),
+                "This interface is not authorized to reset a process trip.".into(),
                 "reset-process",
-                "forming-cycle",
+                "forming-cell",
                 "denied",
                 Vec::new(),
             );
         }
-        let safety_ready = self.safety.iter().all(|safety| !safety.trip_latched);
-        let Some(process) = &mut self.process else {
+        let reset = self.reset_faulted_moulds();
+        if reset == 0 {
             return self.finish(
                 HmiActionStatus::Denied,
-                "This controller has no executable process model.".into(),
+                "Reset requires a cleared fault and healthy mould safety state.".into(),
                 "reset-process",
-                "forming-cycle",
-                "denied",
-                Vec::new(),
-            );
-        };
-        let reset = if let Some(program) = &mut self.controller.program {
-            if !safety_ready
-                || process.fault().is_some()
-                || process.phase() != FormingPhase::Faulted
-            {
-                false
-            } else {
-                program.execute_scan(SequenceInputs {
-                    reset_request: true,
-                    safety_ready,
-                    ..SequenceInputs::default()
-                });
-                process.reset_after_trip(safety_ready)
-            }
-        } else {
-            process.reset_after_trip(safety_ready)
-        };
-        if !reset {
-            return self.finish(
-                HmiActionStatus::Denied,
-                "Process reset requires a cleared fault, a stopped faulted sequence, and healthy safety state."
-                    .into(),
-                "reset-process",
-                "forming-cycle",
+                "forming-cell",
                 "denied",
                 Vec::new(),
             );
@@ -153,14 +142,14 @@ impl HmiSession {
         self.tick(0);
         self.finish(
             HmiActionStatus::Applied,
-            "Forming process trip reset.".into(),
+            format!("Reset {reset} faulted mould sequence(s)."),
             "reset-process",
-            "forming-cycle",
+            "forming-cell",
             "applied",
             vec![trace_entry(
                 &self.controller.id,
                 "sequence reset",
-                "faulted sequence returned to idle".into(),
+                format!("returned {reset} mould sequence(s) to idle"),
             )],
         )
     }
@@ -175,7 +164,7 @@ impl HmiSession {
                 HmiActionStatus::Denied,
                 "Fault injection is restricted to the simulator supervisory interface.".into(),
                 "set-process-fault",
-                "forming-cycle",
+                "forming-cell",
                 "denied",
                 Vec::new(),
             );
@@ -187,23 +176,15 @@ impl HmiSession {
             HmiProcessFault::VacuumLoss => FormingFault::VacuumLoss,
             HmiProcessFault::RobotPickupFailure => FormingFault::RobotPickupFailure,
         };
-        let target = modeled.as_str();
-        let Some(process) = &mut self.process else {
-            return self.finish(
-                HmiActionStatus::Denied,
-                "This controller has no executable process model.".into(),
-                "set-process-fault",
-                target,
-                "denied",
-                Vec::new(),
-            );
-        };
-        process.set_fault(active.then_some(modeled));
+        for mould in self.moulds.values_mut() {
+            mould.set_fault(active.then_some(modeled));
+        }
         self.tick(0);
+        let target = modeled.as_str();
         self.finish(
             HmiActionStatus::Applied,
             format!(
-                "Process disturbance {target} {}.",
+                "Process disturbance {target} {} for all moulds.",
                 if active { "enabled" } else { "cleared" }
             ),
             "set-process-fault",
@@ -223,5 +204,49 @@ impl HmiSession {
                 alarm.active = false;
             }
         }
+    }
+
+    fn authorize_local_mould_production(&self, permission: &str) -> Option<String> {
+        let station = self.controller.stations.get(&self.id)?;
+        (station.station_type == "mould-panel"
+            && station.selected_mode == HmiControlMode::Auto
+            && self.has_permission(permission))
+        .then(|| station.target.clone())
+    }
+
+    fn mould_action_denied(&mut self, action: &str, message: &str) -> HmiActionReport {
+        self.finish(
+            HmiActionStatus::Denied,
+            message.into(),
+            action,
+            "local-mould",
+            "denied",
+            Vec::new(),
+        )
+    }
+
+    fn mould_result(
+        &mut self,
+        status: HmiActionStatus,
+        action: &str,
+        target: &str,
+        message: &str,
+        result: &str,
+    ) -> HmiActionReport {
+        self.finish(
+            status,
+            message.into(),
+            action,
+            target,
+            result,
+            vec![
+                trace_entry(&self.id, "local operator request", message.into()),
+                trace_entry(
+                    &self.controller.id,
+                    "mould sequence control",
+                    format!("{action} accepted for {target}"),
+                ),
+            ],
+        )
     }
 }

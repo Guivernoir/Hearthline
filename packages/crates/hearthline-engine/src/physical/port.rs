@@ -192,6 +192,7 @@ pub const fn appliance_supports_port(appliance: ComponentKind, port: PortHardwar
             ComponentKind::RemoteIo
                 | ComponentKind::FieldSensor
                 | ComponentKind::FieldActuator
+                | ComponentKind::RobotController
                 | ComponentKind::SafetyInterface
         ),
         PortHardwareKind::TelephoneRj11 => {

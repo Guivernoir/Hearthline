@@ -43,11 +43,13 @@ sessions whose terminals and browsers invoke independent Rust paths; each browse
 renders bounded page content returned by its configured service. All ten
 process areas have Rust-backed operator sessions with safety, alarms,
 YAML-derived instruments, equipment-specific actuator commands, audit state,
-and component traces. Forming adds a cell-wide SCADA session and four
-module-scoped HMIs backed by one shared process state. Its interface displays
-the exact accelerated casting sequence, changing instrumentation, six output
-states, scan and cycle counters, named alarms, and five simulation
-disturbances. Its historian panel displays automatic controller collection,
+and component traces. Forming adds an embedded machine-PC SCADA, four
+mould-local HMIs, and an independent robot joystick backed by one shared cell
+state. The interfaces display selector authority, development parameters and
+recipes, four independently controlled mould sequences, object-scoped PC
+navigation, live mould and robot views, instrumentation, output state, scan and
+cycle counters, named alarms, and five simulation disturbances.
+The historian panel displays automatic controller collection,
 Level 3 storage, southbound firewall replication, DMZ storage, pending and loss
 state, and both route traces. SCADA publishes only the latest replicated record
 through the canonical analytics scenario and presents the northbound evidence.
@@ -179,10 +181,17 @@ and scenarios are implemented.
 - Enterable operator interfaces for all ten process areas with configured sensor values,
   safety permissives and reset, alarm acknowledgement, equipment-specific
   controls, operator audit, and Rust-generated command-path traces.
-- A responsive Forming SCADA sequence view shared with four module HMIs,
-  including automatic-cycle start/reset, live signal polling, automatic-output
-  inhibition of manual commands, process fault injection, alarm handling, and
-  historian pipeline inspection and authorized operations-data publication.
+- A responsive Forming machine-PC supervisory application shared with four
+  mould panels and one robot pendant. It includes object-based assets,
+  active/standby deployment state, role identity, quality-aware tag history,
+  alarms/events, mould-specific cabinets and setpoints, keyed selector modes,
+  mould-local Start/Stop/End, and historian workflows. The pendant projects
+  the dedicated controller, motion group, frame, tool, payload, four-station
+  FIFO arbitration, live robot motion, Cartesian/joint jog, taught positions,
+  four mould-specific `.g` routines with active-line highlighting, and visible
+  coordinate-fault diagnostics. The Forming physical view is a reduced
+  top-down machine view; the full configured I/O graph remains in the logical
+  view.
 - A responsive Forming control-source viewer for the validated Structured Text
   and YAML I/O documents, controller task timing, revision, and current step.
 - Click-to-center minimap on desktop and tablet layouts.
@@ -192,10 +201,10 @@ and scenarios are implemented.
 Regional, location, Customer Network, Central Office, and most Factory data is
 still temporary view data declared in `src/lib/*.svelte`. Nine OT area
 inventories are read from `src/generated/process-view.json`, a versioned
-bootstrap derivative. Forming derives its 32 components from
+bootstrap derivative. Forming derives its 84 components from
 `src/generated/appliance-configs.json`, while Svelte retains presentation-only
-grouping and coordinates. Rust generates that catalog from 185 appliance and
-231 connection YAML files. The remaining process model will later be replaced
+grouping and coordinates. Rust generates that catalog from 237 appliance and
+286 connection YAML files. The remaining process model will later be replaced
 with JSON generated from validated area topology and additional control-source
 cross-references.
 
@@ -253,7 +262,8 @@ virtual PLC integration.
 The process inventory and configuration catalog are behind separate versioned
 JSON contracts. Remaining place, environment, and node arrays will follow as
 their canonical schemas mature. Svelte may retain presentation coordinates
-and interaction state, but it does not parse YAML or Structured Text source,
+and interaction state, but it does not parse YAML, Structured Text, or robot
+`.g` source,
 evaluate connectivity, or simulate the process. YAML updates are submitted to
 Rust as opaque text and only accepted after server-side parsing and validation.
 

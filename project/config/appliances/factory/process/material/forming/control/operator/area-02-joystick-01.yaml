@@ -1,0 +1,44 @@
+schema_version: "0.10.0"
+id: "area-02-joystick-01"
+label: "AREA-02-JOYSTICK-01"
+kind: "hmi"
+site: "Factory"
+environment: "Forming"
+zone: "OT-AREA-02"
+role: "Robot mode selector and motion joystick"
+summary: "Independent robot pendant with auto, manual, and password-protected setup modes. The machine PC can observe robot state but cannot issue robot motion commands."
+lifecycle: "simulated"
+tags: ["ot-area-02", "robot-joystick", "operator interface", "interactive", "station-robot"]
+render:
+  - { view: "factory/process/forming", node: "area-02-joystick-01", mode: "any" }
+interfaces:
+  - id: "cell-network"
+    hardware: "ethernet-rj45"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }
+    mode: "access"
+    addresses: []
+    vlans: [102]
+  - id: "controller-link"
+    hardware: "ethernet-rj45"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 100, duplex: "full", mtu: 1500 }
+    mode: "access"
+    addresses: []
+    vlans: [102]
+behavior:
+  family: "operator-interface"
+  controller: "area-02-vplc-01"
+  permissions: ["observe", "acknowledge-alarms", "authorized-command", "robot-jog", "robot-program", "robot-teach"]
+  signal_tags: ["area-02-pos-03", "area-02-pe-01"]
+  command_tags: ["area-02-robot-01-command"]
+  safety_components: ["area-02-robot-safe-01", "area-02-cell-guard-safe-01"]
+  control_station:
+    station_type: "robot-joystick"
+    target: "robot-01"
+    mode_selector:
+      positions: ["manual", "auto", "setup"]
+      initial_position: "auto"
+      setup_password_sha256: "0dd7fd00e4a8872cfa378eebdca94f9c8a898dd328f8b0aeb0b5dd0f69a09c72"
+      bypassed_permissives: ["process-sensors-ready"]
+      retained_protections: ["emergency-stop-chain", "hardwired-travel-limits"]
