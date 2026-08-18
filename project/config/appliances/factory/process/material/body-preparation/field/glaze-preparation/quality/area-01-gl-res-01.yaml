@@ -1,0 +1,21 @@
+schema_version: "0.10.0"
+id: "area-01-gl-res-01"
+label: "AREA-01-GL-RES-01"
+kind: "field-sensor"
+site: "Factory"
+environment: "Body Preparation"
+zone: "OT-AREA-01"
+role: "Glaze 63-um screen residue"
+summary: "Measures glaze 63-um screen residue for glaze release, storage, and transfer control."
+lifecycle: "simulated"
+tags: ["ot-area-01", "glaze", "quality", "residue"]
+render: [{ view: "factory/process/body-preparation", node: "area-01-gl-res-01", mode: "any" }]
+interfaces:
+  - { id: "field-io", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+behavior:
+  family: "field-sensor"
+  signal_tag: "area-01-gl-res-01"
+  unit: "percent"
+  minimum: 0
+  maximum: 30
+  initial_value: 24

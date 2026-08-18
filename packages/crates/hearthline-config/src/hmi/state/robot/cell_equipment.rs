@@ -33,6 +33,7 @@ pub(in crate::hmi) struct HandoffStationRuntime {
     in_cell_sensor: String,
     operator_side_sensor: String,
     state: TransferState,
+    resume_state: Option<TransferState>,
     progress_percent: f64,
     piece_present: bool,
 }
@@ -50,6 +51,7 @@ impl HandoffStationRuntime {
             in_cell_sensor,
             operator_side_sensor,
             state: TransferState::InCell,
+            resume_state: None,
             progress_percent: 0.0,
             piece_present: false,
         }
@@ -182,6 +184,7 @@ impl GuardedCellRuntime {
                 station.state,
                 TransferState::MovingToOperator | TransferState::MovingToCell
             ) {
+                station.resume_state = Some(station.state);
                 station.state = TransferState::Stopped;
             }
         }
@@ -190,8 +193,14 @@ impl GuardedCellRuntime {
     pub(in crate::hmi) fn clear_trip(&mut self) {
         for station in &mut self.handoffs {
             if station.state == TransferState::Stopped {
-                station.piece_present = false;
-                station.state = TransferState::MovingToCell;
+                station.state = station
+                    .resume_state
+                    .take()
+                    .unwrap_or(if station.piece_present {
+                        TransferState::MovingToOperator
+                    } else {
+                        TransferState::MovingToCell
+                    });
             }
         }
     }

@@ -1,0 +1,38 @@
+schema_version: "0.10.0"
+id: "area-01-gl-hmi-01"
+label: "AREA-01-GL-HMI-01"
+kind: "hmi"
+site: "Factory"
+environment: "Body Preparation"
+zone: "OT-AREA-01"
+role: "Glaze Preparation operator HMI"
+summary: "Operates glaze batching, wet milling, release, storage, and the monitored glazing handoff."
+lifecycle: "simulated"
+tags: ["ot-area-01", "operator-interface", "interactive", "glaze-control-cell"]
+render: [{ view: "factory/process/body-preparation", node: "area-01-gl-hmi-01", mode: "any" }]
+interfaces:
+  - { id: "cell-network", hardware: "ethernet-rj45", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }, mode: "access", addresses: [], vlans: [121] }
+behavior:
+  family: "operator-interface"
+  controller: "area-01-gl-vplc-01"
+  permissions: ["observe", "acknowledge-alarms", "authorized-command", "reset-safety", "start-process", "inject-faults", "configure-parameters", "select-recipe", "view-control-source"]
+  signal_tags: ["area-01-gl-wit-01", "area-01-gl-dt-01", "area-01-gl-fc-01", "area-01-gl-psa-01", "area-01-gl-res-01", "area-01-gl-lt-01", "area-01-gl-ft-01", "area-01-gl-pit-01", "area-01-gl-pit-02", "area-01-gl-ft-02", "area-01-gl-ld-01"]
+  command_tags: ["area-01-gl-feed-01-command", "area-01-gl-feed-02-command", "area-01-gl-feed-03-command", "area-01-gl-feed-04-command", "area-01-gl-feed-05-command", "area-01-gl-feed-06-command", "area-01-gl-feed-07-command", "area-01-gl-xv-01-command", "area-01-gl-dp-01-command", "area-01-gl-mill-01-command", "area-01-gl-scr-01-command", "area-01-gl-mag-01-command", "area-01-gl-ag-01-command", "area-01-gl-pmp-01-command"]
+  safety_components: ["area-01-gl-intlk-01"]
+  parameters:
+    - { id: "glaze-kaolin-kg", label: "Glaze kaolin", target: "glaze-preparation-cell", unit: "kg", minimum: 10, maximum: 60, step: 1, initial_value: 30 }
+    - { id: "glaze-feldspar-kg", label: "Glaze sodium feldspar", target: "glaze-preparation-cell", unit: "kg", minimum: 100, maximum: 230, step: 1, initial_value: 170 }
+    - { id: "glaze-quartz-kg", label: "Glaze quartz", target: "glaze-preparation-cell", unit: "kg", minimum: 70, maximum: 190, step: 1, initial_value: 130 }
+    - { id: "glaze-calcite-kg", label: "Glaze calcite", target: "glaze-preparation-cell", unit: "kg", minimum: 20, maximum: 90, step: 1, initial_value: 50 }
+    - { id: "glaze-dolomite-kg", label: "Glaze dolomite", target: "glaze-preparation-cell", unit: "kg", minimum: 10, maximum: 70, step: 1, initial_value: 35 }
+    - { id: "glaze-zinc-oxide-kg", label: "Glaze zinc oxide", target: "glaze-preparation-cell", unit: "kg", minimum: 1, maximum: 20, step: 0.25, initial_value: 6.25 }
+    - { id: "glaze-zircon-kg", label: "Glaze zircon", target: "glaze-preparation-cell", unit: "kg", minimum: 30, maximum: 120, step: 1, initial_value: 78.75 }
+    - { id: "glaze-water-kg", label: "Glaze process water", target: "glaze-preparation-cell", unit: "kg", minimum: 150, maximum: 350, step: 0.5, initial_value: 250 }
+    - { id: "glaze-sodium-silicate-kg", label: "Glaze sodium silicate", target: "glaze-preparation-cell", unit: "kg", minimum: 0.5, maximum: 5, step: 0.05, initial_value: 2.5 }
+    - { id: "glaze-milling-minutes", label: "Glaze wet milling", target: "glaze-preparation-cell", unit: "min", minimum: 60, maximum: 360, step: 5, initial_value: 180 }
+    - { id: "glaze-screen-micrometres", label: "Glaze screen aperture", target: "glaze-preparation-cell", unit: "micrometre", minimum: 45, maximum: 100, step: 1, initial_value: 63 }
+    - { id: "glaze-density-kg-l", label: "Glaze release density", target: "glaze-preparation-cell", unit: "kg/L", minimum: 1.6, maximum: 1.8, step: 0.01, initial_value: 1.71 }
+    - { id: "glaze-ford-cup-seconds", label: "Glaze Ford-cup flow", target: "glaze-preparation-cell", unit: "s", minimum: 15, maximum: 45, step: 0.5, initial_value: 25 }
+  recipes:
+    - { id: "public-glaze-reference", label: "Public glaze reference", description: "Development baseline assembled from public ceramic-glaze literature; not a production recommendation." }
+  active_recipe: "public-glaze-reference"

@@ -121,7 +121,7 @@ simulation state, or scenario outcomes have been validated.
 
 The appliance configuration catalog is
 [`packages/web/src/generated/appliance-configs.json`](../../../packages/web/src/generated/appliance-configs.json).
-Rust generates it from 222 parsed per-appliance and 271 per-connection YAML
+Rust generates it from 394 parsed per-appliance and 450 per-connection YAML
 files. It provides stable IDs, typed kind and behavior-family metadata,
 resolved connection endpoints, lifecycle state, source revisions, full source
 text, and environment-scoped render bindings. Svelte uses this derivative
@@ -166,7 +166,7 @@ state replication, standby session-state loss that must fail closed after
 promotion, retained state that expires after the modeled TCP idle timer, and
 sync-path isolation that fences the standby while peer failure is unconfirmed.
 A composite scenario drops both factory-facing conduit handoffs while an
-independent Body Preparation HMI, vPLC, remote-I/O, safety, and pump path
+independent Slip Preparation HMI, vPLC, remote-I/O, safety, and pump path
 remains operational; passing requires the expected historian-path failure and
 the configured local pump command. Rust exposes each trace through the local API and
 Svelte simulation workspace; security evidence can also
@@ -334,7 +334,16 @@ embedded machine-PC supervisory scope, four mould-local HMI scopes, and one
 robot-pendant scope. Rust validates operator
 permission and sends each accepted command through the operator interface,
 vPLC, remote I/O, and actuator primitives while preserving safety, alarm,
-actuator, and audit state. Forming additionally gives its six operator
+actuator, and audit state. Body Preparation uses six scoped HMI/vPLC pairs for
+slip, glaze, industrial-water treatment/distribution, and return-water
+treatment/distribution while Rust executes the shared slip, process-water,
+return-water, and glaze trains from editable YAML setpoints. Its mass and water
+inventories, rheology and glaze checks, phase outputs, Start/Hold/Resume
+controls, eight water routes, 16 pump heartbeats, four material handoffs, and
+deterministic faults are Rust-owned. Its current Structured Text source and
+I/O map describe the slip train only. Released slip and its pipeline condition
+update Forming's current material properties and bounded downstream indicators;
+finite inventory and transit delay remain planned. Forming gives its six operator
 interfaces one shared cell state with local selector authority, mutable
 development parameters and recipes, and four independently started mould
 sequence runtimes. A bounded Structured Text source owns normal sequence steps
@@ -351,12 +360,13 @@ bounded telemetry packet and execute the existing brokered historian-replica
 path to Central Office analytics. The returned scenario report keeps the live
 process sequence, payload, network policy result, media timing, and delivery
 trace in one operator workflow.
-This is not a general IEC 61131-3 runtime and does not provide a
-production-fidelity material, pressure, drying, or robot model.
+These are bounded development models. They do not provide a general IEC
+61131-3 runtime or production-fidelity material, pressure, drying, or robot
+behavior.
 
 1. Maintain the navigable Svelte architecture and synchronized documentation.
-2. Add cross-area material balance and replenishment between Body Preparation
-   and the Forming slip tank.
+2. Replace the current released-batch property handoff with finite cross-area
+   material balance and replenishment between Body Preparation and Forming.
 3. Add robot recovery/fault paths and collision-envelope checks around the
    implemented controller, handoff, frame, tool, payload, and arbitration model.
 4. Bind recipe revisions to reviewed setpoint bundles and add deployment/audit

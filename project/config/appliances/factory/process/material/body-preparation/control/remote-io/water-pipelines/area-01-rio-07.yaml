@@ -1,0 +1,39 @@
+schema_version: "0.10.0"
+id: "area-01-rio-07"
+label: "AREA-01-RIO-07"
+kind: "remote-io"
+site: "Factory"
+environment: "Body Preparation"
+zone: "OT-AREA-01"
+role: "Return-water pipeline I/O"
+summary: "Terminates segregated route hydraulics, duplex-pump, and return-pipeline safety channels."
+lifecycle: "simulated"
+tags: ["ot-area-01", "distributed-io", "return-pipeline"]
+render: [{ view: "factory/process/body-preparation", node: "area-01-rio-07", mode: "any" }]
+interfaces:
+  - { id: "cell-network", hardware: "ethernet-rj45", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }, mode: "access", addresses: [], vlans: [111] }
+  - { id: "field-io-01", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+  - { id: "field-io-02", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+  - { id: "field-io-03", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+  - { id: "field-io-04", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+  - { id: "field-io-05", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+  - { id: "field-io-06", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+  - { id: "field-io-07", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+  - { id: "field-io-08", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+  - { id: "field-io-09", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+  - { id: "field-io-10", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+  - { id: "field-io-11", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+  - { id: "field-io-12", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+  - { id: "field-io-13", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+  - { id: "field-io-14", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+  - { id: "field-io-15", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+  - { id: "field-io-16", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+  - { id: "field-io-17", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+  - { id: "field-io-18", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+  - { id: "field-io-19", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+  - { id: "field-io-20", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+  - { id: "field-io-21", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+behavior:
+  family: "remote-io"
+  controller: "area-01-rc-vplc-01"
+  channels: ["area-01-rb-pit-01", "area-01-rb-ft-01", "area-01-rb-ld-01", "area-01-rg-pit-01", "area-01-rg-ft-01", "area-01-rg-ld-01", "area-01-rbd-pit-01", "area-01-rbd-ft-01", "area-01-rbd-ld-01", "area-01-rgd-pit-01", "area-01-rgd-ft-01", "area-01-rgd-ld-01", "area-01-rc-pmp-01a", "area-01-rc-pmp-01b", "area-01-rc-pmp-02a", "area-01-rc-pmp-02b", "area-01-rc-pmp-03a", "area-01-rc-pmp-03b", "area-01-rc-pmp-04a", "area-01-rc-pmp-04b", "area-01-rc-intlk-01"]

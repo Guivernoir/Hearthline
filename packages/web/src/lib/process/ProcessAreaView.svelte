@@ -15,16 +15,10 @@
     X,
   } from "@lucide/svelte";
   import ApplianceConfigSummary from "../config/ApplianceConfigSummary.svelte";
-  import {
-    findAppliancesForNode,
-    isInteractiveHmi,
-  } from "../config/appliance-config";
+  import { findAppliancesForNode, isInteractiveHmi } from "../config/appliance-config";
   import PhysicalDeviceMarker from "../shared/PhysicalDeviceMarker.svelte";
   import { processIconByKey } from "./process-icons";
-  import {
-    findProcessArea,
-    SUPPORTED_PROCESS_VIEW_SCHEMA,
-  } from "./process-model";
+  import { findProcessArea, SUPPORTED_PROCESS_VIEW_SCHEMA } from "./process-model";
   import type { ViewMode } from "../shared/types";
   import {
     logicalSlotPositions,
@@ -37,6 +31,12 @@
     FORMING_PHYSICAL_WORLD_HEIGHT,
     FORMING_WORLD_WIDTH,
   } from "./layout/forming-area-layout";
+  import {
+    bodyPreparationScopeForRoute,
+    bodyPreparationScopeMetadata,
+    buildBodyPreparationEquipment,
+  } from "./layout/body-preparation-area-layout";
+  import BodyPreparationPhysicalMarker from "./layout/BodyPreparationPhysicalMarker.svelte";
   import FormingPhysicalMarker from "./layout/FormingPhysicalMarker.svelte";
   import ProcessAreaBackdrop from "./layout/ProcessAreaBackdrop.svelte";
   import {
@@ -44,19 +44,16 @@
     equipmentPresentation,
     isOperatorEquipment,
   } from "./layout/process-area-paths";
-
   export let routeKey: string;
   export let onBack: () => void = () => {};
   export let onOpenAppliance: (id: string) => void = () => {};
   export let onOpenHmi: (id: string) => void = () => {};
   export let viewMode: ViewMode = "logical";
-
   const DEFAULT_WORLD_WIDTH = 1280;
   const DEFAULT_WORLD_HEIGHT = 900;
   const MIN_ZOOM = 0.25;
   const MAX_ZOOM = 1.6;
   const ZOOM_STEP = 0.1;
-
   let viewport: HTMLDivElement;
   let zoom = 0.9;
   let gridVisible = true;
@@ -68,16 +65,31 @@
   let dragScrollTop = 0;
   let viewportWidth = 1;
   let viewportHeight = 1;
-
-  $: area = findProcessArea(routeKey);
-  $: worldWidth = routeKey === "forming" ? FORMING_WORLD_WIDTH : DEFAULT_WORLD_WIDTH;
+  $: bodyScope = bodyPreparationScopeForRoute(routeKey);
+  $: isBodyPreparation = routeKey === "body-preparation" || bodyScope !== null;
+  $: bodyMetadata = bodyScope ? bodyPreparationScopeMetadata(bodyScope) : null;
+  $: area = findProcessArea(isBodyPreparation ? "body-preparation" : routeKey);
+  $: displayLabel = bodyMetadata?.label ?? area?.label ?? "Unknown area";
+  $: displayZone = bodyMetadata?.zone ?? area?.zone ?? "Unknown area";
+  $: displaySubtitle = bodyMetadata?.subtitle ?? area?.subtitle ?? "";
+  $: worldWidth = routeKey === "forming"
+    ? FORMING_WORLD_WIDTH
+    : bodyMetadata
+      ? bodyMetadata.worldWidth
+      : DEFAULT_WORLD_WIDTH;
   $: worldHeight = routeKey === "forming"
     ? viewMode === "physical"
       ? FORMING_PHYSICAL_WORLD_HEIGHT
       : FORMING_LOGICAL_WORLD_HEIGHT
-    : DEFAULT_WORLD_HEIGHT;
+    : bodyMetadata
+      ? viewMode === "physical"
+        ? bodyMetadata.physicalWorldHeight
+        : bodyMetadata.logicalWorldHeight
+      : DEFAULT_WORLD_HEIGHT;
   $: equipment = routeKey === "forming"
     ? buildFormingEquipment(viewMode)
+    : isBodyPreparation
+      ? buildBodyPreparationEquipment(viewMode, bodyScope)
     : (area?.equipment ?? []).map((item) => ({
         ...item,
         ...(viewMode === "physical"
@@ -90,7 +102,7 @@
     : null;
   $: selectedAppliances = selectedEquipment
     ? findAppliancesForNode(
-        `factory/process/${routeKey}`,
+        isBodyPreparation ? "factory/process/body-preparation" : `factory/process/${routeKey}`,
         selectedEquipment.id,
         viewMode,
       )
@@ -99,23 +111,19 @@
   $: worldPixelHeight = worldHeight * zoom;
   $: worldOffsetX = Math.max(0, (viewportWidth - worldPixelWidth) / 2);
   $: worldOffsetY = Math.max(0, (viewportHeight - worldPixelHeight) / 2);
-
   function clampZoom(value: number) {
     return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
   }
-
   async function setZoom(nextZoom: number, focalX?: number, focalY?: number) {
     if (!viewport) return;
     const targetZoom = clampZoom(Number(nextZoom.toFixed(2)));
     if (targetZoom === zoom) return;
-
     const focusX = focalX ?? viewport.clientWidth / 2;
     const focusY = focalY ?? viewport.clientHeight / 2;
     const currentOffsetX = Math.max(0, (viewport.clientWidth - worldWidth * zoom) / 2);
     const currentOffsetY = Math.max(0, (viewport.clientHeight - worldHeight * zoom) / 2);
     const worldX = (viewport.scrollLeft + focusX - currentOffsetX) / zoom;
     const worldY = (viewport.scrollTop + focusY - currentOffsetY) / zoom;
-
     zoom = targetZoom;
     await tick();
     const nextOffsetX = Math.max(0, (viewport.clientWidth - worldWidth * zoom) / 2);
@@ -123,7 +131,6 @@
     viewport.scrollLeft = worldX * zoom + nextOffsetX - focusX;
     viewport.scrollTop = worldY * zoom + nextOffsetY - focusY;
   }
-
   async function fitToView() {
     if (!viewport) return;
     const compact = viewport.clientWidth < 620;
@@ -133,14 +140,14 @@
       (viewport.clientWidth - horizontalPadding) / worldWidth,
       (viewport.clientHeight - verticalPadding) / worldHeight,
     );
-
-    const readableMinimum = compact || routeKey === "forming" ? 0.65 : MIN_ZOOM;
+    const specialized = routeKey === "forming" || isBodyPreparation;
+    const readableMinimum = compact || specialized ? 0.65 : MIN_ZOOM;
     zoom = Number(clampZoom(Math.max(readableMinimum, fitted)).toFixed(2));
     await tick();
-    viewport.scrollLeft = compact || routeKey === "forming"
+    viewport.scrollLeft = compact || specialized
       ? 0
       : Math.max(0, (worldWidth * zoom - viewport.clientWidth) / 2);
-    viewport.scrollTop = routeKey === "forming"
+    viewport.scrollTop = specialized
       ? 0
       : Math.max(0, (worldHeight * zoom - viewport.clientHeight) / 2);
   }
@@ -227,7 +234,7 @@
 </script>
 
 <svelte:head>
-  <title>{area?.label ?? "Process area"} · Hearthline</title>
+  <title>{displayLabel} · Hearthline</title>
 </svelte:head>
 
 <div class="app-shell">
@@ -252,7 +259,7 @@
     <div class="view-context" aria-label="Current view">
       <span>Factory / Ceramics process</span>
       <ChevronDown size={14} strokeWidth={1.8} />
-      <strong>{area?.label ?? "Unknown area"}</strong>
+      <strong>{displayLabel}</strong>
     </div>
 
     <div class="toolbar" aria-label="Area view controls">
@@ -318,7 +325,7 @@
         bind:this={viewport}
         use:canvasInteractions
         role="region"
-        aria-label={`${area.label} equipment architecture`}
+        aria-label={`${displayLabel} equipment architecture`}
       >
         <div
           class="canvas-size"
@@ -329,20 +336,21 @@
             class:physical-view={viewMode === "physical"}
             class:logical-view={viewMode === "logical"}
             class:forming-world={routeKey === "forming"}
+            class:body-preparation-world={isBodyPreparation}
             class="process-area-world"
             style={`left: ${worldOffsetX}px; top: ${worldOffsetY}px; width: ${worldWidth}px; height: ${worldHeight}px; transform: scale(${zoom});`}
-            aria-label={`${viewMode} ${area.label} view`}
+            aria-label={`${viewMode} ${displayLabel} view`}
           >
             <div class="lan-heading">
-              <span>HEARTHLINE / FACTORY / {area.zone}</span>
-              <h1>{area.label}</h1>
-              <p>{area.subtitle}</p>
+              <span>HEARTHLINE / FACTORY / {displayZone}</span>
+              <h1>{displayLabel}</h1>
+              <p>{displaySubtitle}</p>
             </div>
 
             <svg class="process-area-drawing" viewBox={`0 0 ${worldWidth} ${worldHeight}`} aria-hidden="true">
-              <ProcessAreaBackdrop {routeKey} />
+              <ProcessAreaBackdrop {routeKey} {bodyScope} />
 
-              {#if viewMode === "logical" || routeKey !== "forming"}
+              {#if viewMode === "logical" || (routeKey !== "forming" && !isBodyPreparation)}
                 <g class="process-area-connections">
                   {#each equipment.filter((item) => upstreamFor(item)) as item (item.id)}
                     <path
@@ -374,6 +382,8 @@
                 {#if viewMode === "physical"}
                   {#if routeKey === "forming"}
                     <FormingPhysicalMarker id={item.id} kind={presentation.kind} label={presentation.label} />
+                  {:else if isBodyPreparation}
+                    <BodyPreparationPhysicalMarker id={item.id} kind={presentation.kind} label={presentation.label} />
                   {:else}
                     <PhysicalDeviceMarker icon={Icon} label={presentation.label} />
                   {/if}
@@ -389,8 +399,8 @@
               </button>
             {/each}
 
-            {#if routeKey !== "forming"}
-              <div class="lan-key" aria-label={`${area.label} legend`}>
+            {#if routeKey !== "forming" && !isBodyPreparation}
+              <div class="lan-key" aria-label={`${displayLabel} legend`}>
                 {#if viewMode === "physical"}
                   <span><Cable size={13} strokeWidth={1.8} /><i class="cable-key copper"></i>Industrial Ethernet</span>
                   <span><i class="cable-key process-io"></i>Field I/O</span>
@@ -419,6 +429,20 @@
             <span><i class="forming-key gate"></i>Gate movement</span>
           {/if}
         </div>
+      {:else if isBodyPreparation}
+        <div class="body-view-legend" aria-label={`${displayLabel} ${viewMode} legend`}>
+          {#if viewMode === "logical"}
+            <span><i class="body-key network"></i>Network / control</span>
+            <span><i class="body-key io"></i>Field I/O</span>
+            <span><i class="body-key safety"></i>Safety / permissive</span>
+          {:else}
+            <span><i class="body-key material"></i>Mineral and slip path</span>
+            <span><i class="body-key water"></i>Water / additive path</span>
+            <span><i class="body-key glaze"></i>Glaze path</span>
+            <span><i class="body-key return"></i>Segregated returns</span>
+            <span><i class="body-key boundary"></i>Downstream handoff</span>
+          {/if}
+        </div>
       {/if}
     {:else}
       <div class="process-area-missing">
@@ -442,7 +466,7 @@
         <dl>
           <div>
             <dt>Area</dt>
-            <dd>{area?.zone}</dd>
+            <dd>{displayZone}</dd>
           </div>
           <div>
             <dt>Configuration</dt>
@@ -467,7 +491,7 @@
   </main>
 
   <footer class="statusbar">
-    <span class="status-state"><i></i>{area?.zone ?? "Unknown area"}</span>
+    <span class="status-state"><i></i>{displayZone}</span>
     <span>{viewMode === "physical" ? "Physical equipment" : "Logical control relationships"} / {equipment.length} components</span>
     <span>{Math.round(zoom * 100)}% / schema {SUPPORTED_PROCESS_VIEW_SCHEMA}</span>
   </footer>

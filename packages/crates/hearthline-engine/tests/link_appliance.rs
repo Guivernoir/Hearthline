@@ -71,3 +71,13 @@ fn transparent_link_validates_ethernet_and_internal_port_state() {
         &[Effect::Drop(DropReason::PortDown(port("access")))]
     );
 }
+
+#[test]
+fn embedded_virtual_switch_supports_dense_control_hosts() {
+    let switch = LinkAppliance::embedded_virtual_switch(
+        id("control-host-01"),
+        (0..20).map(|index| port(&format!("virtual-{index}"))),
+    );
+
+    assert!(switch.has_port(&port("virtual-19")));
+}

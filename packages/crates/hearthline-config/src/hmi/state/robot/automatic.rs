@@ -3,6 +3,16 @@ use hearthline_engine::{RobotCellRequestStatus, RobotCellStage, RobotPose, Robot
 use super::{RobotAutomaticFault, RobotRuntime};
 
 impl RobotRuntime {
+    pub(in crate::hmi) fn has_taught_position(&self, id: &str) -> bool {
+        self.taught_positions
+            .iter()
+            .any(|position| position.id == id)
+    }
+
+    pub(in crate::hmi) fn has_program(&self) -> bool {
+        !self.program.lines().is_empty()
+    }
+
     pub(in crate::hmi) fn guarded_motion_active(&self) -> bool {
         self.motion.active() || self.program.running() || self.cell.active().is_some()
     }
@@ -21,10 +31,10 @@ impl RobotRuntime {
     }
 
     pub(in crate::hmi) fn clear_guard_trip(&mut self) {
-        if !self
+        if self
             .automatic_fault
             .as_ref()
-            .is_some_and(|fault| fault.code == "CELL-GUARD-MOTION-INHIBITED")
+            .is_none_or(|fault| fault.code != "CELL-GUARD-MOTION-INHIBITED")
         {
             return;
         }

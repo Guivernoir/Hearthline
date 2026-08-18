@@ -83,7 +83,8 @@ impl FormingProcess {
             FormingPhase::Filling => {
                 self.measurements.slip_tank_level_percent =
                     self.tank_level_at_cycle_start - 0.8 * progress;
-                self.measurements.slip_feed_flow_l_min = 85.0;
+                self.measurements.slip_feed_flow_l_min =
+                    85.0 * self.material_effects.filling_flow_factor;
                 self.measurements.fill_head_position_mm = 800.0 * progress;
             }
             FormingPhase::Pressurizing => {
@@ -92,6 +93,11 @@ impl FormingProcess {
             }
             FormingPhase::PressureDwell => {
                 self.measurements.mould_pressure_bar = self.setpoints.pressure_bar;
+                let pressure_moisture_reduction =
+                    (self.setpoints.pressure_bar / 40.0 * 3.0).clamp(0.0, 3.0);
+                self.measurements.piece_moisture_percent =
+                    self.material_effects.predicted_green_moisture_percent
+                        - pressure_moisture_reduction * progress;
             }
             FormingPhase::Depressurizing => {
                 self.measurements.mould_pressure_bar =

@@ -1,0 +1,30 @@
+schema_version: "0.10.0"
+id: "area-01-wt-hmi-01"
+label: "AREA-01-WT-HMI-01"
+kind: "hmi"
+site: "Factory"
+environment: "Body Preparation"
+zone: "OT-AREA-01"
+role: "Industrial-water process HMI"
+summary: "Operates the raw-water treatment train and displays direct process and product-water measurements."
+lifecycle: "simulated"
+tags: ["ot-area-01", "operator-interface", "interactive", "water-control-cell"]
+render: [{ view: "factory/process/body-preparation", node: "area-01-wt-hmi-01", mode: "any" }]
+interfaces:
+  - { id: "cell-network", hardware: "ethernet-rj45", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }, mode: "access", addresses: [], vlans: [111] }
+behavior:
+  family: "operator-interface"
+  controller: "area-01-wt-vplc-01"
+  permissions: ["observe", "acknowledge-alarms", "authorized-command", "reset-safety", "start-process", "inject-faults", "configure-parameters", "select-recipe", "view-control-source"]
+  signal_tags: ["area-01-wt-lt-01", "area-01-wt-tur-01", "area-01-wt-cnd-01", "area-01-wt-hard-01", "area-01-wt-ph-01", "area-01-wt-tt-01", "area-01-wt-dpit-01", "area-01-wt-ft-01", "area-01-wt-ft-02", "area-01-wt-cnd-02", "area-01-wt-hard-02", "area-01-wt-tur-02", "area-01-wt-ph-02", "area-01-wt-tt-02", "area-01-wt-lt-02"]
+  command_tags: ["area-01-wt-pmp-01-command", "area-01-wt-fil-01-command", "area-01-wt-carb-01-command", "area-01-wt-soft-01-command", "area-01-wt-ro-01-command"]
+  safety_components: ["area-01-wt-intlk-01"]
+  parameters:
+    - { id: "water-treatment-batch-l", label: "Treatment batch", target: "water-treatment-cell", unit: "L", minimum: 500, maximum: 5000, step: 50, initial_value: 2000 }
+    - { id: "water-ro-recovery-percent", label: "RO recovery", target: "water-treatment-cell", unit: "percent", minimum: 50, maximum: 85, step: 1, initial_value: 75 }
+    - { id: "water-target-conductivity-us-cm", label: "Treated conductivity", target: "water-treatment-cell", unit: "uS/cm", minimum: 20, maximum: 300, step: 5, initial_value: 80 }
+    - { id: "water-target-hardness-mg-l", label: "Treated hardness", target: "water-treatment-cell", unit: "mg/L CaCO3", minimum: 1, maximum: 60, step: 1, initial_value: 8 }
+    - { id: "water-target-turbidity-ntu", label: "Treated turbidity", target: "water-treatment-cell", unit: "NTU", minimum: 0.05, maximum: 2, step: 0.05, initial_value: 0.25 }
+  recipes:
+    - { id: "public-process-water-reference", label: "Public process-water reference", description: "Development treatment baseline assembled from public water-monitoring and ceramic-process literature." }
+  active_recipe: "public-process-water-reference"

@@ -5,6 +5,9 @@
 @import "./styles/sites/factory.css";
 @import "./styles/environments/process-area.css";
 @import "./styles/environments/forming-physical.css";
+@import "./styles/environments/body-preparation.css";
+@import "./styles/environments/body-preparation-gateway.css";
+@import "./styles/environments/body-preparation-hmi.css";
 @import "./styles/sites/office.css";
 @import "./styles/sites/security-console.css";
 @import "./styles/sites/security-events.css";

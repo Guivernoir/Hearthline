@@ -11,12 +11,13 @@ folder represents a documented application view and contains a local
 
 ## Current Coverage
 
-The documentation currently covers all 22 documented application views with
+The documentation currently covers all 25 documented application views with
 matching physical and logical captures. It documents the rendered Svelte model,
 the parsed appliance and connection YAML baseline, the bootstrap process
 contract, and target engineering requirements. Captures and supporting
-evidence track development release `0.3.0`; the Forming SCADA capture was
-refreshed on 2026-08-09. Reference pages also document the
+evidence track development release `0.3.1`; the Body Preparation and Forming
+operator captures are refreshed as their executable views change. Reference
+pages also document the
 30 current configured scenarios, including Business IT internal
 service paths, deterministic Core-02 gateway and Rapid-PVST recovery,
 converged and protocol-timed northbound-firewall recovery, and the customer
@@ -53,9 +54,12 @@ customer access circuit, Rust-selected recovery expectation, zero-drop DNS
 run, and deterministic trace. It is scenario evidence, not proof of provider
 or HA recovery behavior beyond that selected path.
 
-Body Preparation includes an additional representative HMI capture. It records
-the shared Rust-backed operator-session design now available in all ten process
-areas without changing the documented architecture-route count.
+Body Preparation now has a gateway capture plus separate physical and logical
+documentation for Slip Preparation, Water Preparation and Distribution, and Glaze
+Preparation. Its additional HMI capture covers four executable Rust-backed
+trains, including recipe totals, water inventories, live phase state, quality
+release, downstream effects, and field outputs. The building READMEs separate
+public literature values from configurable simulator assumptions.
 
 Operations Intelligence includes an additional Central SOC capture showing
 three trace-derived WAF events and the filterable analyst-session workflow. It is

@@ -1,0 +1,16 @@
+schema_version: "0.10.0"
+id: "area-01-rw-vplc-01"
+label: "AREA-01-RW-vPLC-01"
+kind: "virtual-plc"
+site: "Factory"
+environment: "Body Preparation"
+zone: "OT-AREA-01"
+role: "Return-water treatment controller"
+summary: "Executes the segregated return-water recovery state machine."
+lifecycle: "simulated"
+tags: ["ot-area-01", "controller", "water-control-cell", "return-water"]
+render: [{ view: "factory/process/body-preparation", node: "area-01-rw-vplc-01", mode: "any" }]
+interfaces:
+  - { id: "cell-network", hardware: "virtual-nic", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10000, duplex: "full", mtu: 1500 }, mode: "routed", addresses: [], vlans: [] }
+  - { id: "cell-network-standby", hardware: "virtual-nic", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10000, duplex: "full", mtu: 1500 }, mode: "routed", addresses: [], vlans: [] }
+behavior: { family: "virtual-controller", scan_interval_ms: 100, program_ref: "logic/ot/process/body-preparation/area-01-rw-vplc-01.st", io_binding: "config/ot/process/bindings/area-01-rw-vplc-01.yaml" }

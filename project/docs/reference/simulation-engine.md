@@ -32,8 +32,8 @@ to reproduce vendor firmware or every byte exchanged by a production protocol.
 | Services | Explicit service acceptance, ICMP echo response, authoritative test-record DNS responses, configured bounded HTTP documents, typed bounded process telemetry, and operational state |
 | Web gateway | HTTP redirect, published-host validation, configuration-owned method allowlists and path/body inspection rules, body limits, configured static routing, bounded request correlation, upstream request origination, and response relay |
 | Monitoring | Passive frame observation without forwarding |
-| OT control | Periodic virtual-controller scans, bounded Structured Text and robot `.g` parsers/runtimes, explicit Forming I/O binding validation, Rust-owned Forming dynamics and trips, and workspace-limited robot motion interpolation |
-| Operator interface | HMI/SCADA allowed-tag command submission, scoped observation, shared Forming cell state, mould-local production control, retained manual commands, fault injection, alarm handling, and audit history |
+| OT control | Periodic virtual-controller scans, bounded Structured Text and robot `.g` parsers/runtimes, explicit Forming and Body Preparation slip I/O binding validation, four Rust-owned Body Preparation trains, Rust-owned Forming dynamics and trips, typed slip handoff, and workspace-limited robot motion interpolation |
+| Operator interface | HMI/SCADA allowed-tag command submission, scoped observation, shared process state, independent preparation-train control, mould-local production control, retained manual commands, fault injection, alarm handling, and audit history |
 | Distributed I/O | Declared input and output channels, channel validation, and output effects |
 | Field devices | Scaled sensor samples, actuator commands, failures, and safe-state handling |
 | Safety interface | Required permissives, latched trips, safe denial, and authorized reset |
@@ -51,7 +51,7 @@ integration tests ensure those kinds exist in the catalog. It cannot
 independently discover Svelte inventory drift and does not prove that every
 node is instantiated in a running topology.
 
-The configuration repositories discover 222 per-appliance and 271
+The configuration repositories discover 394 per-appliance and 450
 per-connection YAML documents. They dispatch appliance behavior, validate
 render bindings, resolve connection endpoints and ports, enforce appliance
 port capabilities, port-to-medium compatibility, endpoint speed and medium
@@ -91,7 +91,23 @@ appliances and four links to prove user VLAN access, Core-01 inter-VLAN routing,
 internal DNS or HTTPS response, and return delivery. Complete-project graph
 construction remains unfinished.
 
-Forming is the first area-specific plant-process implementation. One shared
+Body Preparation executes four independently controlled process trains. The
+slip train carries a `1,000 kg` dry-mineral recipe through batching,
+dispersion, separation, conditioning, rheology release, and Forming transfer.
+Fresh-water and segregated return-water trains retain inventory and quality;
+the glaze train carries a seven-mineral public-reference recipe through wet
+milling and release. Six HMI/vPLC scopes and seven remote-I/O stations own 85
+measured signals, 53 actuators, and six safety interfaces. The utilities model
+adds eight water routes and 16 heartbeat-supervised duty/standby pumps; four
+material-handoff paths calculate pressure, flow balance, line loss, delivered
+quality, and slip entrained air. Injected disturbances produce scoped trips or
+pipeline warnings. A released slip batch updates all active Forming
+sessions and carries bounded drying and firing indicators; this is not yet
+finite material balance or a downstream drying/kiln simulation. The slip
+Structured Text and I/O source are validated, while all four train transitions
+remain Rust-owned.
+
+Forming is the first source-driven area-specific plant implementation. One shared
 Rust session supplies its embedded machine-PC supervisory application, four
 mould-local HMIs, and independent robot pendant. Each mould owns an
 independently started runtime of the same bounded Structured Text sequence.
@@ -281,14 +297,13 @@ The current engine does not yet implement:
   protocols. The current Forming workflow samples compact typed records into
   two bounded API-session stores and retries only the modeled DMZ path.
 - General IEC 61131-3 parsing or production-equivalent virtual PLC execution;
-  only the declared Forming sequence subset is executable.
-- Plant models, material state, and area-specific dynamics beyond the bounded
-  Forming sequence.
-- Area-specific control programs beyond Forming or production-equivalent
-  virtual PLC task execution.
-- General propagation of process effects between sensors, remote I/O,
-  controllers, HMIs, safety interfaces, and actuators outside the Forming
-  session adapter.
+  only the declared Forming sequence subset is source-driven. The Body
+  Preparation slip source is validated but its plant transitions are Rust-owned.
+- Plant models, material state, and area-specific dynamics beyond Body
+  Preparation and Forming.
+- Source-driven area-specific control programs beyond Forming.
+- General cross-area process propagation beyond the Body Preparation release
+  into Forming's current material properties and predicted effects.
 - Functional-safety, burner-management, deterministic timing, or deployment
   certification.
 
@@ -354,10 +369,10 @@ management protocols, and arbitrary topology discovery remain planned.
 `GET /api/hmis/{id}` returns a configured HMI or SCADA snapshot, while
 `POST /api/hmis/{id}/actions` executes permission, safety-reset,
 acknowledgement, selector-mode, parameter, recipe, actuator-command,
-Forming-cycle, Forming-fault, robot motion, jog, teaching, and bounded robot
-program behavior
+preparation-train Start/Hold/Resume, Body Preparation fault, Forming-cycle,
+Forming-fault, robot motion, jog, teaching, and bounded robot program behavior
 against persistent shared cell state. A background API task advances active
-Forming sessions while any authorized interface may observe them.
+Body Preparation and Forming sessions while authorized interfaces observe them.
 `GET /api/hmis/{id}/historian` is restricted to the authorized Forming SCADA
 and returns bounded Level 3 and OT DMZ stores, pending and dropped counts, and
 the latest collection, replication, and publication reports. The background
@@ -369,6 +384,9 @@ sequence, and payload to the canonical historian-replica-to-analytics
 scenario, and returns the standard scenario report.
 `GET /api/hmis/{id}/program` returns the validated Forming Structured Text and
 I/O-binding documents plus their task identity and combined source revision.
+For Body Preparation, the same endpoint returns the validated slip source and
+binding while the HMI snapshot supplies all four live Rust trains and the
+matching slip phase and step.
 The robot pendant's `GET /api/hmis/{id}` snapshot carries its canonical or
 session-loaded `.g` source, parsed operations, active line, active automatic
 routine, coordinate-fault state, pose, projected joint state, taught positions,
@@ -379,9 +397,10 @@ session.
 
 ## Next Milestones
 
-1. Add robot recovery states and collision-envelope checks, bind reviewed
-   Forming recipes into parameter deployment, then extend process-condition
-   transitions, retries, quality handling, and cross-area slip replenishment.
+1. Replace the latest released-batch handoff with finite Body Preparation and
+   Forming inventory, receiving-capacity, replenishment, interrupted-transfer,
+   and recovery tests; also deepen robot recovery and reviewed Forming recipe
+   deployment.
 2. Add further exact positive, negative, failover, isolation, and outage
    scenarios for
    routing, NAT, policy, and services.

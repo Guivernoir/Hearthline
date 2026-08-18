@@ -80,7 +80,12 @@ impl HmiSession {
                 "denied",
             );
         }
-        if self.any_mould_running() {
+        if self.any_mould_running()
+            || self
+                .body_preparation
+                .as_ref()
+                .is_some_and(|process| process.running() || process.held())
+        {
             return self.parameter_result(
                 HmiActionStatus::Denied,
                 &parameter_id,
@@ -111,15 +116,18 @@ impl HmiSession {
         }
         parameter.value = value;
         let target = parameter.target.clone();
-        if !self
-            .moulds
-            .get_mut(&target)
-            .is_some_and(|mould| mould.apply_parameter(&parameter_id, value))
-        {
+        let applied = if self.body_preparation.is_some() {
+            self.apply_body_parameter(&parameter_id, value)
+        } else {
+            self.moulds
+                .get_mut(&target)
+                .is_some_and(|mould| mould.apply_parameter(&parameter_id, value))
+        };
+        if !applied {
             return self.parameter_result(
                 HmiActionStatus::Denied,
                 &parameter_id,
-                "Parameter is not bound to the configured mould runtime.",
+                "Parameter is not bound to the configured process runtime.",
                 "denied",
             );
         }
@@ -140,7 +148,12 @@ impl HmiSession {
                 "denied",
             );
         }
-        if self.any_mould_running() {
+        if self.any_mould_running()
+            || self
+                .body_preparation
+                .as_ref()
+                .is_some_and(|process| process.running() || process.held())
+        {
             return self.recipe_result(
                 HmiActionStatus::Denied,
                 &recipe_id,

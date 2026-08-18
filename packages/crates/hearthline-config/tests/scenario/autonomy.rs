@@ -50,10 +50,10 @@ fn factory_control_remains_local_during_complete_conduit_handoff_loss() {
     let autonomy = report.local_autonomy.expect("local-autonomy evidence");
     assert_eq!(autonomy.hmi, "area-01-hmi-01");
     assert_eq!(autonomy.controller, "area-01-vplc-01");
-    assert_eq!(autonomy.remote_io, "area-01-rio-01");
+    assert_eq!(autonomy.remote_io, "area-01-rio-02");
     assert_eq!(autonomy.safety_interface, "area-01-intlk-01");
     assert_eq!(autonomy.actuator, "area-01-pmp-01");
-    assert_eq!(autonomy.actuator_state, "running");
+    assert_eq!(autonomy.actuator_state, "transferring");
     assert_eq!(autonomy.outage_connections.len(), 2);
     assert_eq!(autonomy.local_path_connections.len(), 7);
     assert!(autonomy.local_path_operational);
@@ -73,7 +73,7 @@ fn factory_control_remains_local_during_complete_conduit_handoff_loss() {
             "area-01-intlk-01",
             "area-01-hmi-01",
             "area-01-vplc-01",
-            "area-01-rio-01",
+            "area-01-rio-02",
             "area-01-pmp-01",
         ]
     );

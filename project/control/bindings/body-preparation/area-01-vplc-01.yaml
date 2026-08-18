@@ -1,0 +1,63 @@
+schema_version: "0.1.0"
+controller: "area-01-vplc-01"
+language: "structured-text"
+program: "BodyPreparationBatch"
+task: { name: "BodyPreparationBatchTask", interval_ms: 100, watchdog_ms: 500 }
+sequence:
+  step_variable: "Step"
+  timer_variable: "StepTimer"
+  idle_step: 0
+  start_step: 10
+  fault_step: 900
+  start_input: "StartBatch"
+  safety_input: "SafetyReady"
+  reset_input: "ResetBatch"
+  trip_input: "TripActive"
+phase:
+  variable: "PhaseCode"
+  values:
+    0: "idle"
+    10: "water-charge"
+    20: "deflocculant-charge"
+    30: "ball-clay-dose"
+    40: "kaolin-dose"
+    50: "feldspar-dose"
+    60: "quartz-dose"
+    70: "wet-mixing"
+    80: "screening"
+    90: "magnetic-separation"
+    100: "conditioning"
+    110: "quality-check"
+    120: "heating-to-transfer-temperature"
+    130: "transfer-to-forming"
+    140: "batch-complete"
+    900: "faulted"
+inputs:
+  - { variable: "StartBatch", data_type: "bool", source: { kind: "start-request" } }
+  - { variable: "SafetyReady", data_type: "bool", source: { kind: "safety-ready" } }
+  - { variable: "ResetBatch", data_type: "bool", source: { kind: "reset-request" } }
+  - { variable: "TripActive", data_type: "bool", source: { kind: "trip-active" } }
+  - { variable: "BatchMass", data_type: "real", source: { kind: "signal", tag: "area-01-wit-01" } }
+  - { variable: "WaterFlow", data_type: "real", source: { kind: "signal", tag: "area-01-ft-02" } }
+  - { variable: "MixerLevel", data_type: "real", source: { kind: "signal", tag: "area-01-lt-02" } }
+  - { variable: "MixerTemperature", data_type: "real", source: { kind: "signal", tag: "area-01-tt-01" } }
+  - { variable: "MixingEnergy", data_type: "real", source: { kind: "signal", tag: "area-01-pwt-01" } }
+  - { variable: "SlipDensity", data_type: "real", source: { kind: "signal", tag: "area-01-dt-01" } }
+  - { variable: "SlipViscosity", data_type: "real", source: { kind: "signal", tag: "area-01-vis-01" } }
+  - { variable: "SlipTemperature", data_type: "real", source: { kind: "signal", tag: "area-01-tt-02" } }
+  - { variable: "ConditioningLevel", data_type: "real", source: { kind: "signal", tag: "area-01-lt-01" } }
+  - { variable: "TransferFlow", data_type: "real", source: { kind: "signal", tag: "area-01-ft-01" } }
+outputs:
+  - { variable: "WaterValveCommand", command_tag: "area-01-xv-02-command", states: { 0: "closed", 1: "open" } }
+  - { variable: "SilicatePumpCommand", command_tag: "area-01-dp-01-command", states: { 0: "stopped", 1: "dosing" } }
+  - { variable: "BallClayFeederCommand", command_tag: "area-01-feed-01-command", states: { 0: "stopped", 1: "feeding" } }
+  - { variable: "KaolinFeederCommand", command_tag: "area-01-feed-02-command", states: { 0: "stopped", 1: "feeding" } }
+  - { variable: "FeldsparFeederCommand", command_tag: "area-01-feed-03-command", states: { 0: "stopped", 1: "feeding" } }
+  - { variable: "QuartzFeederCommand", command_tag: "area-01-feed-04-command", states: { 0: "stopped", 1: "feeding" } }
+  - { variable: "MixerCommand", command_tag: "area-01-ag-01-command", states: { 0: "stopped", 1: "mixing" } }
+  - { variable: "ScreenCommand", command_tag: "area-01-scr-01-command", states: { 0: "stopped", 1: "screening" } }
+  - { variable: "MagnetCommand", command_tag: "area-01-mag-01-command", states: { 0: "isolated", 1: "energized", 2: "separating" } }
+  - { variable: "ConditioningAgitatorCommand", command_tag: "area-01-ag-02-command", states: { 0: "stopped", 1: "agitating" } }
+  - { variable: "HeaterCommand", command_tag: "area-01-ht-01-command", states: { 0: "off", 1: "heating" } }
+  - { variable: "TransferValveCommand", command_tag: "area-01-xv-01-command", states: { 0: "closed", 1: "open" } }
+  - { variable: "TransferPumpCommand", command_tag: "area-01-pmp-01-command", states: { 0: "stopped", 1: "transferring" } }

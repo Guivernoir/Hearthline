@@ -1,0 +1,9 @@
+schema_version: "0.2.0"
+id: "area-01-rio-05-to-area-01-gl-intlk-01"
+label: "Glaze Preparation safety field-I/O channel"
+lifecycle: "simulated"
+transport: "field-io"
+medium: { type: "field-wiring", signal: "area-01-gl-intlk-01 safety I/O", length_m: 15.0 }
+endpoints: { a: { appliance: "area-01-rio-05", interface: "field-io-26" }, b: { appliance: "area-01-gl-intlk-01", interface: "field-io" } }
+properties: { capacity_mbps: 10, latency_ms: 0, loss_every: null, direction: "bidirectional", operational: true }
+tags: ["ot", "ot-area-01", "field-io", "glaze-control-cell", "safety"]

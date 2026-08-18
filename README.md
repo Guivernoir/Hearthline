@@ -51,13 +51,17 @@ operations-data transfer fails on both paths while an independently evaluated
 Body Preparation control chain retains seven operational local links, resets
 its healthy safety circuit, and starts the configured transfer pump through
 HMI, vPLC, remote I/O, and actuator behavior. This is a bounded command-level
-proof, not yet a changing plant-state or controller-program simulation.
-Complete topology execution, general IEC 61131-3 control execution, and
-broader plant simulation remain planned engineering layers. Forming is the
-first bounded area-specific process model: a validated Structured Text subset
-owns its sequence and output requests while Rust advances ceramic-slip
-pressure casting, robotic demoulding, mould cleaning, vacuum drying, process
-signals, alarms, and injected faults.
+proof for that outage scenario, not proof that plant state advanced during the
+outage. Separately, Body Preparation and Forming now have bounded area-specific
+plant models. Body Preparation presents separate slip, water-utilities, and
+glaze process buildings; the water building separates industrial treatment,
+industrial distribution, return treatment, and return pipelines. Four
+associated process trains execute in Rust; Forming
+executes a validated Structured Text subset while
+Rust advances ceramic-slip pressure casting, robotic demoulding, mould
+cleaning, vacuum drying, process signals, alarms, and injected faults.
+Complete topology execution and general IEC 61131-3 control execution remain
+planned engineering layers.
 
 ![Hearthline regional architecture](project/docs/screenshot.png)
 
@@ -115,15 +119,20 @@ The following capabilities are implemented in the Svelte application:
 - Customer LAN, customer edge, public-service, enterprise, DMZ, operations,
   analytics, and factory security views.
 - A ten-stage ceramics process with individual controllers, HMIs, sensors,
-  distributed I/O, actuators, and safety or permissive interfaces; Forming is
-  the first detailed cell with 84 components, an embedded machine-PC SCADA,
+  distributed I/O, actuators, and safety or permissive interfaces. Body
+  Preparation is a gateway to separate slip, water preparation/distribution,
+  and glaze buildings backed by one detailed 166-component model and seven
+  remote-I/O stations. Forming is an 84-component
+  cell with an embedded
+  machine-PC SCADA,
   four equal mould stations, four mould-local HMIs, an independent robot
   pendant, 45 configured process values, four fence-crossing handoff stations,
   and guarded-cell safety. Its physical view is limited to the 21 machine-floor
   items visible from above; the logical view retains all 84 components.
 - A bootstrap process view model loaded from
   [`process-view.json`](packages/web/src/generated/process-view.json), with the
-  detailed Forming inventory derived from the generated YAML catalog.
+  detailed Body Preparation and Forming inventories derived from the generated
+  YAML catalog.
 - Rust-generated appliance and connection metadata, full YAML inspection, and
   validated editing through a localhost-only Rust API.
 - A Rust workspace with shared model contracts, typed YAML configuration,
@@ -198,18 +207,18 @@ Current maturity is:
 | Layer | Status |
 | --- | --- |
 | Application release | `0.3.1`, initial development |
-| Svelte architecture application | Implemented and buildable; rendered architecture remains provisional |
+| Svelte architecture application | Implemented and buildable; Body Preparation has a three-building gateway and scoped physical/logical views, while rendered architecture remains provisional |
 | Physical and logical documentation captures | Implemented for every documented route |
 | Process view-model contract | Bootstrap JSON, schema `0.2.0` |
-| Canonical appliance YAML | Provisional baseline; 237 schema `0.10.0` files, one per appliance |
-| Canonical connection YAML | Provisional baseline; 286 schema `0.2.0` files, one per modeled connection |
+| Canonical appliance YAML | Provisional baseline; 394 schema `0.10.0` files, one per appliance |
+| Canonical connection YAML | Provisional baseline; 450 schema `0.2.0` files, one per modeled connection |
 | Rust component simulation | Allocator-free appliance runtime with Ethernet, ARP, switching, LACP aggregation, bounded multi-chassis split horizon, routing, NAT, active/standby stateful firewalls, service, media, and process primitives |
 | Rust YAML validation and frontend projection | Implemented for appliance behavior, port hardware and state, VRRP member consistency, Rapid-PVST bridge identities, LACP, multi-chassis and firewall-HA relationships, synchronized firewall policy, connection media, endpoint compatibility, capacity, exclusive point-to-point ports, file identity, and render bindings |
 | Local YAML editing | Implemented with revision checks, whole-project validation, atomic writes, and catalog regeneration |
 | Configured topology and end-to-end scenarios | Initial implementation; 30 versioned scenarios cover independent customer public paths, Business IT PC-01 through PC-04 internal DNS and HTTPS, deterministic Business IT core recovery, converged and protocol-timed northbound-firewall recovery, HA-sync, standby-state, stale-session, and fenced-isolation cases, Forming-to-Level-3 collection, Level-3-to-DMZ replication, a brokered OT-DMZ-to-analytics path with explicit HTTPS delivery and SSH default denial, a composite local-control/inter-site-outage case, three WAF-prevented security exercises, and one customer access-circuit outage with an explicit restoration expectation |
 | Offensive and defensive interaction | First controlled slice implemented through Customer PC-01 method- and body-aware `curl`, configuration-owned DMZ WAF policy, and a filterable session-local Central SOC queue; broader attack techniques, telemetry transport, correlation, and response automation remain planned |
-| HMI and process interaction | Fifteen operator sessions are configured across all ten process areas; Forming adds four independent mould runtimes with bound timings and pressure, external control cabinets, mould-embedded utility sections, local production authority, four transfer stations, a guarded-cell interlock, live views, bounded shared-robot arbitration, and a workspace-limited pendant with jog/teach and four authoritative `.g` routines. Automatic pickup and handoff poses are checked against YAML geometry and fault on mismatch. Object-based supervisory state, historian collection and replication, and operator-triggered publication are also implemented. Production kinematics, recipe-to-setpoint deployment, durable persistence, and broader plant dynamics remain planned. |
-| Control sources and vPLC execution | Initial Forming slice implemented with versioned Structured Text, explicit YAML I/O binding, 20 ms scan execution, and Rust plant dynamics; broader language and area coverage remain planned |
+| HMI and process interaction | Twenty operator sessions are configured across all ten process areas. Body Preparation has six scoped HMIs/controllers over one coupled plant model, including separate industrial-water treatment, industrial-water distribution, return-water treatment, and return-water pipeline interfaces. Its 85 signals, 53 actuators, six safety scopes, eight monitored water routes, 16 heartbeat-supervised pumps, and four material handoffs are Rust-backed. A degraded released-slip batch updates Forming material properties and predicted downstream effects. Forming adds four independent mould runtimes with bound timings and pressure, local production authority, guarded robot and transfer behavior, and a workspace-limited pendant with four authoritative `.g` routines. Object-based supervisory state, historian collection and replication, and operator-triggered publication are also implemented. Finite cross-area inventory, recipe deployment, durable persistence, and broader plant dynamics remain planned. |
+| Control sources and vPLC execution | Forming executes versioned Structured Text through an explicit YAML I/O binding and Rust plant dynamics. Body Preparation has a validated slip Structured Text sequence and binding with matching live step projection while all four process trains remain Rust-owned. Broader language and area coverage remain planned. |
 | Deployment or standards conformance | Not claimed |
 
 The generated catalog proves that the current YAML files parse, every
@@ -352,17 +361,19 @@ corresponding current view.
 
 ## Next Planned Step
 
-The three Forming fidelity tracks are implemented as bounded development
-models. The next milestone will connect Body Preparation to the approximately
-40 C Forming slip tank with explicit material balance, replenishment requests,
-availability and quality conditions, and deterministic cross-area tests. It
-will also add robot recovery/fault paths, recipe-to-setpoint deployment, and
-reviewed process-condition transitions without claiming production controller,
-robot, supervisory-platform, or process-physics equivalence.
+The three Forming fidelity tracks and the Body Preparation slip, water, return,
+and glaze trains are implemented as bounded development models. A released
+slip batch already updates Forming's material properties and predicted
+downstream effects. The next milestone will replace that latest-batch handoff
+with finite inventory, receiving capacity, replenishment requests, interrupted
+transfer, and deterministic recovery tests. It will also add robot recovery,
+recipe-to-setpoint deployment, and reviewed process-condition transitions
+without claiming production controller, robot, supervisory-platform, or
+process-physics equivalence.
 
 ## Roadmap
 
-1. Implement and test material balance between Body Preparation and the
+1. Implement and test finite material balance between Body Preparation and the
    Forming slip tank, then deepen robot recovery, recipe deployment, and
    process-condition handling around the completed fidelity tracks.
 2. Extend cross-file validation to addresses, VLANs, routes, NAT, services,

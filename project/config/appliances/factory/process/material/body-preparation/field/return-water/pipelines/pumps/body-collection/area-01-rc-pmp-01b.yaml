@@ -1,0 +1,14 @@
+schema_version: "0.10.0"
+id: "area-01-rc-pmp-01b"
+label: "AREA-01-RC-PMP-01B"
+kind: "field-actuator"
+site: "Factory"
+environment: "Body Preparation"
+zone: "OT-AREA-01"
+role: "Body-return collection pump B"
+summary: "Transfers body-process return water to its equalization tank; exposes command, running feedback, heartbeat, and maintenance state to the owning pipeline controller."
+lifecycle: "simulated"
+tags: ["ot-area-01", "water-pipeline", "pump", "duplex"]
+render: [{ view: "factory/process/body-preparation", node: "area-01-rc-pmp-01b", mode: "any" }]
+interfaces: [{ id: "field-io", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }]
+behavior: { family: "field-actuator", command_tag: "area-01-rc-pmp-01b-command", safe_state: "stopped", feedback_tag: "area-01-rc-pmp-01b-feedback", states: ["stopped", "running"] }

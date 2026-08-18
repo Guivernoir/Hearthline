@@ -3,6 +3,7 @@
     Activity,
     AlarmClock,
     BarChart3,
+    BellOff,
     Blocks,
     Check,
     ChevronRight,
@@ -20,7 +21,7 @@
     ArrowLeftRight,
   } from "@lucide/svelte";
   import type { Component } from "svelte";
-  import HistorianPanel from "../HistorianPanel.svelte";
+  import HistorianPanel from "./supervisory/HistorianPanel.svelte";
   import RecipeParameterPanel from "../RecipeParameterPanel.svelte";
   import type {
     HmiAction,
@@ -31,7 +32,7 @@
     HmiSnapshot,
   } from "../hmi-api";
   import MouldVisualization from "./MouldVisualization.svelte";
-  import SupervisoryWorkspace from "./SupervisoryWorkspace.svelte";
+  import SupervisoryWorkspace from "./supervisory/SupervisoryWorkspace.svelte";
 
   export let snapshot: HmiSnapshot;
   export let report: HmiActionReport | null = null;
@@ -263,7 +264,13 @@
             <nav>
               <button type="button" disabled={snapshot.guardedCell.guard.position === "closed" || Boolean(busyTarget)} onclick={() => onExecute({ kind: "set-guard-door", open: false }, "guard-close")}><DoorClosed size={15} />Close</button>
               <button type="button" disabled={snapshot.guardedCell.guard.position === "open" || Boolean(busyTarget)} onclick={() => onExecute({ kind: "set-guard-door", open: true }, "guard-open")}><DoorOpen size={15} />Open</button>
-              <button type="button" disabled={!snapshot.guardedCell.guard.resetRequired || !snapshot.guardedCell.guard.closedPermissive || Boolean(busyTarget)} onclick={() => onExecute({ kind: "reset-safety", safetyId: snapshot.guardedCell!.guard.safetyComponent }, "guard-reset")}><RotateCcw size={15} />Reset</button>
+              <button
+                type="button"
+                aria-label="Clear fence alarm"
+                title={snapshot.guardedCell.guard.closedPermissive ? "Clear the latched fence alarm" : "Close the access gate before clearing the fence alarm"}
+                disabled={!snapshot.guardedCell.guard.resetRequired || !snapshot.guardedCell.guard.closedPermissive || Boolean(busyTarget)}
+                onclick={() => onExecute({ kind: "reset-safety", safetyId: snapshot.guardedCell!.guard.safetyComponent }, "guard-reset")}
+              ><BellOff size={15} />Clear fence alarm</button>
             </nav>
           </div>
         </div>

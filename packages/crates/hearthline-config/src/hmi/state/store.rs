@@ -59,6 +59,11 @@ impl HmiSessionStore {
         for cell in self.cells.values_mut() {
             cell.tick(elapsed_ms);
         }
+        if let Some(batch) = self.cells.values().find_map(HmiSession::released_slip) {
+            for cell in self.cells.values_mut() {
+                cell.apply_released_slip(batch);
+            }
+        }
     }
 
     pub fn record_telemetry_publication(
@@ -97,7 +102,18 @@ impl HmiSessionStore {
             .controller
             .id
             .clone();
-        if !self.cells.contains_key(&controller) {
+        let environment = self
+            .sessions
+            .get(id)
+            .expect("HMI session exists")
+            .environment
+            .clone();
+        let cell = if environment == "Body Preparation" {
+            "body-preparation-plant".to_string()
+        } else {
+            controller.clone()
+        };
+        if !self.cells.contains_key(&cell) {
             let mut candidates = Vec::new();
             for candidate in appliances.appliances() {
                 let BehaviorConfig::OperatorInterface {
@@ -107,7 +123,9 @@ impl HmiSessionStore {
                 else {
                     continue;
                 };
-                if assigned == &controller
+                if (assigned == &controller
+                    || environment == "Body Preparation"
+                        && candidate.config.environment == environment)
                     && candidate.config.tags.iter().any(|tag| tag == "interactive")
                 {
                     candidates.push(HmiSession::from_repository(
@@ -124,15 +142,27 @@ impl HmiSessionStore {
             for candidate in &candidates {
                 canonical.absorb_component_state(candidate);
             }
+            if environment == "Body Preparation" {
+                let parameters = candidates
+                    .iter()
+                    .flat_map(|candidate| candidate.controller.parameters.iter().cloned())
+                    .collect::<Vec<_>>();
+                canonical.body_preparation = Some(hearthline_engine::BodyPreparationProcess::new(
+                    super::setpoints_from_parameters(&parameters)?,
+                ));
+            }
             canonical.tick(0);
-            self.cells.insert(controller.clone(), canonical);
+            self.cells.insert(cell.clone(), canonical);
         }
-        Ok(controller)
+        Ok(cell)
     }
 }
 
 impl HmiSession {
     fn absorb_component_state(&mut self, source: &Self) {
+        if self.body_preparation.is_none() {
+            self.body_preparation.clone_from(&source.body_preparation);
+        }
         if self.robot.is_none() {
             self.robot.clone_from(&source.robot);
         }

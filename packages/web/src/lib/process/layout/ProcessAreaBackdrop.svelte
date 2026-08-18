@@ -1,7 +1,10 @@
 <svelte:options namespace="svg" />
 
 <script lang="ts">
+  import type { BodyPreparationScope } from "./body-preparation-area-layout";
+
   export let routeKey: string;
+  export let bodyScope: BodyPreparationScope | null = null;
 </script>
 
 <defs>
@@ -57,6 +60,87 @@
     <text class="forming-flow-note" x="60" y="1588">Sensor data and actuator feedback return through the owning remote-I/O station</text>
     <text class="forming-flow-note" x="1510" y="1588">Setup bypasses process sensors, never E-stops or hardwired travel limits</text>
   </g>
+{:else if routeKey.startsWith("body-preparation/")}
+  {#if bodyScope === "slip"}
+    <g class="process-area-physical-layer">
+      <rect class="body-floor" x="20" y="105" width="1860" height="1025"></rect>
+      <rect class="body-dry-bay" x="45" y="145" width="1035" height="300"></rect>
+      <rect class="body-wet-bay" x="1105" y="145" width="750" height="300"></rect>
+      <rect class="body-conditioning-bay" x="45" y="480" width="1210" height="350"></rect>
+      <rect class="body-transfer-bay" x="1280" y="480" width="575" height="350"></rect>
+      <rect class="body-control-bay" x="1400" y="860" width="455" height="235"></rect>
+      <path class="body-material-route" d="M135 395 H1540 V475 H1080 V690 H1510 V835 H1810"></path>
+      <path class="body-water-route" d="M1160 200 V405 H1430"></path>
+      <path class="body-cable-route" d="M1490 955 H1790 V610"></path>
+      <path class="body-handoff-boundary" d="M1815 515 V820"></path>
+      <text class="area-zone-label" x="70" y="178">DRY MINERAL BATCHING AND GRAVIMETRIC WEIGHING</text>
+      <text class="area-zone-label" x="1130" y="178">WATER / DISPERSANT CHARGE AND BLUNGING</text>
+      <text class="area-zone-label" x="70" y="515">SCREENING, MAGNETIC SEPARATION, CONDITIONING, AND RELEASE</text>
+      <text class="area-zone-label" x="1305" y="515">RELEASED-SLIP TRANSFER</text>
+      <text class="area-zone-label" x="1425" y="895">LOCAL HMI / SWITCH / RIO-01 / RIO-02</text>
+      <text class="body-boundary-label" x="1825" y="850">TO FORMING</text>
+    </g>
+    <g class="process-area-logical-layer">
+      <rect class="body-logical-zone body-control-zone" x="40" y="130" width="1820" height="330"></rect>
+      <rect class="body-logical-zone body-slip-zone" x="40" y="650" width="900" height="970"></rect>
+      <rect class="body-logical-zone body-conditioning-zone" x="960" y="650" width="900" height="970"></rect>
+      <text class="area-zone-label" x="70" y="165">SLIP CELL HMI / vPLC / ACCESS SWITCH / VLAN 101</text>
+      <text class="area-zone-label" x="70" y="685">RIO-01 / BATCHING AND WET MIXING</text>
+      <text class="area-zone-label" x="990" y="685">RIO-02 / QUALITY, SAFETY, AND PAIRED SLIP PIPELINE INSTRUMENTS</text>
+    </g>
+  {:else if bodyScope === "water"}
+    <g class="process-area-physical-layer">
+      <rect class="body-floor" x="20" y="105" width="2560" height="1680"></rect>
+      <rect class="body-water-treatment-bay" x="40" y="140" width="2140" height="380"></rect>
+      <rect class="body-water-distribution-bay" x="40" y="565" width="2140" height="380"></rect>
+      <rect class="body-return-bay" x="40" y="990" width="2140" height="380"></rect>
+      <rect class="body-return-distribution-bay" x="40" y="1415" width="2140" height="330"></rect>
+      <rect class="body-water-control-gallery" x="2225" y="140" width="330" height="1605"></rect>
+      <path class="body-water-route" d="M135 420 H1990 V540 H135 V850 H2130"></path>
+      <path class="body-return-route" d="M135 1265 H1990 V1390 H135 V1690 H2130"></path>
+      <path class="body-cable-route" d="M2185 330 H2420 V1600"></path>
+      <text class="area-zone-label" x="65" y="175">INDUSTRIAL-WATER TREATMENT / RAW INTAKE, FILTRATION, SOFTENING, RO, AND STORAGE</text>
+      <text class="area-zone-label" x="65" y="600">INDUSTRIAL-WATER DISTRIBUTION / FOUR DUPLEX PUMP SERVICES</text>
+      <text class="area-zone-label" x="65" y="1025">RETURN-WATER TREATMENT / SEGREGATION, CLARIFICATION, DEWATERING, AND REUSE</text>
+      <text class="area-zone-label" x="65" y="1450">RETURN-WATER PIPELINES / COLLECTION AND REUSE DUPLEX PUMPS</text>
+      <text class="area-zone-label" x="2250" y="175">LOCAL OPERATOR GALLERY</text>
+      <text class="body-route-label" x="1800" y="405">TREATED HEADER TO PROCESS USERS</text>
+      <text class="body-route-label" x="1750" y="1250">SEGREGATED COLLECTION AND REUSE</text>
+    </g>
+    <g class="process-area-logical-layer">
+      <rect class="body-logical-zone body-control-zone" x="35" y="130" width="2530" height="450"></rect>
+      <rect class="body-logical-zone body-water-treatment-zone" x="35" y="660" width="2530" height="530"></rect>
+      <rect class="body-logical-zone body-water-distribution-zone" x="35" y="1270" width="2530" height="530"></rect>
+      <rect class="body-logical-zone body-return-zone" x="35" y="1880" width="2530" height="530"></rect>
+      <rect class="body-logical-zone body-return-distribution-zone" x="35" y="2490" width="2530" height="530"></rect>
+      <text class="area-zone-label" x="60" y="165">SHARED INDUSTRIAL ACCESS SWITCH / VLAN 111 / FOUR INDEPENDENT HMI AND CONTROLLER SCOPES</text>
+      <text class="area-zone-label" x="60" y="695">RIO-03 / INDUSTRIAL-WATER TREATMENT, ANALYZERS, AND SAFETY PERMISSIVES</text>
+      <text class="area-zone-label" x="60" y="1305">RIO-06 / DISTRIBUTED INDUSTRIAL-WATER ROUTE SENSORS AND DUPLEX PUMPS</text>
+      <text class="area-zone-label" x="60" y="1915">RIO-04 / RETURN-WATER TREATMENT, QUALITY ANALYZERS, AND REUSE ROUTING</text>
+      <text class="area-zone-label" x="60" y="2525">RIO-07 / RETURN COLLECTION AND REUSE ROUTE SENSORS AND DUPLEX PUMPS</text>
+    </g>
+  {:else if bodyScope === "glaze"}
+    <g class="process-area-physical-layer">
+      <rect class="body-floor" x="20" y="105" width="1960" height="1025"></rect>
+      <rect class="body-glaze-bay" x="45" y="145" width="1690" height="420"></rect>
+      <rect class="body-conditioning-bay" x="45" y="620" width="1450" height="400"></rect>
+      <rect class="body-control-bay" x="1520" y="620" width="435" height="400"></rect>
+      <path class="body-glaze-route" d="M135 410 H1575 V560 H1100 V810 H1700 V1010 H1940"></path>
+      <path class="body-water-route" d="M355 210 V440 H825"></path>
+      <path class="body-cable-route" d="M1610 805 H1885 V480"></path>
+      <path class="body-handoff-boundary" d="M1925 650 V990"></path>
+      <text class="area-zone-label" x="70" y="180">SEVEN-MATERIAL BATCHING, WATER / DISPERSANT CHARGE, AND WET MILLING</text>
+      <text class="area-zone-label" x="70" y="655">SCREENING, MAGNETIC SEPARATION, RELEASE, STORAGE, AND TRANSFER</text>
+      <text class="area-zone-label" x="1550" y="655">LOCAL HMI / SWITCH / RIO-05</text>
+      <text class="body-boundary-label" x="1945" y="1045">TO GLAZING</text>
+    </g>
+    <g class="process-area-logical-layer">
+      <rect class="body-logical-zone body-control-zone" x="40" y="130" width="1920" height="330"></rect>
+      <rect class="body-logical-zone body-glaze-zone" x="40" y="650" width="1920" height="700"></rect>
+      <text class="area-zone-label" x="70" y="165">GLAZE CELL HMI / vPLC / ACCESS SWITCH / VLAN 121</text>
+      <text class="area-zone-label" x="70" y="685">RIO-05 / GLAZE PROCESS, SAFETY, AND PAIRED HANDOFF INSTRUMENTS</text>
+    </g>
+  {/if}
 {:else}
   <g class="process-area-physical-layer">
     <rect class="area-facility-shell" x="25" y="100" width="1230" height="720"></rect>

@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+mod body_preparation;
 mod control_program;
 mod forming_authority;
 mod forming_process;
@@ -8,9 +9,11 @@ mod robot_program;
 
 use hearthline_config::{
     ConfigRepository, ConnectionRepository, HmiAction, HmiActionStatus, HmiControlMode,
-    HmiProcessFault, HmiRobotPose, HmiSession, HmiSessionStore, ScenarioApplicationConfig,
-    ScenarioRepository, build_forming_telemetry_packet, run_scenario_with_state_overrides,
+    HmiPreparationTrain, HmiProcessFault, HmiRobotPose, HmiSession, HmiSessionStore,
+    ScenarioApplicationConfig, ScenarioRepository, build_forming_telemetry_packet,
+    run_scenario_with_state_overrides,
 };
+use hearthline_engine::PUMP_HEARTBEAT_TIMEOUT_MS;
 
 fn repository() -> ConfigRepository {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../project/config/appliances");
@@ -26,10 +29,22 @@ fn body_preparation_hmi_is_built_from_area_configuration() {
     assert_eq!(snapshot.environment, "Body Preparation");
     assert_eq!(snapshot.zone, "OT-AREA-01");
     assert_eq!(snapshot.controller, "area-01-vplc-01");
-    assert_eq!(snapshot.remote_io, "area-01-rio-01");
-    assert_eq!(snapshot.signals.len(), 2);
-    assert_eq!(snapshot.actuators.len(), 2);
+    assert!(
+        snapshot
+            .remote_io_stations
+            .contains(&"area-01-rio-01".into())
+    );
+    assert_eq!(snapshot.remote_io_stations.len(), 2);
+    assert_eq!(snapshot.signals.len(), 20);
+    assert_eq!(snapshot.actuators.len(), 13);
     assert_eq!(snapshot.safety.len(), 1);
+    assert_eq!(snapshot.parameters.len(), 11);
+    assert_eq!(snapshot.recipes.len(), 1);
+    let batch = snapshot.body_preparation.expect("batch process state");
+    assert_eq!(batch.slip.ingredients.len(), 6);
+    assert_eq!(batch.glaze.ingredients.len(), 9);
+    assert!((batch.slip.target_batch_mass_kg - 1_335.3).abs() < 0.1);
+    assert_eq!(batch.simulated_ms_per_process_minute, 50);
     assert!(snapshot.safety[0].trip_latched);
     assert!(
         snapshot.safety[0]
@@ -48,10 +63,19 @@ fn safety_reset_then_command_traverses_the_configured_control_path() {
 
     let inhibited = session.execute(HmiAction::Command {
         tag: "area-01-pmp-01-command".into(),
-        value: "running".into(),
+        value: "transferring".into(),
     });
     assert!(matches!(inhibited.status, HmiActionStatus::Denied));
-    assert_eq!(inhibited.snapshot.actuators[0].current_state, "stopped");
+    assert_eq!(
+        inhibited
+            .snapshot
+            .actuators
+            .iter()
+            .find(|actuator| actuator.command_tag == "area-01-pmp-01-command")
+            .expect("pump")
+            .current_state,
+        "stopped"
+    );
 
     let reset = session.execute(HmiAction::ResetSafety {
         safety_id: "area-01-intlk-01".into(),
@@ -62,13 +86,13 @@ fn safety_reset_then_command_traverses_the_configured_control_path() {
 
     let command = session.execute(HmiAction::Command {
         tag: "area-01-pmp-01-command".into(),
-        value: "running".into(),
+        value: "transferring".into(),
     });
     assert!(matches!(command.status, HmiActionStatus::Applied));
     assert_eq!(command.trace.len(), 4);
     assert_eq!(command.trace[0].component, "area-01-hmi-01");
     assert_eq!(command.trace[1].component, "area-01-vplc-01");
-    assert_eq!(command.trace[2].component, "area-01-rio-01");
+    assert_eq!(command.trace[2].component, "area-01-rio-02");
     assert_eq!(command.trace[3].component, "area-01-pmp-01");
     assert_eq!(
         command
@@ -78,7 +102,7 @@ fn safety_reset_then_command_traverses_the_configured_control_path() {
             .find(|actuator| actuator.command_tag == "area-01-pmp-01-command")
             .expect("pump")
             .current_state,
-        "running"
+        "transferring"
     );
 }
 
@@ -231,19 +255,25 @@ fn every_process_hmi_executes_each_configured_field_state() {
                         .current_state,
                     *state
                 );
+                let path = command
+                    .trace
+                    .iter()
+                    .map(|entry| entry.component.as_str())
+                    .collect::<Vec<_>>();
+                assert_eq!(path[0], hmi_id, "{} HMI path", actuator.component_id);
                 assert_eq!(
-                    command
-                        .trace
-                        .iter()
-                        .map(|entry| entry.component.as_str())
-                        .collect::<Vec<_>>(),
-                    [
-                        hmi_id,
-                        initial.controller.as_str(),
-                        initial.remote_io.as_str(),
-                        actuator.component_id.as_str(),
-                    ],
-                    "{} command path",
+                    path[1], initial.controller,
+                    "{} controller path",
+                    actuator.component_id
+                );
+                assert!(
+                    initial.remote_io_stations.iter().any(|id| id == path[2]),
+                    "{} remote-I/O path",
+                    actuator.component_id
+                );
+                assert_eq!(
+                    path[3], actuator.component_id,
+                    "{} field path",
                     actuator.component_id
                 );
             }

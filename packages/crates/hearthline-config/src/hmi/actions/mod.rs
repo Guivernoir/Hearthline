@@ -25,6 +25,15 @@ impl HmiSession {
         match action {
             HmiAction::Command { tag, value } => self.execute_command(tag, value),
             HmiAction::StartProcess => self.start_process(),
+            HmiAction::HoldProcess => self.hold_process(),
+            HmiAction::StartPreparationTrain { train } => self.start_preparation_train(train),
+            HmiAction::HoldPreparationTrain { train } => self.hold_preparation_train(train),
+            HmiAction::SetWaterPumpFailure { pump_id, failed } => {
+                self.set_water_pump_failure(pump_id, failed)
+            }
+            HmiAction::DispatchWaterPumpMaintenance { pump_id } => {
+                self.dispatch_water_pump_maintenance(pump_id)
+            }
             HmiAction::StartMould => self.start_mould(),
             HmiAction::StopMouldAfterPhase => self.stop_mould_after_phase(),
             HmiAction::EndMouldAfterCycle => self.end_mould_after_cycle(),
@@ -387,24 +396,13 @@ impl HmiSession {
         if safety_id == "area-02-cell-guard-safe-01" {
             self.clear_guard_motion_trip();
         }
-        let safety_ready = self.safety.iter().all(|safety| {
-            !safety.trip_latched
-                && safety
-                    .permissives
-                    .iter()
-                    .all(|permissive| permissive.satisfied)
-        });
-        let process_resets = if safety_ready {
-            self.reset_faulted_moulds()
-        } else {
-            0
-        };
-        if process_resets > 0 {
-            self.clear_process_alarms();
+        let process_resets = self.reset_faulted_moulds();
+        if !process_resets.is_empty() {
+            self.clear_process_alarms_for(&process_resets);
             trace.push(trace_entry(
                 &self.controller.id,
                 "sequence reset",
-                format!("cleared {process_resets} faulted mould sequence(s)"),
+                format!("cleared {} faulted mould sequence(s)", process_resets.len()),
             ));
         }
         self.finish(

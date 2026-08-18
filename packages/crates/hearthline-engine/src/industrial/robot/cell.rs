@@ -87,14 +87,8 @@ impl RobotCellArbiter {
     }
 
     pub fn complete_active(&mut self) -> Option<Text<64>> {
-        let completed = self.active.take()?;
+        let completed = self.advance_active()?;
         self.completed = self.completed.saturating_add(1);
-        self.active = self.queue.pop_front();
-        self.stage = if self.active.is_some() {
-            RobotCellStage::Approach
-        } else {
-            RobotCellStage::Idle
-        };
         Some(completed)
     }
 
@@ -114,7 +108,7 @@ impl RobotCellArbiter {
             .as_ref()
             .is_some_and(|active| active.as_str() == mould)
         {
-            self.complete_active();
+            self.advance_active();
             return;
         }
         let mut retained = Deque::new();
@@ -144,5 +138,16 @@ impl RobotCellArbiter {
 
     pub const fn completed(&self) -> u64 {
         self.completed
+    }
+
+    fn advance_active(&mut self) -> Option<Text<64>> {
+        let active = self.active.take()?;
+        self.active = self.queue.pop_front();
+        self.stage = if self.active.is_some() {
+            RobotCellStage::Approach
+        } else {
+            RobotCellStage::Idle
+        };
+        Some(active)
     }
 }

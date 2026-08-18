@@ -1,0 +1,21 @@
+schema_version: "0.10.0"
+id: "area-01-wt-lt-01"
+label: "AREA-01-WT-LT-01"
+kind: "field-sensor"
+site: "Factory"
+environment: "Body Preparation"
+zone: "OT-AREA-01"
+role: "Raw-water tank level"
+summary: "Measures raw-water tank level for treatment control and water-quality release."
+lifecycle: "simulated"
+tags: ["ot-area-01", "water-treatment", "intake", "level"]
+render: [{ view: "factory/process/body-preparation", node: "area-01-wt-lt-01", mode: "any" }]
+interfaces:
+  - { id: "field-io", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+behavior:
+  family: "field-sensor"
+  signal_tag: "area-01-wt-lt-01"
+  unit: "L"
+  minimum: 0
+  maximum: 10000
+  initial_value: 6000

@@ -1,0 +1,21 @@
+schema_version: "0.10.0"
+id: "area-01-rc-hmi-01"
+label: "AREA-01-RC-HMI-01"
+kind: "hmi"
+site: "Factory"
+environment: "Body Preparation"
+zone: "OT-AREA-01"
+role: "Return-water pipeline HMI"
+summary: "Monitors segregated collection and reuse routes, route hydraulics, and duplex return-water pumps."
+lifecycle: "simulated"
+tags: ["ot-area-01", "operator-interface", "interactive", "water-control-cell", "return-pipeline"]
+render: [{ view: "factory/process/body-preparation", node: "area-01-rc-hmi-01", mode: "any" }]
+interfaces:
+  - { id: "cell-network", hardware: "ethernet-rj45", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }, mode: "access", addresses: [], vlans: [111] }
+behavior:
+  family: "operator-interface"
+  controller: "area-01-rc-vplc-01"
+  permissions: ["observe", "acknowledge-alarms", "authorized-command", "reset-safety", "inject-faults"]
+  signal_tags: ["area-01-rb-pit-01", "area-01-rb-ft-01", "area-01-rb-ld-01", "area-01-rg-pit-01", "area-01-rg-ft-01", "area-01-rg-ld-01", "area-01-rbd-pit-01", "area-01-rbd-ft-01", "area-01-rbd-ld-01", "area-01-rgd-pit-01", "area-01-rgd-ft-01", "area-01-rgd-ld-01"]
+  command_tags: ["area-01-rc-pmp-01a-command", "area-01-rc-pmp-01b-command", "area-01-rc-pmp-02a-command", "area-01-rc-pmp-02b-command", "area-01-rc-pmp-03a-command", "area-01-rc-pmp-03b-command", "area-01-rc-pmp-04a-command", "area-01-rc-pmp-04b-command"]
+  safety_components: ["area-01-rc-intlk-01"]

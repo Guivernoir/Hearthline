@@ -1,0 +1,14 @@
+schema_version: "0.10.0"
+id: "area-01-rgd-ft-01"
+label: "AREA-01-RGD-FT-01"
+kind: "field-sensor"
+site: "Factory"
+environment: "Body Preparation"
+zone: "OT-AREA-01"
+role: "Glaze-reuse delivery flow"
+summary: "Measures route flow for the glaze-reuse delivery pipeline."
+lifecycle: "simulated"
+tags: ["ot-area-01", "return-pipeline", "glaze-reuse", "flow"]
+render: [{ view: "factory/process/body-preparation", node: "area-01-rgd-ft-01", mode: "any" }]
+interfaces: [{ id: "field-io", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }]
+behavior: { family: "field-sensor", signal_tag: "area-01-rgd-ft-01", unit: "L/min", minimum: 0, maximum: 180, initial_value: 24 }

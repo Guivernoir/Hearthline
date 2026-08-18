@@ -1,0 +1,9 @@
+schema_version: "0.2.0"
+id: "area-01-rio-06-to-area-01-ws-ld-01"
+label: "Water-to-slip leak field-I/O channel"
+lifecycle: "simulated"
+transport: "field-io"
+medium: { type: "field-wiring", signal: "area-01-ws-ld-01 derived I/O", length_m: 14.0 }
+endpoints: { a: { appliance: "area-01-rio-06", interface: "field-io-07" }, b: { appliance: "area-01-ws-ld-01", interface: "field-io" } }
+properties: { capacity_mbps: 10, latency_ms: 0, loss_every: null, direction: "bidirectional", operational: true }
+tags: ["ot", "ot-area-01", "field-io", "water-handoff", "leak-detection"]

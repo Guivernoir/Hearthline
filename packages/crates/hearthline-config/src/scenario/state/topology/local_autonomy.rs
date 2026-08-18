@@ -54,7 +54,7 @@ pub(crate) fn validate_local_autonomy_state(
 
     let session = HmiSession::from_repository(appliances, &autonomy.hmi)?;
     let snapshot = session.snapshot();
-    for participant in [&snapshot.controller, &snapshot.remote_io] {
+    for participant in [&snapshot.controller] {
         if !scenario
             .participants
             .iter()
@@ -153,13 +153,28 @@ pub(crate) fn local_control_topology(
     }
 
     let snapshot = HmiSession::from_repository(appliance_repository, &autonomy.hmi)?.snapshot();
+    let (remote_io, remote_io_path) = snapshot
+        .remote_io_stations
+        .iter()
+        .filter(|candidate| participants.contains(*candidate))
+        .filter_map(|candidate| {
+            find_connection_path(&scenario.id, &adjacency, candidate, &autonomy.actuator)
+                .ok()
+                .map(|path| (candidate.clone(), path))
+        })
+        .min_by_key(|(candidate, path)| (path.len(), candidate.clone()))
+        .ok_or_else(|| {
+            ConfigError::new(format!(
+                "scenario {} has no participating remote I/O path to actuator {}",
+                scenario.id, autonomy.actuator
+            ))
+        })?;
     let stages = [
         (autonomy.hmi.as_str(), snapshot.controller.as_str()),
-        (snapshot.controller.as_str(), snapshot.remote_io.as_str()),
-        (snapshot.remote_io.as_str(), autonomy.actuator.as_str()),
+        (snapshot.controller.as_str(), remote_io.as_str()),
         (autonomy.hmi.as_str(), autonomy.safety_interface.as_str()),
     ];
-    let mut path_connections = BTreeSet::new();
+    let mut path_connections = remote_io_path.into_iter().collect::<BTreeSet<_>>();
     for (source, destination) in stages {
         path_connections.extend(find_connection_path(
             &scenario.id,
@@ -170,7 +185,7 @@ pub(crate) fn local_control_topology(
     }
     Ok(LocalControlTopology {
         controller: snapshot.controller,
-        remote_io: snapshot.remote_io,
+        remote_io,
         connections: path_connections.into_iter().collect(),
     })
 }

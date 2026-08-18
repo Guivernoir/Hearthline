@@ -21,6 +21,7 @@ export interface HmiSnapshot {
   recipes: HmiRecipe[];
   activeRecipe: string | null;
   process: HmiProcessState | null;
+  bodyPreparation: HmiBodyPreparationState | null;
   moulds: HmiMouldProcessState[];
   robot: HmiRobotState | null;
   guardedCell: HmiGuardedCellState | null;
@@ -30,6 +31,215 @@ export interface HmiSnapshot {
   safety: HmiSafety[];
   alarms: HmiAlarm[];
   audit: HmiAuditEntry[];
+}
+
+export interface HmiBodyPreparationState {
+  recipeBasis: string;
+  simulatedMsPerProcessMinute: number;
+  slip: HmiSlipPreparationState;
+  water: HmiWaterPreparationState;
+  returnWater: HmiReturnWaterState;
+  glaze: HmiGlazePreparationState;
+  pipelines: HmiBodyPreparationPipelineState;
+  waterNetworks: HmiWaterNetworkState;
+}
+
+export type BodyPreparationHmiScope =
+  | "slip"
+  | "water-process"
+  | "water-pipeline"
+  | "return-water-process"
+  | "return-water-pipeline"
+  | "glaze";
+
+export type WaterHmiScope = Extract<
+  BodyPreparationHmiScope,
+  "water-process" | "water-pipeline" | "return-water-process" | "return-water-pipeline"
+>;
+
+export interface HmiWaterNetworkState {
+  pumps: HmiWaterPumpState[];
+  routes: HmiWaterRouteState[];
+  heartbeatIntervalMs: number;
+  heartbeatTimeoutMs: number;
+}
+
+export interface HmiWaterPumpState {
+  id: string;
+  label: string;
+  groupId: string;
+  service: string;
+  preferredDuty: boolean;
+  commanded: boolean;
+  runningFeedback: boolean;
+  heartbeatSequence: number;
+  heartbeatAgeMs: number;
+  heartbeatOk: boolean;
+  maintenance: "normal" | "required" | "dispatched";
+}
+
+export interface HmiWaterRouteState {
+  id: string;
+  label: string;
+  network: "industrial" | "return";
+  source: string;
+  destination: string;
+  pumpGroup: string;
+  demanded: boolean;
+  available: boolean;
+  inletFlowLMin: number;
+  outletFlowLMin: number;
+  inletPressureBar: number;
+  outletPressureBar: number;
+  leakDetected: boolean;
+  quality: HmiWaterQuality;
+}
+
+export interface HmiBodyPreparationPipelineState {
+  waterToSlip: HmiHandoffPipelineState;
+  waterToGlaze: HmiHandoffPipelineState;
+  slipToForming: HmiHandoffPipelineState;
+  glazeToGlazing: HmiHandoffPipelineState;
+}
+
+export interface HmiHandoffPipelineState {
+  inletFlowLMin: number;
+  outletFlowLMin: number;
+  inletPressureBar: number;
+  outletPressureBar: number;
+  lineLossPercent: number;
+  entrainedAirPercent: number;
+  deliveredQualityPercent: number;
+  leakDetected: boolean;
+}
+
+export type HmiPreparationTrain = "slip" | "water" | "return-water" | "glaze";
+
+export interface HmiPreparationTrainState {
+  id: HmiPreparationTrain;
+  label: string;
+  running: boolean;
+  held: boolean;
+  phase: string;
+  phaseProgressPercent: number;
+  phaseElapsedProcessMinutes: number;
+  phaseTargetProcessMinutes: number;
+  cycleCount: number;
+  phases: HmiProcessPhase[];
+}
+
+export interface HmiSlipPreparationState {
+  train: HmiPreparationTrainState;
+  batchMassKg: number;
+  targetBatchMassKg: number;
+  solidsPercent: number;
+  densityKgL: number;
+  highShearViscosityMpaS: number;
+  lowShearViscosityMpaS: number;
+  thixotropicIndex: number;
+  structureParameter: number;
+  temperatureC: number;
+  mixerLevelPercent: number;
+  conditioningTankLevelPercent: number;
+  transferFlowLMin: number;
+  specificEnergyKwhT: number;
+  residue44umPercent: number;
+  medianParticleUm: number;
+  castingRateGCm2Min: number;
+  qualityIndex: number;
+  qualityReleased: boolean;
+  ingredients: HmiBodyIngredientState[];
+  qualityChecks: HmiBodyQualityCheck[];
+  water: HmiWaterQuality;
+  downstream: HmiDownstreamMaterialEffects;
+}
+
+export interface HmiWaterPreparationState {
+  train: HmiPreparationTrainState;
+  rawTankL: number;
+  treatedTankL: number;
+  feedFlowLMin: number;
+  permeateFlowLMin: number;
+  rejectFlowLMin: number;
+  mediaFilterDpBar: number;
+  roRecoveryPercent: number;
+  raw: HmiWaterQuality;
+  product: HmiWaterQuality;
+}
+
+export interface HmiReturnWaterState {
+  train: HmiPreparationTrainState;
+  activeStream: string;
+  bodyEqualizationL: number;
+  glazeEqualizationL: number;
+  bodyReuseTankL: number;
+  glazeReuseTankL: number;
+  feedFlowLMin: number;
+  clarifiedFlowLMin: number;
+  sludgeCakeKg: number;
+  influentTurbidityNtu: number;
+  effluentTurbidityNtu: number;
+  bodyReuseQuality: HmiWaterQuality;
+  glazeReuseQuality: HmiWaterQuality;
+}
+
+export interface HmiGlazePreparationState {
+  train: HmiPreparationTrainState;
+  powderMassKg: number;
+  targetPowderMassKg: number;
+  batchMassKg: number;
+  solidsPercent: number;
+  densityKgL: number;
+  fordCupSeconds: number;
+  medianParticleUm: number;
+  residue63umPercent: number;
+  millEnergyKwhT: number;
+  storageLevelPercent: number;
+  transferFlowLMin: number;
+  settlingRiskPercent: number;
+  qualityIndex: number;
+  qualityReleased: boolean;
+  ingredients: HmiBodyIngredientState[];
+  qualityChecks: HmiBodyQualityCheck[];
+  water: HmiWaterQuality;
+}
+
+export interface HmiWaterQuality {
+  temperatureC: number;
+  ph: number;
+  turbidityNtu: number;
+  conductivityUsCm: number;
+  hardnessMgLCaco3: number;
+  suspendedSolidsMgL: number;
+  glazeContaminationPercent: number;
+  recoveredFractionPercent: number;
+}
+
+export interface HmiDownstreamMaterialEffects {
+  fillingFlowFactor: number;
+  castingRateGCm2Min: number;
+  predictedGreenMoisturePercent: number;
+  predictedDryingShrinkagePercent: number;
+  dryingEnergyFactor: number;
+  greenStrengthIndex: number;
+  firedDefectRiskPercent: number;
+}
+
+export interface HmiBodyIngredientState {
+  id: string;
+  label: string;
+  targetKg: number;
+  actualKg: number;
+}
+
+export interface HmiBodyQualityCheck {
+  id: string;
+  label: string;
+  value: number;
+  unit: string;
+  minimum: number;
+  maximum: number;
+  withinLimit: boolean;
 }
 
 export interface HmiGuardedCellState {
@@ -196,7 +406,21 @@ export type HmiProcessFault =
   | "compressed-air-loss"
   | "mould-overpressure"
   | "vacuum-loss"
-  | "robot-pickup-failure";
+  | "robot-pickup-failure"
+  | "ingredient-shortage"
+  | "mixer-overload"
+  | "screen-blocked"
+  | "quality-out-of-spec"
+  | "transfer-no-flow"
+  | "raw-water-quality"
+  | "water-filter-blocked"
+  | "return-water-contamination"
+  | "glaze-mill-overload"
+  | "glaze-quality-out-of-spec"
+  | "slip-pipeline-leak"
+  | "water-to-slip-leak"
+  | "water-to-glaze-leak"
+  | "glaze-pipeline-leak";
 
 export interface HmiSignal {
   componentId: string;

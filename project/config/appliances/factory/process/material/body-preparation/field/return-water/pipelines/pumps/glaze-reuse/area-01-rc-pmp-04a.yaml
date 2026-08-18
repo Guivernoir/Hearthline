@@ -1,0 +1,14 @@
+schema_version: "0.10.0"
+id: "area-01-rc-pmp-04a"
+label: "AREA-01-RC-PMP-04A"
+kind: "field-actuator"
+site: "Factory"
+environment: "Body Preparation"
+zone: "OT-AREA-01"
+role: "Glaze-reuse delivery pump A"
+summary: "Transfers recovered glaze water to Glaze Preparation; exposes command, running feedback, heartbeat, and maintenance state to the owning pipeline controller."
+lifecycle: "simulated"
+tags: ["ot-area-01", "water-pipeline", "pump", "duplex"]
+render: [{ view: "factory/process/body-preparation", node: "area-01-rc-pmp-04a", mode: "any" }]
+interfaces: [{ id: "field-io", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }]
+behavior: { family: "field-actuator", command_tag: "area-01-rc-pmp-04a-command", safe_state: "stopped", feedback_tag: "area-01-rc-pmp-04a-feedback", states: ["stopped", "running"] }

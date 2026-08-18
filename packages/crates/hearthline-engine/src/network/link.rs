@@ -5,6 +5,8 @@ use hearthline_model::{ComponentId, ComponentKind, PortId};
 use crate::runtime::{collect_fixed, runtime_text, single_effect};
 use crate::{DropReason, Effect, EffectList, SimulatedComponent, SimulationEvent};
 
+const PORT_CAPACITY: usize = 32;
+
 #[derive(Clone, Debug)]
 struct LinkPort {
     id: PortId,
@@ -25,7 +27,7 @@ pub enum LinkMode {
 pub struct LinkAppliance {
     id: ComponentId,
     kind: ComponentKind,
-    ports: FixedList<LinkPort, 16>,
+    ports: FixedList<LinkPort, PORT_CAPACITY>,
     mode: LinkMode,
     operational: bool,
     frame_count: u64,
@@ -68,10 +70,11 @@ impl LinkAppliance {
         ports: impl IntoIterator<Item = PortId>,
         mode: LinkMode,
     ) -> Self {
-        let ports: FixedList<LinkPort, 16> = collect_fixed(ports.into_iter().map(|id| LinkPort {
-            id,
-            forwarding: true,
-        }));
+        let ports: FixedList<LinkPort, PORT_CAPACITY> =
+            collect_fixed(ports.into_iter().map(|id| LinkPort {
+                id,
+                forwarding: true,
+            }));
         assert!(
             ports.len() >= 2,
             "link appliance requires at least two ports"

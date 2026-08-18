@@ -6,9 +6,9 @@ scenario before configuration or simulation results reach Svelte.
 
 ## Current Status
 
-`appliances/` contains 185 schema `0.10.0` documents: 72 customer, provider,
-enterprise, DMZ, operations, conduit, Level 3, and control-host records plus 113
-process-area records. `connections/` contains 231 schema `0.2.0` documents
+`appliances/` contains 394 schema `0.10.0` documents: 72 customer, provider,
+enterprise, DMZ, operations, conduit, Level 3, and control-host records plus 322
+process-area records. `connections/` contains 450 schema `0.2.0` documents
 covering copper, fiber, radio, carrier, virtual, and field-wiring
 relationships. File names and stable IDs are identical.
 `scenarios/` currently contains 30 schema `0.12.0` simulations: independent
@@ -104,7 +104,7 @@ medium.
 Validation does not yet prove project-wide address uniqueness, VLAN and route
 consistency, general NAT or policy correctness, vendor HA behavior, or every possible
 scenario outcome. Selected appliance and connection subgraphs are executable;
-the complete 185-appliance graph is not assembled as one running topology.
+the complete 394-appliance graph is not assembled as one running topology.
 
 The customer scenarios carry a DNS request and response through the customer
 edge and provider network, then exercise the selected public-service path.
@@ -123,7 +123,7 @@ publishes the latest replicated record without modifying scenario YAML.
 
 The local-autonomy case expands that factory baseline into two independently
 evaluated execution domains. Both factory-facing conduit handoffs are down, so
-the historian request fails on each redundant path. The Body Preparation HMI,
+the historian request fails on each redundant path. The Slip Preparation HMI,
 vPLC, remote I/O, safety interface, and pump remain connected through seven
 factory-local links; the healthy safety circuit resets and the pump reaches
 `running`. This proves the configured command path only. It does not yet run

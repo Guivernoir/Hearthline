@@ -42,6 +42,28 @@ export function connectionPath(
       return `M${source.x} ${source.y} V${operatorBus} H${target.x} V${target.y}`;
     }
   }
+  if (routeKey.startsWith("body-preparation")) {
+    if (item.linkKind === "io" || item.linkKind === "safety-status") {
+      if (routeKey === "body-preparation/water") {
+        const fieldBus = target.y > 2400
+          ? 2450
+          : target.y > 1800
+            ? 1840
+            : target.y > 1200
+              ? 1230
+              : 620;
+        return `M${source.x} ${source.y} V${fieldBus} H${target.x} V${target.y}`;
+      }
+      const fieldBus = target.y > 2500
+        ? 2590
+        : target.y > 1550
+          ? 1620
+          : 590;
+      return `M${source.x} ${source.y} V${fieldBus} H${target.x} V${target.y}`;
+    }
+    const controlBus = 195;
+    return `M${source.x} ${source.y} V${controlBus} H${target.x} V${target.y}`;
+  }
   if (item.linkKind === "safety-status") {
     return `M${source.x} ${source.y} V810 H${target.x} V${target.y}`;
   }

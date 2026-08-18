@@ -16,9 +16,9 @@ architecture baseline. Generic Rust controller, I/O, field-device, safety,
 firewall, and connector primitives now exist, and all factory appliances and
 current attachment records have parsed YAML. The configuration includes a
 redundant Level 3 aggregation pair between the OT firewall, factory-local
-services, vPLC hosts, and cell uplinks. No area-specific control logic, plant
-dynamics, or complete factory topology currently runs outside the bounded
-Forming process slice described below.
+services, vPLC hosts, and cell uplinks. Body Preparation and Forming now have
+bounded area-specific process models; complete factory topology and the other
+eight area dynamics remain unimplemented.
 Three selected data paths are executable: Forming to the Level 3 historian,
 Level 3 through the OT firewall to the DMZ replica, and the replica to Central
 Office analytics. The northbound pair includes a positive HTTPS result and a
@@ -32,12 +32,21 @@ retries DMZ replication, and exposes local/replica state in Forming SCADA. The
 SCADA publication action sends the latest replica record through the governed
 inter-site path to Central Office analytics. A composite
 availability scenario drops both
-factory-facing conduit handoffs while the Body Preparation HMI resets its
-safety interface and commands its pump over an independently validated local
+factory-facing conduit handoffs while the Slip Preparation HMI resets its
+local safety interface and commands its pump over an independently validated
 path. Forming now executes independent instances of one validated, bounded
 Structured Text sequence through an explicit YAML I/O map; Rust remains
-responsible for plant dynamics and scoped trips. The other nine areas do not
-yet execute control sources.
+responsible for plant dynamics and scoped trips. Body Preparation is presented
+as a gateway to separate slip, water preparation/distribution, and glaze
+buildings. Six scoped HMI/vPLC pairs run four Rust-owned process trains and two
+water-pipeline control scopes, with mass and water inventories,
+public-reference recipes, quality release, seven remote-I/O stations, eight
+water routes, 16 heartbeat-supervised pumps, four material handoffs, and
+deterministic disturbances. Its validated
+Structured Text sequence and explicit I/O map currently cover the slip train.
+Released slip updates the live Forming material state; finite cross-area
+inventory remains unimplemented. The other eight areas do not yet execute
+control sources.
 
 ## Environments
 
@@ -86,7 +95,7 @@ Body Preparation
   -> Logistics
 ```
 
-The first executable area model represents four independently controlled mould
+The Forming executable area model represents four independently controlled mould
 sequences with selected process conditions, runtime-bound setpoints,
 source-driven equipment commands, and five injected faults. Each equal mould
 station has local I/O, an external control cabinet, a mould-embedded utility

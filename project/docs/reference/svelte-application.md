@@ -6,7 +6,7 @@ location and environment drill-downs, the factory process canvas,
 Rust-generated inspection, validated local editing of canonical appliance and
 connection YAML, and the configured simulation workspace.
 
-The current development release is `0.3.0`. Project release compatibility is
+The current development release is `0.3.1`. Project release compatibility is
 defined in the [versioning policy](versioning.md), while frontend data
 schemas retain their own independent versions.
 
@@ -57,10 +57,17 @@ The factory local-autonomy workspace combines both failed inter-site handoffs,
 the expected historian-path drop, a seven-link local control path, safety
 reset, pump command, resulting actuator state, and six-stage control trace in
 one Rust-derived report.
-Forming now exposes its executing bounded Structured Text source, YAML I/O
-binding, task timing, revision, and current step from Rust. This is not general
-IEC 61131-3 execution; the remaining nine areas retain command-level operator
-sessions.
+Forming exposes its executing bounded Structured Text source, YAML I/O binding,
+task timing, revision, and current step from Rust. Body Preparation adds local
+HMI workspaces for slip and glaze plus four water treatment/distribution
+scopes. Each interface owns only its local commands, diagnostics, recipes,
+field I/O, pump-maintenance actions, and safety state while
+observing the relevant incoming and outgoing handoffs. Rust advances the four
+shared process trains and projects pressure, flow, line loss, entrained air,
+leak state, and delivered quality through every HMI. Its validated Structured
+Text and I/O binding currently mirror the slip sequence only. This is not
+general IEC 61131-3 execution; the remaining eight areas retain command-level
+operator sessions.
 
 The rendered architecture and underlying YAML content are provisional
 placeholders, not finished network or plant definitions. The viewer accurately
@@ -199,12 +206,12 @@ and scenarios are implemented.
 - Distinct trust-path, control-network, and material-flow representations.
 
 Regional, location, Customer Network, Central Office, and most Factory data is
-still temporary view data declared in `src/lib/*.svelte`. Nine OT area
+still temporary view data declared in `src/lib/*.svelte`. Eight OT area
 inventories are read from `src/generated/process-view.json`, a versioned
-bootstrap derivative. Forming derives its 84 components from
-`src/generated/appliance-configs.json`, while Svelte retains presentation-only
-grouping and coordinates. Rust generates that catalog from 237 appliance and
-286 connection YAML files. The remaining process model will later be replaced
+bootstrap derivative. Body Preparation and Forming derive their 166 and 84
+components from `src/generated/appliance-configs.json`, while Svelte retains
+presentation-only grouping and coordinates. Rust generates that catalog from
+394 appliance and 450 connection YAML files. The remaining process model will later be replaced
 with JSON generated from validated area topology and additional control-source
 cross-references.
 

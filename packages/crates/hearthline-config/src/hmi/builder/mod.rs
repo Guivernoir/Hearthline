@@ -6,7 +6,9 @@ use hearthline_model::{ProcessEvent, ProcessSignal, SignalValue, Text};
 use crate::{BehaviorConfig, ConfigError, ConfigRepository};
 
 use super::actions::process::load_control_program;
-use super::state::{ControllerRuntime, HmiSession, RemoteIoRuntime, SupervisoryRuntime};
+use super::state::{
+    ControllerRuntime, HmiSession, RemoteIoRuntime, SupervisoryRuntime, setpoints_from_parameters,
+};
 use super::{HmiActuator, HmiAlarm, HmiAlarmSeverity, HmiPermissive, HmiSafety, HmiSignal};
 
 mod guarded_cell;
@@ -187,9 +189,9 @@ impl HmiSession {
             })
             .collect();
 
-        let moulds = controller_runtime
-            .program
-            .as_ref()
+        let moulds = (loaded.config.environment == "Forming")
+            .then_some(controller_runtime.program.as_ref())
+            .flatten()
             .map(|program| {
                 forming_moulds(
                     appliances,
@@ -201,6 +203,10 @@ impl HmiSession {
             })
             .transpose()?
             .unwrap_or_default();
+        let body_preparation = (loaded.config.environment == "Body Preparation")
+            .then(|| setpoints_from_parameters(&controller_runtime.parameters))
+            .transpose()?
+            .map(hearthline_engine::BodyPreparationProcess::new);
         let shared_tank_level_percent = if moulds.is_empty() {
             0.0
         } else {
@@ -239,6 +245,7 @@ impl HmiSession {
             alarms,
             audit: Vec::new(),
             sequence: 0,
+            body_preparation,
             moulds,
             shared_tank_level_percent,
             robot,

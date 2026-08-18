@@ -1,0 +1,216 @@
+.body-gateway-workspace { background: #e9ede9; }
+
+.body-gateway-world {
+  width: 1200px;
+  min-width: 1200px;
+  height: 700px;
+  background: #f3f5f1;
+}
+
+.body-gateway-world .location-heading { z-index: 6; }
+
+.body-gateway-drawing {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.body-campus-ground {
+  fill: #e6ebe4;
+  stroke: #a4b0a6;
+  stroke-width: 1.5;
+}
+
+.body-campus-fence {
+  fill: none;
+  stroke: #79857d;
+  stroke-width: 2;
+  stroke-dasharray: 5 5;
+}
+
+.body-campus-road { fill: #737b76; }
+
+.body-campus-pipe-rack,
+.body-campus-water-line,
+.body-campus-return-line,
+.body-campus-slip-handoff,
+.body-campus-glaze-handoff,
+.body-control-backbone,
+.body-process-water-link,
+.body-return-water-link,
+.body-slip-handoff-link,
+.body-glaze-handoff-link {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.body-campus-pipe-rack { stroke: #777f79; stroke-width: 8; }
+.body-campus-water-line { stroke: #39798a; stroke-width: 4; }
+.body-campus-return-line { stroke: #5d7168; stroke-width: 4; stroke-dasharray: 8 5; }
+.body-campus-slip-handoff { stroke: #8a6844; stroke-width: 5; }
+.body-campus-glaze-handoff { stroke: #706589; stroke-width: 5; }
+
+.body-campus-building > path:first-child {
+  stroke-width: 2;
+  filter: drop-shadow(0 4px 5px rgb(40 49 43 / 12%));
+}
+
+.body-campus-building .roof { fill: #67756d; stroke: #45534b; stroke-width: 1.5; }
+.body-campus-building .door { fill: #6e756f; stroke: #4f5752; stroke-width: 1.5; }
+.body-campus-building .window { fill: none; stroke: #86a6ad; stroke-width: 10; }
+.body-campus-building text { fill: #4d5751; font-size: 10px; font-weight: 850; }
+.water-building > path:first-child { fill: #e4edef; stroke: #71909a; }
+.slip-building > path:first-child { fill: #eeeae0; stroke: #9a8a70; }
+.glaze-building > path:first-child { fill: #ebe8ef; stroke: #8c819a; }
+
+.body-campus-local-control rect { fill: #e4e9e6; stroke: #66776d; stroke-width: 1.5; }
+.body-campus-local-control text,
+.body-campus-label { fill: #59655e; font-size: 9px; font-weight: 800; }
+
+.body-building-node {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  width: 245px;
+  min-height: 110px;
+  padding: 10px;
+  grid-template-columns: 52px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgb(255 255 255 / 72%);
+  border-radius: 6px;
+  color: #2c342f;
+  background: rgb(250 252 249 / 91%);
+  box-shadow: 0 5px 16px rgb(37 45 39 / 10%);
+  text-align: left;
+  cursor: pointer;
+}
+
+.body-building-node:hover,
+.body-building-node.selected {
+  border-color: var(--node-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--node-accent) 15%, transparent);
+}
+
+.body-building-node .node-icon {
+  display: grid;
+  width: 50px;
+  height: 50px;
+  place-items: center;
+  border: 2px solid color-mix(in srgb, var(--node-accent) 70%, #718078);
+  border-radius: 50%;
+  color: var(--node-accent);
+  background: #fff;
+}
+
+.body-building-node > span:nth-child(2) { min-width: 0; }
+.body-building-node small,
+.body-building-node strong { display: block; }
+.body-building-node small { color: #727b75; font-size: 8px; font-weight: 800; text-transform: uppercase; }
+.body-building-node strong { margin-top: 5px; font-size: 13px; line-height: 1.2; overflow-wrap: anywhere; }
+.body-building-node > svg { color: var(--node-accent); }
+.body-building-water { top: 340px; left: 110px; }
+.body-building-slip { top: 305px; left: 502px; }
+.body-building-glaze { top: 340px; left: 860px; }
+
+.body-control-boundary {
+  position: absolute;
+  inset: 170px 55px 120px;
+  z-index: 0;
+  border: 1px dashed #98a59c;
+  background: #eef2ee;
+}
+
+.body-control-boundary > span {
+  position: absolute;
+  top: -27px;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #53615a;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.body-control-backbone { stroke: #416f77; stroke-width: 3; }
+.body-process-water-link { stroke: #39798a; stroke-width: 3; }
+.body-return-water-link { stroke: #5d7168; stroke-width: 3; stroke-dasharray: 8 5; }
+.body-slip-handoff-link { stroke: #8a6844; stroke-width: 3; }
+.body-glaze-handoff-link { stroke: #706589; stroke-width: 3; }
+.body-water-arrow { fill: #39798a; }
+.body-return-arrow { fill: #5d7168; }
+.body-slip-arrow { fill: #8a6844; }
+.body-glaze-arrow { fill: #706589; }
+.body-gateway-link-label { fill: #5b6860; font-size: 9px; font-weight: 800; }
+.body-pipeline-sensor { fill: #f7faf8; stroke: #315e69; stroke-width: 3; }
+
+.body-shared-control {
+  position: absolute;
+  top: 198px;
+  left: 420px;
+  z-index: 3;
+  display: grid;
+  width: 360px;
+  min-height: 72px;
+  padding: 11px 14px;
+  grid-template-columns: 30px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #8fa39a;
+  border-radius: 5px;
+  color: #2c443b;
+  background: #fbfcfb;
+  text-align: left;
+  cursor: pointer;
+}
+
+.body-shared-control small,
+.body-shared-control strong { display: block; }
+.body-shared-control small { color: #718078; font-size: 8px; }
+.body-shared-control strong { margin-top: 4px; font-size: 12px; }
+.body-logical-building { z-index: 3; }
+.body-logical-building > strong { margin-top: 16px; }
+.body-logical-building > span:not(.node-accent, .environment-node-header),
+.body-logical-building > em {
+  display: block;
+  overflow: hidden;
+  margin-top: 5px;
+  color: #68756e;
+  font-size: 8px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.body-logical-building > em { color: #50645a; font-weight: 750; }
+.body-building-detail { z-index: 8; }
+.body-building-actions { display: flex; align-items: center; gap: 7px; }
+.open-local-hmi {
+  display: inline-flex;
+  min-height: 34px;
+  padding: 0 11px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #81978c;
+  border-radius: 4px;
+  color: #304c40;
+  background: #f7faf8;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@media (max-width: 650px) {
+  .body-gateway-world { min-width: 1200px; }
+  .body-gateway-world .environment-node { width: 260px; height: 150px; }
+  .body-gateway-world .body-logical-water { top: 325px !important; left: 85px !important; }
+  .body-gateway-world .body-logical-slip { top: 325px !important; left: 470px !important; }
+  .body-gateway-world .body-logical-glaze { top: 325px !important; left: 855px !important; }
+  .body-building-detail { right: 60px; bottom: 32px; left: 60px; flex-direction: row; align-items: center; }
+  .body-building-detail .enter-environment { width: auto; }
+  .body-building-actions { flex-wrap: wrap; justify-content: flex-end; }
+}

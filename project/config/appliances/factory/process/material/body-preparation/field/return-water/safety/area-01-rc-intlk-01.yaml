@@ -1,0 +1,14 @@
+schema_version: "0.10.0"
+id: "area-01-rc-intlk-01"
+label: "AREA-01-RC-INTLK-01"
+kind: "safety-interface"
+site: "Factory"
+environment: "Body Preparation"
+zone: "OT-AREA-01"
+role: "Return-water pipeline safety interface"
+summary: "Latches return collection and reuse pumps safe on E-stop, drive, containment, or route-segregation loss."
+lifecycle: "simulated"
+tags: ["ot-area-01", "return-pipeline", "safety"]
+render: [{ view: "factory/process/body-preparation", node: "area-01-rc-intlk-01", mode: "any" }]
+interfaces: [{ id: "field-io", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }]
+behavior: { family: "safety", permissives: ["emergency-stop-healthy", "pump-drives-ready", "spill-containment-healthy", "return-routes-segregated"], latched_trip: true, initially_permissive: ["emergency-stop-healthy", "pump-drives-ready", "spill-containment-healthy", "return-routes-segregated"] }

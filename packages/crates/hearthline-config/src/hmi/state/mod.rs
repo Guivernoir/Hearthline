@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use hearthline_engine::IoDirection;
+use hearthline_engine::{BodyPreparationProcess, CeramicSlipBatch, IoDirection};
 use hearthline_model::ComponentKind;
 
 use super::actions::process::ConfiguredControlProgram;
@@ -20,6 +20,7 @@ mod store;
 mod supervisory;
 
 pub(in crate::hmi) use mould::MouldProcessRuntime;
+pub(in crate::hmi) use process::setpoints_from_parameters;
 pub(in crate::hmi) use robot::{
     GuardedCellRuntime, HandoffStationRuntime, RobotRuntime, robot_pose,
 };
@@ -46,6 +47,7 @@ pub struct HmiSession {
     pub(super) alarms: Vec<HmiAlarm>,
     pub(super) audit: Vec<HmiAuditEntry>,
     pub(super) sequence: u64,
+    pub(super) body_preparation: Option<BodyPreparationProcess>,
     pub(super) moulds: BTreeMap<String, MouldProcessRuntime>,
     pub(super) shared_tank_level_percent: f64,
     pub(super) robot: Option<RobotRuntime>,
@@ -116,6 +118,18 @@ pub(super) struct RemoteIoRuntime {
 }
 
 impl HmiSession {
+    pub(in crate::hmi) fn released_slip(&self) -> Option<CeramicSlipBatch> {
+        self.body_preparation
+            .as_ref()
+            .and_then(BodyPreparationProcess::released_slip)
+    }
+
+    pub(in crate::hmi) fn apply_released_slip(&mut self, batch: CeramicSlipBatch) {
+        for mould in self.moulds.values_mut() {
+            mould.apply_slip_batch(batch);
+        }
+    }
+
     pub fn control_program(&self) -> Option<HmiControlProgramDocument> {
         if !self.has_permission("view-control-source") {
             return None;
@@ -175,7 +189,8 @@ impl HmiSession {
                     source_path: program.source_path().into(),
                     binding_path: program.binding_path().into(),
                     revision: program.revision().into(),
-                    current_step: program.runtime().current_step(),
+                    current_step: self
+                        .control_program_current_step(program.runtime().current_step()),
                     scan_interval_ms: program.runtime().program().scan_interval_ms,
                     watchdog_ms: program.watchdog_ms(),
                 }),
@@ -213,6 +228,7 @@ impl HmiSession {
                 .then(|| self.controller.active_recipe.clone())
                 .flatten(),
             process: self.process_snapshot(&moulds),
+            body_preparation: self.body_preparation_snapshot(),
             moulds,
             robot: self.robot.as_ref().and_then(|robot| {
                 self.controller
@@ -242,25 +258,33 @@ impl HmiSession {
                 .filter(|safety| self.safety_in_scope(&safety.component_id))
                 .cloned()
                 .collect(),
-            alarms: self.alarms.clone(),
+            alarms: self
+                .alarms
+                .iter()
+                .filter(|alarm| self.alarm_in_scope(&alarm.source, &alarm.code))
+                .cloned()
+                .collect(),
             audit: self.audit.clone(),
         }
     }
 
     fn sync_shared_from(&mut self, shared: &Self) {
         self.sequence = shared.sequence;
-        self.controller
-            .program
-            .clone_from(&shared.controller.program);
-        self.controller
-            .stations
-            .clone_from(&shared.controller.stations);
-        self.controller
-            .parameters
-            .clone_from(&shared.controller.parameters);
-        self.controller
-            .active_recipe
-            .clone_from(&shared.controller.active_recipe);
+        if self.environment != "Body Preparation" {
+            self.controller
+                .program
+                .clone_from(&shared.controller.program);
+            self.controller
+                .stations
+                .clone_from(&shared.controller.stations);
+            self.controller
+                .parameters
+                .clone_from(&shared.controller.parameters);
+            self.controller
+                .active_recipe
+                .clone_from(&shared.controller.active_recipe);
+        }
+        self.body_preparation.clone_from(&shared.body_preparation);
         self.moulds.clone_from(&shared.moulds);
         self.shared_tank_level_percent = shared.shared_tank_level_percent;
         self.robot.clone_from(&shared.robot);
@@ -294,18 +318,21 @@ impl HmiSession {
 
     fn merge_shared_from(&mut self, source: &Self) {
         self.sequence = source.sequence;
-        self.controller
-            .program
-            .clone_from(&source.controller.program);
-        self.controller
-            .stations
-            .clone_from(&source.controller.stations);
-        self.controller
-            .parameters
-            .clone_from(&source.controller.parameters);
-        self.controller
-            .active_recipe
-            .clone_from(&source.controller.active_recipe);
+        if self.environment != "Body Preparation" {
+            self.controller
+                .program
+                .clone_from(&source.controller.program);
+            self.controller
+                .stations
+                .clone_from(&source.controller.stations);
+            self.controller
+                .parameters
+                .clone_from(&source.controller.parameters);
+            self.controller
+                .active_recipe
+                .clone_from(&source.controller.active_recipe);
+        }
+        self.body_preparation.clone_from(&source.body_preparation);
         self.moulds.clone_from(&source.moulds);
         self.shared_tank_level_percent = source.shared_tank_level_percent;
         self.robot.clone_from(&source.robot);
@@ -355,7 +382,14 @@ impl HmiSession {
             .any(|candidate| candidate == safety_id)
     }
 
+    fn alarm_in_scope(&self, source: &str, code: &str) -> bool {
+        self.environment != "Body Preparation" || self.body_alarm_in_scope(source, code)
+    }
+
     fn process_snapshot(&self, moulds: &[HmiMouldProcessState]) -> Option<HmiProcessState> {
+        if let Some(snapshot) = self.body_process_snapshot() {
+            return Some(snapshot);
+        }
         if moulds.is_empty() {
             return None;
         }

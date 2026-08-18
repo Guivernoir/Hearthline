@@ -1,5 +1,6 @@
 import type {
   HmiControlMode,
+  HmiPreparationTrain,
   HmiProcessFault,
   HmiSnapshot,
   HmiTraceEntry,
@@ -13,6 +14,11 @@ import type {
 export type HmiAction =
   | { kind: "command"; tag: string; value: string }
   | { kind: "start-process" }
+  | { kind: "hold-process" }
+  | { kind: "start-preparation-train"; train: HmiPreparationTrain }
+  | { kind: "hold-preparation-train"; train: HmiPreparationTrain }
+  | { kind: "set-water-pump-failure"; pumpId: string; failed: boolean }
+  | { kind: "dispatch-water-pump-maintenance"; pumpId: string }
   | { kind: "start-mould" }
   | { kind: "stop-mould-after-phase" }
   | { kind: "end-mould-after-cycle" }

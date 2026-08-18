@@ -1,0 +1,21 @@
+schema_version: "0.10.0"
+id: "area-01-ft-02"
+label: "AREA-01-FT-02"
+kind: "field-sensor"
+site: "Factory"
+environment: "Body Preparation"
+zone: "OT-AREA-01"
+role: "Slip charge-water flow"
+summary: "Measures slip charge-water flow for recipe totalization and sequence interlocks."
+lifecycle: "simulated"
+tags: ["ot-area-01", "slip", "batching", "flow", "water"]
+render: [{ view: "factory/process/body-preparation", node: "area-01-ft-02", mode: "any" }]
+interfaces:
+  - { id: "field-io", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+behavior:
+  family: "field-sensor"
+  signal_tag: "area-01-ft-02"
+  unit: "L/min"
+  minimum: 0
+  maximum: 120
+  initial_value: 0

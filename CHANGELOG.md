@@ -5,10 +5,43 @@ All notable changes to Hearthline are recorded here. Releases follow
 development, so minor releases may include documented configuration or API
 migrations.
 
-## 0.3.1 - 2026-08-12
+## 0.3.1 - 2026-08-17
 
 ### Added
 
+- Added four Body Preparation trains for ceramic slip, fresh process water,
+  segregated return-water recovery, and liquid glaze. Slip and glaze have local
+  control cells; water has separate industrial-treatment,
+  industrial-distribution, return-treatment, and return-pipeline HMI/vPLC/RIO
+  scopes over one shared utilities access switch. Rust advances shared plant
+  inventories, bounded quality, phase outputs, and release state.
+- Added public-reference slip and glaze recipes, fresh-water treatment,
+  `30-50%` sanitaryware return-water context, body/glaze return segregation,
+  laboratory-style rheology and glaze checks, and explicit documentation of
+  project assumptions and simulation limits.
+- Expanded Body Preparation to 166 YAML-defined appliances, seven remote-I/O
+  stations, 175 connection files, 85 live signals, 53 commanded actuators,
+  six local safety interfaces, and dedicated physical, logical, train,
+  handoff, recipe, quality, and diagnostic views.
+- Added eight industrial- and return-water routes, 16 duty/standby pumps,
+  `500 ms` pump heartbeats, `1,500 ms` stale detection, automatic healthy
+  standby transfer, scoped heartbeat alarms, and pipeline-HMI maintenance
+  dispatch. Direct temperature, pH, conductivity, turbidity, pressure, flow,
+  and balance readings replace narrative-only water-condition summaries.
+- Added four monitored material handoffs for water-to-slip, water-to-glaze,
+  slip-to-forming, and glaze-to-glazing service. Paired pressure/flow, receive
+  flow, entrained-air, and derived leak instruments feed Rust-owned line-loss,
+  leak, delivery-quality, and downstream slip-quality behavior.
+- Added a typed released-slip contract whose measured rheology updates all
+  Forming sessions and carries bounded green-moisture, drying-shrinkage,
+  drying-energy, green-strength, and fired-defect-risk indicators.
+- Retained the validated Structured Text source and I/O binding for the slip
+  train while documenting that all four Body Preparation trains remain
+  Rust-owned until a broader controller-language target is selected.
+- Added Body Preparation regression coverage for reference mass balance,
+  independent train controls, Hold/Resume inventory retention, water and glaze
+  completion, return-water reuse, quality trips, reset behavior, local control
+  authority, pipeline leaks, and the released-slip handoff to Forming.
 - Expanded Forming into four equal mould stations, each with one local HMI,
   local remote I/O, six process signals, a valve manifold, movement output,
   and safety interface. The cell also has an embedded machine-PC supervisory
@@ -143,9 +176,18 @@ migrations.
 
 ### Changed
 
-- Advanced the HMI API schema to `0.8.0` for runtime-bound mould setpoints,
-  cabinet state, robot architecture and arbitration, and typed supervisory
-  objects, history, security, and deployment state.
+- Reworked Body Preparation into a campus gateway with separately enterable
+  Slip Preparation, Water Preparation and Distribution, and Glaze Preparation
+  buildings. Each building now has its own local controls, scoped physical
+  walkdown, complete logical view, owning remote I/O, field channels, and
+  monitored inter-building handoffs.
+- Preserved return-water treatment inside the utilities building while keeping
+  body and glaze collection, storage, and reuse routes segregated. The detailed
+  utilities view now separates four physical process/pump zones and four
+  logical control authorities.
+- Advanced the HMI API schema to `0.9.0` for runtime-bound mould setpoints,
+  cabinet state, robot architecture and arbitration, typed supervisory
+  objects, and Body Preparation process state.
 - Reduced the Forming physical architecture to a top-down machine-floor view
   of four moulds with embedded utility sections, their external control
   cabinets and operator HMIs, four transfer stations, the fenced robot cell,
@@ -161,7 +203,8 @@ migrations.
   the machine PC. The robot controller now arbitrates all four stations while
   the independent pendant retains manual/setup motion authority.
 - Migrated appliance configuration to schema `0.10.0`, the generated catalog
-  to `0.9.0`, and the HMI API to `0.4.0`.
+  to `0.9.0`, and introduced the versioned HMI API that subsequent `0.3.1`
+  work advances to `0.9.0`.
 - Replaced the provisional dry-powder hydraulic-press representation with the
   intended ceramic-slip pressure-casting, robotic-demoulding, and mould-care
   workflow.
@@ -179,8 +222,35 @@ migrations.
   action schema to `0.10.0` for explicit DNS-resolution provenance, retained
   structured network-state projection, and runtime inspection actions.
 
+### Fixed
+
+- Raised the embedded virtualization-host switch capacity from 16 to 32 ports
+  so the expanded vPLC inventory does not panic the background historian
+  scenario during API startup. A dense-control-host regression covers the
+  current 20-port class.
+- Corrected Body Preparation HMI responsiveness so all six page tabs remain
+  visible, long panel headers wrap coherently, water-quality tables stay within
+  their viewport, and diagnostic controls remain usable on narrow screens.
+- Releasing pendant motion enable now stops active robot motion and pauses a
+  running manual program, preventing the next runtime tick from reissuing the
+  interrupted instruction.
+- Guard interlock side effects now follow action validation and station
+  authorization. An unauthorized motion-shaped request is denied without
+  latching a guard trip or stopping cell state machines.
+- Safety reset recovery is evaluated per mould, so one repaired mould can
+  return to idle while another mould's local safety trip remains latched.
+- Cancelling an active robot-cell request no longer increments the completed
+  handoff counter. A guard-interrupted transfer now preserves its piece,
+  progress, and travel direction when closed-gate reset permits recovery.
+- Added an explicit `Clear fence alarm` control to the machine-PC and general
+  safety workspaces. The control remains disabled, and the Rust reset remains
+  denied, until the personnel gate is closed.
+
 ### Documentation
 
+- Split Body Preparation documentation into a gateway README and dedicated
+  Slip Preparation, Water Preparation and Distribution, and Glaze Preparation
+  folders, each with current physical and logical captures.
 - Replaced the representative Forming inventory with its current control/data
   flow, exact process sequence, implemented signal and output inventory,
   simulation boundary, engineering basis, fault coverage, and planned control

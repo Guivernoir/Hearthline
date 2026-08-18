@@ -1,6 +1,9 @@
 use super::super::builder::support::trace_entry;
 use super::super::state::HmiSession;
-use super::super::{HmiAction, HmiActionReport, HmiActionStatus, HmiAlarmSeverity};
+use super::super::{
+    HmiAction, HmiActionReport, HmiActionStatus, HmiAlarmSeverity, HmiRobotAxis,
+    HmiRobotCoordinateSystem, HmiRobotPose,
+};
 
 const GUARD_SAFETY: &str = "area-02-cell-guard-safe-01";
 const GATE_POSITION: &str = "area-02-cell-gate-pos-01";
@@ -17,23 +20,7 @@ impl HmiSession {
         {
             return None;
         }
-        let target = match action {
-            HmiAction::StartMould | HmiAction::EndMouldAfterCycle => self
-                .local_mould_target()
-                .unwrap_or("local-mould")
-                .to_string(),
-            HmiAction::Command { tag, value }
-                if guarded_command(tag) && value != "stopped" && value != "isolated" =>
-            {
-                tag.clone()
-            }
-            HmiAction::MoveRobot { .. }
-            | HmiAction::MoveRobotToPosition { .. }
-            | HmiAction::JogRobot { .. }
-            | HmiAction::RunRobotProgram
-            | HmiAction::StepRobotProgram => "robot-cell".into(),
-            _ => return None,
-        };
+        let target = self.authorized_guarded_motion_target(action)?;
         self.latch_guard_motion_trip(&target);
         Some(self.finish(
             HmiActionStatus::Denied,
@@ -47,6 +34,71 @@ impl HmiSession {
                 format!("motion demand for {target} occurred with the access gate open"),
             )],
         ))
+    }
+
+    fn authorized_guarded_motion_target(&self, action: &HmiAction) -> Option<String> {
+        match action {
+            HmiAction::StartMould => self.authorize_local_mould_production("start-mould"),
+            HmiAction::EndMouldAfterCycle => {
+                self.authorize_local_mould_production("end-mould-after-cycle")
+            }
+            HmiAction::Command { tag, value }
+                if guarded_command(tag)
+                    && value != "stopped"
+                    && value != "isolated"
+                    && self.command_tags.iter().any(|candidate| candidate == tag)
+                    && self.authorize_manual_command(tag).is_ok()
+                    && self.actuators.iter().any(|actuator| {
+                        actuator.command_tag == *tag && actuator.states.contains(value)
+                    }) =>
+            {
+                Some(tag.clone())
+            }
+            HmiAction::MoveRobot {
+                target,
+                speed_percent,
+            } if valid_pose(*target)
+                && valid_speed(*speed_percent)
+                && self.require_robot_manual_station_authority(true).is_ok() =>
+            {
+                Some("robot-cell".into())
+            }
+            HmiAction::MoveRobotToPosition {
+                position_id,
+                speed_percent,
+            } if valid_speed(*speed_percent)
+                && self.require_robot_manual_station_authority(true).is_ok()
+                && self
+                    .robot
+                    .as_ref()
+                    .is_some_and(|robot| robot.has_taught_position(position_id)) =>
+            {
+                Some("robot-cell".into())
+            }
+            HmiAction::JogRobot {
+                coordinate_system,
+                axis,
+                increment,
+                speed_percent,
+            } if increment.is_finite()
+                && *increment != 0.0
+                && valid_speed(*speed_percent)
+                && valid_jog_axis(*coordinate_system, *axis)
+                && self.require_robot_manual_station_authority(true).is_ok() =>
+            {
+                Some("robot-cell".into())
+            }
+            HmiAction::RunRobotProgram | HmiAction::StepRobotProgram
+                if self.require_robot_setup_authority("robot-program").is_ok()
+                    && self
+                        .robot
+                        .as_ref()
+                        .is_some_and(|robot| robot.motion_enabled() && robot.has_program()) =>
+            {
+                Some("robot-cell".into())
+            }
+            _ => None,
+        }
     }
 
     pub(super) fn set_guard_door(&mut self, open: bool) -> HmiActionReport {
@@ -180,4 +232,37 @@ impl HmiSession {
 
 fn guarded_command(tag: &str) -> bool {
     tag.contains("mould") || tag.contains("robot") || tag.contains("handoff")
+}
+
+fn valid_speed(speed_percent: f64) -> bool {
+    speed_percent.is_finite() && speed_percent > 0.0 && speed_percent <= 100.0
+}
+
+fn valid_pose(pose: HmiRobotPose) -> bool {
+    [pose.x, pose.y, pose.z, pose.w, pose.p, pose.r]
+        .into_iter()
+        .all(f64::is_finite)
+}
+
+fn valid_jog_axis(coordinate_system: HmiRobotCoordinateSystem, axis: HmiRobotAxis) -> bool {
+    matches!(
+        (coordinate_system, axis),
+        (
+            HmiRobotCoordinateSystem::World,
+            HmiRobotAxis::X
+                | HmiRobotAxis::Y
+                | HmiRobotAxis::Z
+                | HmiRobotAxis::W
+                | HmiRobotAxis::P
+                | HmiRobotAxis::R
+        ) | (
+            HmiRobotCoordinateSystem::Joint,
+            HmiRobotAxis::J1
+                | HmiRobotAxis::J2
+                | HmiRobotAxis::J3
+                | HmiRobotAxis::J4
+                | HmiRobotAxis::J5
+                | HmiRobotAxis::J6
+        )
+    )
 }

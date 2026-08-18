@@ -102,6 +102,52 @@ fn robot_program_requires_all_handoff_routines_and_exposes_execution() {
 }
 
 #[test]
+fn running_manual_program_stays_stopped_after_motion_enable_is_released() {
+    let appliances = repository();
+    let mut sessions = HmiSessionStore::default();
+    enter_robot_setup(&mut sessions, &appliances);
+    sessions
+        .execute(
+            &appliances,
+            "area-02-joystick-01",
+            HmiAction::RunRobotProgram,
+        )
+        .expect("start manual robot program");
+    sessions.tick(500);
+    let moving = sessions
+        .profile(&appliances, "area-02-joystick-01")
+        .expect("moving robot profile")
+        .robot
+        .expect("robot state");
+    assert!(moving.program.running);
+    assert!(moving.motion.active);
+
+    let released = sessions
+        .execute(
+            &appliances,
+            "area-02-joystick-01",
+            HmiAction::SetRobotMotionEnable { enabled: false },
+        )
+        .expect("release pendant motion enable");
+    let held = released.snapshot.robot.expect("held robot state");
+    assert!(!held.motion_enabled);
+    assert!(!held.motion.active);
+    assert!(!held.program.running);
+    assert!(held.program.paused);
+    let held_pose = held.pose;
+
+    sessions.tick(5_000);
+    let after = sessions
+        .profile(&appliances, "area-02-joystick-01")
+        .expect("robot profile after hold")
+        .robot
+        .expect("robot state");
+    assert_eq!(after.pose, held_pose);
+    assert!(!after.motion.active);
+    assert!(after.program.paused);
+}
+
+#[test]
 fn wrong_pickup_coordinates_fault_the_robot_and_raise_an_alarm() {
     let appliances = repository();
     let mut sessions = HmiSessionStore::default();

@@ -1,0 +1,9 @@
+schema_version: "0.2.0"
+id: "area-01-rio-05-to-area-01-gl-scr-01"
+label: "AREA-01-GL-SCR-01 field-I/O channel"
+lifecycle: "simulated"
+transport: "field-io"
+medium: { type: "field-wiring", signal: "area-01-gl-scr-01 process I/O", length_m: 18.0 }
+endpoints: { a: { appliance: "area-01-rio-05", interface: "field-io-12" }, b: { appliance: "area-01-gl-scr-01", interface: "field-io" } }
+properties: { capacity_mbps: 10, latency_ms: 0, loss_every: null, direction: "bidirectional", operational: true }
+tags: ["ot", "ot-area-01", "field-io", "glaze-preparation"]

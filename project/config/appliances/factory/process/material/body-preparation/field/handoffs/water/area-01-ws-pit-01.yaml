@@ -1,0 +1,14 @@
+schema_version: "0.10.0"
+id: "area-01-ws-pit-01"
+label: "AREA-01-WS-PIT-01"
+kind: "field-sensor"
+site: "Factory"
+environment: "Body Preparation"
+zone: "OT-AREA-01"
+role: "Slip process-water branch pressure"
+summary: "Measures delivered pressure on the treated-water branch to Slip Preparation."
+lifecycle: "simulated"
+tags: ["ot-area-01", "water-handoff", "pipeline-monitoring"]
+render: [{ view: "factory/process/body-preparation", node: "area-01-ws-pit-01", mode: "any" }]
+interfaces: [{ id: "field-io", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }]
+behavior: { family: "field-sensor", signal_tag: "area-01-ws-pit-01", unit: "bar", minimum: 0, maximum: 10, initial_value: 0 }

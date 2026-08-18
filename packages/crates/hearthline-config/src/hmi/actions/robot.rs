@@ -11,7 +11,14 @@ use crate::appliance::source_revision;
 
 impl HmiSession {
     pub(super) fn set_robot_motion_enable(&mut self, enabled: bool) -> HmiActionReport {
-        if enabled && let Err(message) = self.require_robot_manual_authority(false) {
+        let authority = if enabled {
+            self.require_robot_manual_authority(false)
+        } else if !self.has_permission("robot-jog") {
+            Err("This interface is not permitted to operate the robot pendant.".into())
+        } else {
+            self.robot_station().map(|_| ())
+        };
+        if let Err(message) = authority {
             return self.robot_result(HmiActionStatus::Denied, "motion-enable", &message, "denied");
         }
         let Some(robot) = &mut self.robot else {
@@ -268,7 +275,10 @@ impl HmiSession {
         }
     }
 
-    fn require_robot_manual_authority(&self, require_enable: bool) -> Result<(), String> {
+    pub(super) fn require_robot_manual_station_authority(
+        &self,
+        require_enable: bool,
+    ) -> Result<(), String> {
         if !self.has_permission("robot-jog") {
             return Err("This interface is not permitted to jog the robot.".into());
         }
@@ -287,6 +297,20 @@ impl HmiSession {
                 "Manual robot motion is inhibited while a mould automatic cycle is running.".into(),
             );
         }
+        if require_enable
+            && !self
+                .robot
+                .as_ref()
+                .is_some_and(|robot| robot.motion_enabled())
+        {
+            return Err("Pendant motion enable is not active.".into());
+        }
+        Ok(())
+    }
+
+    fn require_robot_manual_authority(&self, require_enable: bool) -> Result<(), String> {
+        self.require_robot_manual_station_authority(require_enable)?;
+        let station = self.robot_station()?;
         for safety in self
             .safety
             .iter()
@@ -304,18 +328,10 @@ impl HmiSession {
                 return Err("A required robot safety permissive is not satisfied.".into());
             }
         }
-        if require_enable
-            && !self
-                .robot
-                .as_ref()
-                .is_some_and(|robot| robot.motion_enabled())
-        {
-            return Err("Pendant motion enable is not active.".into());
-        }
         Ok(())
     }
 
-    fn require_robot_setup_authority(&self, permission: &str) -> Result<(), String> {
+    pub(super) fn require_robot_setup_authority(&self, permission: &str) -> Result<(), String> {
         if !self.has_permission(permission) {
             return Err(
                 "This interface is not permitted to change robot programs or taught positions."

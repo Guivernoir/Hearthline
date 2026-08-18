@@ -114,22 +114,28 @@ active state again, selects another state, or the controller applies an
 automatic/safe state. Setup never bypasses the emergency-stop chain or
 hardwired travel limits. A mould automatic start evaluates both its own safety
 interface and the shared robot-cell safety interface, while each HMI can reset
-only safety objects in its configured authority scope.
+only safety objects in its configured authority scope. Recovery is evaluated
+per mould: a healthy mould may return to idle while another mould's local
+safety interface remains tripped.
 
 The fenced cell has one monitored personnel gate. Opening it while the cell is
 idle removes the shared motion permissive. Opening it during mould, robot, or
 transfer motion stops those movements and latches a guard trip. A new motion
-request while the gate is open is denied and also latches the trip. Closing the
-gate restores the physical condition but does not clear a latched trip; reset
-is accepted only after the gate is closed. This modeled sequence prevents a
-gate close from silently restarting hazardous movement.
+request from an authorized station while the gate is open is denied and also
+latches the trip; unauthorized requests are rejected before they can change
+guard state. Closing the gate restores the physical condition but does not
+clear a latched trip. The explicit `Clear fence alarm` control is enabled, and
+the Rust reset is accepted, only after the gate is closed. This modeled
+sequence prevents a gate close from silently restarting hazardous movement.
 
 Each mould has one transfer station that crosses the fence boundary. The robot
 places the piece on the in-cell side, after which Rust advances that station to
 the operator side and exposes travel progress plus both end-position sensors.
 The mould sequence does not enter post-handoff cleaning until its station has
 reached the operator side. The station subsequently returns to the cell side
-for the next cycle.
+for the next cycle. If a gate trip interrupts transfer travel, reset preserves
+the piece, travel progress, and interrupted direction instead of silently
+discarding material or restarting the station from an endpoint.
 
 This is a control-authority simulation, not a functional-safety implementation
 or evidence of a validated safety integrity level.
@@ -153,6 +159,9 @@ targets, and moves to taught positions. Authenticated setup additionally stores
 the current pose as a session-scoped taught position and can parse, load, run,
 pause, reset, or execute one line of a bounded `.g` source. The active source
 line and parsed operation are returned by Rust and highlighted in Svelte.
+Releasing pendant motion enable stops active manual movement and pauses a
+running manual program, so a later simulation tick cannot reissue the active
+instruction without a new operator run command.
 
 The default
 [robot motion source](../../../../../control/programs/forming/area-02-robot-01.g)
@@ -306,8 +315,10 @@ or suitability for a real machine.
 
 ## Simulation Boundary And Planned Work
 
-The current model does not calculate rheology, filtration, wall thickness,
-deformation, rigid-body robot dynamics, production inverse kinematics,
+The current model does not independently calculate rheology or filtration. It
+consumes a released Body Preparation batch through bounded material-effect
+relationships, but does not calculate wall thickness, deformation, rigid-body
+robot dynamics, production inverse kinematics,
 collision envelopes, drying physics, quality, wear, or functional safety. The
 Structured Text grammar is a Hearthline sequence subset, and the robot `.g`
 grammar is a bounded motion subset. Neither is a production controller runtime.
@@ -318,7 +329,9 @@ and arbitration, per-mould cabinet/setpoint execution, and object-based machine
 supervision. They do not reproduce proprietary firmware or complete production
 behavior.
 
-Next work will add material balance from Body Preparation to the slip buffer,
-reviewed process-condition transitions, robot recovery paths,
+Next work will replace the current latest-batch property handoff with finite
+material balance from Body Preparation to the slip buffer, receiving capacity,
+replenishment and interrupted-transfer recovery. It will also add reviewed
+process-condition transitions, robot recovery paths,
 collision-envelope checks, and recipe-to-setpoint deployment. Broader language
 support requires a declared compatibility target first.

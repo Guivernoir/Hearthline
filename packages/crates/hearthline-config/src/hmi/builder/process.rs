@@ -100,6 +100,11 @@ pub(super) fn forming_moulds(
             vacuum_pressure_kpa: value("area-02-vt-01")?,
             robot_position_mm: value("area-02-pos-03")?,
             piece_gripped: value("area-02-pe-01")? >= 0.5,
+            piece_moisture_percent: 20.5,
+            predicted_drying_shrinkage_percent: 2.1,
+            drying_energy_factor: 1.0,
+            green_strength_index: 100.0,
+            fired_defect_risk_percent: 3.0,
         };
         let setpoints = forming_setpoints(parameters, &target)?;
         let (control_cabinet, utility_cabinet) = mould_cabinets(appliances, &target);

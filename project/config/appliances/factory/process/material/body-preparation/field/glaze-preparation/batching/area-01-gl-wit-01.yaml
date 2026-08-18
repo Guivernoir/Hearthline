@@ -1,0 +1,21 @@
+schema_version: "0.10.0"
+id: "area-01-gl-wit-01"
+label: "AREA-01-GL-WIT-01"
+kind: "field-sensor"
+site: "Factory"
+environment: "Body Preparation"
+zone: "OT-AREA-01"
+role: "Glaze powder weigh-hopper mass"
+summary: "Measures the combined dry glaze charge for recipe totalization."
+lifecycle: "simulated"
+tags: ["ot-area-01", "glaze", "batching", "mass"]
+render: [{ view: "factory/process/body-preparation", node: "area-01-gl-wit-01", mode: "any" }]
+interfaces:
+  - { id: "field-io", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+behavior:
+  family: "field-sensor"
+  signal_tag: "area-01-gl-wit-01"
+  unit: "kg"
+  minimum: 0
+  maximum: 800
+  initial_value: 0

@@ -106,13 +106,43 @@ interfaces:
     vlans: []
   - id: "area-02-runtime"
     hardware: "virtual-nic"
-    state:
-      administrative: "up"
-      initial_operational: "up"
-    settings:
-      speed_mbps: 10000
-      duplex: "full"
-      mtu: 1500
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10000, duplex: "full", mtu: 1500 }
+    mode: "routed"
+    addresses: []
+    vlans: []
+  - id: "area-01-water-runtime"
+    hardware: "virtual-nic"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10000, duplex: "full", mtu: 1500 }
+    mode: "routed"
+    addresses: []
+    vlans: []
+  - id: "area-01-water-distribution-runtime"
+    hardware: "virtual-nic"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10000, duplex: "full", mtu: 1500 }
+    mode: "routed"
+    addresses: []
+    vlans: []
+  - id: "area-01-return-water-runtime"
+    hardware: "virtual-nic"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10000, duplex: "full", mtu: 1500 }
+    mode: "routed"
+    addresses: []
+    vlans: []
+  - id: "area-01-return-collection-runtime"
+    hardware: "virtual-nic"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10000, duplex: "full", mtu: 1500 }
+    mode: "routed"
+    addresses: []
+    vlans: []
+  - id: "area-01-glaze-runtime"
+    hardware: "virtual-nic"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10000, duplex: "full", mtu: 1500 }
     mode: "routed"
     addresses: []
     vlans: []
@@ -218,6 +248,11 @@ behavior:
     - "management"
   workloads:
     - "ot-area-01-vplc-runtime"
+    - "ot-area-01-water-vplc-runtime"
+    - "ot-area-01-water-distribution-vplc-runtime"
+    - "ot-area-01-return-water-vplc-runtime"
+    - "ot-area-01-return-collection-vplc-runtime"
+    - "ot-area-01-glaze-vplc-runtime"
     - "ot-area-02-vplc-runtime"
     - "ot-area-03-vplc-runtime"
     - "ot-area-04-vplc-runtime"

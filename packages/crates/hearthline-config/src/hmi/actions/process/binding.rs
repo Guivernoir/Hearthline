@@ -206,7 +206,7 @@ impl ControlBindingConfig {
             }
         }
         for phase in self.phase.values.values() {
-            forming_phase(phase)?;
+            validate_process_phase(phase)?;
         }
         Ok(())
     }
@@ -215,6 +215,34 @@ impl ControlBindingConfig {
         self.inputs
             .iter()
             .find_map(|input| (input.source.role() == role).then_some(input.variable.as_str()))
+    }
+}
+
+fn validate_process_phase(value: &str) -> Result<(), ConfigError> {
+    if forming_phase(value).is_ok()
+        || matches!(
+            value,
+            "water-charge"
+                | "deflocculant-charge"
+                | "ball-clay-dose"
+                | "kaolin-dose"
+                | "feldspar-dose"
+                | "quartz-dose"
+                | "wet-mixing"
+                | "screening"
+                | "magnetic-separation"
+                | "conditioning"
+                | "quality-check"
+                | "heating-to-transfer-temperature"
+                | "transfer-to-forming"
+                | "batch-complete"
+        )
+    {
+        Ok(())
+    } else {
+        Err(ConfigError::new(format!(
+            "unknown process phase mapping {value}"
+        )))
     }
 }
 

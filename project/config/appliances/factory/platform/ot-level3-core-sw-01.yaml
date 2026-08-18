@@ -128,18 +128,25 @@ interfaces:
       - 301
   - id: "area-02"
     hardware: "ethernet-sfp"
-    state:
-      administrative: "up"
-      initial_operational: "up"
-    settings:
-      speed_mbps: 10000
-      duplex: "full"
-      mtu: 1500
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10000, duplex: "full", mtu: 1500 }
     mode: "trunk"
     addresses: []
-    vlans:
-      - 102
-      - 302
+    vlans: [102, 302]
+  - id: "area-01-water"
+    hardware: "ethernet-sfp"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10000, duplex: "full", mtu: 1500 }
+    mode: "trunk"
+    addresses: []
+    vlans: [111, 301]
+  - id: "area-01-glaze"
+    hardware: "ethernet-sfp"
+    state: { administrative: "up", initial_operational: "up" }
+    settings: { speed_mbps: 10000, duplex: "full", mtu: 1500 }
+    mode: "trunk"
+    addresses: []
+    vlans: [121, 301]
   - id: "area-02-svi"
     hardware: "virtual-nic"
     mac_address: "02:00:00:30:02:01"

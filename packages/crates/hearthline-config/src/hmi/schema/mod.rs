@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 
+mod body_preparation;
 mod cell;
 mod operator;
+mod phases;
 mod robot;
 mod supervisory;
 
@@ -18,7 +20,7 @@ pub use supervisory::{
     HmiSupervisoryTemplate,
 };
 
-pub const HMI_SCHEMA_VERSION: &str = "0.8.0";
+pub const HMI_SCHEMA_VERSION: &str = "0.9.0";
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -42,6 +44,7 @@ pub struct HmiSnapshot {
     pub recipes: Vec<HmiRecipe>,
     pub active_recipe: Option<String>,
     pub process: Option<HmiProcessState>,
+    pub body_preparation: Option<HmiBodyPreparationState>,
     pub moulds: Vec<HmiMouldProcessState>,
     pub robot: Option<HmiRobotState>,
     pub guarded_cell: Option<HmiGuardedCellState>,
@@ -157,68 +160,10 @@ pub struct HmiProcessPhase {
     pub label: &'static str,
 }
 
-pub(super) const FORMING_PHASES: [HmiProcessPhase; 15] = [
-    HmiProcessPhase {
-        key: "idle",
-        label: "Ready",
-    },
-    HmiProcessPhase {
-        key: "mould-filling",
-        label: "Fill",
-    },
-    HmiProcessPhase {
-        key: "air-pressurizing",
-        label: "Apply air pressure",
-    },
-    HmiProcessPhase {
-        key: "pressure-dwell",
-        label: "Pressure hold",
-    },
-    HmiProcessPhase {
-        key: "depressurizing",
-        label: "Depressurize",
-    },
-    HmiProcessPhase {
-        key: "excess-slip-drain",
-        label: "Drain slip",
-    },
-    HmiProcessPhase {
-        key: "release-water",
-        label: "Release water",
-    },
-    HmiProcessPhase {
-        key: "release-air",
-        label: "Release air",
-    },
-    HmiProcessPhase {
-        key: "mould-opening",
-        label: "Open mould",
-    },
-    HmiProcessPhase {
-        key: "robot-pickup",
-        label: "Robot pickup",
-    },
-    HmiProcessPhase {
-        key: "operator-delivery",
-        label: "Operator handoff",
-    },
-    HmiProcessPhase {
-        key: "mould-wash",
-        label: "Wash",
-    },
-    HmiProcessPhase {
-        key: "cleaning-air-purge",
-        label: "Cleaning air",
-    },
-    HmiProcessPhase {
-        key: "vacuum-dry",
-        label: "Vacuum dry",
-    },
-    HmiProcessPhase {
-        key: "mould-closing",
-        label: "Close mould",
-    },
-];
+pub(super) use phases::{
+    FORMING_PHASES, GLAZE_PREPARATION_PHASES, RETURN_WATER_PHASES, SLIP_PREPARATION_PHASES,
+    WATER_PREPARATION_PHASES,
+};
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -304,6 +249,20 @@ pub enum HmiAction {
         value: String,
     },
     StartProcess,
+    HoldProcess,
+    StartPreparationTrain {
+        train: HmiPreparationTrain,
+    },
+    HoldPreparationTrain {
+        train: HmiPreparationTrain,
+    },
+    SetWaterPumpFailure {
+        pump_id: String,
+        failed: bool,
+    },
+    DispatchWaterPumpMaintenance {
+        pump_id: String,
+    },
     StartMould,
     StopMouldAfterPhase,
     EndMouldAfterCycle,
@@ -372,6 +331,29 @@ pub enum HmiProcessFault {
     MouldOverpressure,
     VacuumLoss,
     RobotPickupFailure,
+    IngredientShortage,
+    MixerOverload,
+    ScreenBlocked,
+    QualityOutOfSpec,
+    TransferNoFlow,
+    RawWaterQuality,
+    WaterFilterBlocked,
+    ReturnWaterContamination,
+    GlazeMillOverload,
+    GlazeQualityOutOfSpec,
+    SlipPipelineLeak,
+    WaterToSlipLeak,
+    WaterToGlazeLeak,
+    GlazePipelineLeak,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum HmiPreparationTrain {
+    Slip,
+    Water,
+    ReturnWater,
+    Glaze,
 }
 
 #[derive(Clone, Copy, Debug, Serialize)]
@@ -400,3 +382,10 @@ pub struct HmiTraceEntry {
     pub stage: String,
     pub detail: String,
 }
+pub use body_preparation::{
+    HmiBodyIngredientState, HmiBodyPreparationPipelineState, HmiBodyPreparationState,
+    HmiBodyQualityCheck, HmiDownstreamMaterialEffects, HmiGlazePreparationState,
+    HmiHandoffPipelineState, HmiPreparationTrainState, HmiReturnWaterState,
+    HmiSlipPreparationState, HmiWaterNetworkState, HmiWaterPreparationState, HmiWaterPumpState,
+    HmiWaterQuality, HmiWaterRouteState,
+};

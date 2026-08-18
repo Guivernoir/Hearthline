@@ -1,0 +1,19 @@
+schema_version: "0.10.0"
+id: "area-01-intlk-01"
+label: "AREA-01-INTLK-01"
+kind: "safety-interface"
+site: "Factory"
+environment: "Body Preparation"
+zone: "OT-AREA-01"
+role: "Body Preparation safety interface"
+summary: "Latches every preparation train safe on E-stop, rotating-equipment guard, drive, containment, or receiving-capacity loss."
+lifecycle: "simulated"
+tags: ["ot-area-01", "slip", "safety"]
+render: [{ view: "factory/process/body-preparation", node: "area-01-intlk-01", mode: "any" }]
+interfaces:
+  - { id: "field-io", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }
+behavior:
+  family: "safety"
+  permissives: ["emergency-stop-healthy", "rotating-equipment-guards-closed", "drives-ready", "spill-containment-healthy", "forming-receiving-capacity-available", "glazing-receiving-capacity-available"]
+  latched_trip: true
+  initially_permissive: ["emergency-stop-healthy", "rotating-equipment-guards-closed", "drives-ready", "spill-containment-healthy", "forming-receiving-capacity-available", "glazing-receiving-capacity-available"]

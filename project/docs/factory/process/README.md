@@ -1,8 +1,9 @@
 # Ceramics Process
 
-The Factory process level contains ten independently enterable functional
-areas. Each area models a cell network, virtual controller, operator interface,
-distributed I/O, representative sensors and actuators, and a safety or
+The Factory process level contains ten independently enterable top-level
+functional areas. Body Preparation is also a gateway to three separate process
+buildings. Each detailed area models its control boundary, operator interface,
+distributed I/O, representative sensors and actuators, and safety or
 permissive role.
 
 ![Ceramics Process physical view](screenshot.png)
@@ -11,9 +12,16 @@ permissive role.
 
 ## Implementation Status
 
-The ordered process canvas and ten process-area views are implemented. Nine
+The ordered process canvas and ten process-area views are implemented. Eight
 areas still use bootstrap JSON for representative presentation relationships.
-Forming is the first detailed and executable area: its view derives 84
+Body Preparation and Forming are detailed executable areas. Body Preparation
+provides a three-building gateway and scoped walkdown/logical views for Slip
+Preparation, Water Preparation and Distribution, and Glaze Preparation. Its
+166 components derive from canonical YAML and include six HMI/vPLC scopes,
+three access switches, seven remote-I/O stations, six safety scopes, eight
+water routes, 16 pumps, and four monitored material handoffs. Four independently controlled Rust trains execute
+changing inventory, material quality, equipment output, release, and fault
+state against explicit public-reference development recipes. Forming derives 84
 components from the generated YAML catalog and separates shared ceramic-slip
 supply, four mould stations, robotic demoulding, the embedded machine-PC
 supervisory application, four mould-local HMIs, an independent robot pendant,
@@ -27,13 +35,18 @@ configured local operator interface is assembled from area YAML with declared
 signal and command scope, alarm and audit state, and a command path executed
 through the operator interface, vPLC, remote I/O, and actuator primitives.
 The first composite resilience scenario also disables both factory-facing
-inter-site handoffs while the Body Preparation HMI resets its healthy safety
+inter-site handoffs while the Slip Preparation HMI resets its healthy safety
 circuit and starts the transfer pump over an independently validated local
-path. Forming additionally runs a deterministic Rust sequence through mould
+path. Body Preparation provides independent Start/Hold/Resume controls,
+quality release, and 14 deterministic fault paths across slip, water,
+return-water, and glaze trains. Released slip updates Forming material
+properties and derived drying/firing indicators; finite inventory and
+downstream drying/kiln consumers remain planned.
+Forming additionally runs a deterministic Rust sequence through mould
 filling, pressure casting, excess-slip drainage, water/air release, robotic
 pickup and handoff, mould washing, air purging, vacuum drying, and mould
 closure. Its bounded Structured Text sequence and explicit YAML I/O binding
-are executable; production-fidelity plant dynamics, the remaining nine area
+are executable; production-fidelity plant dynamics, the remaining eight area
 programs, and broader IEC 61131-3 language support remain unimplemented.
 The Forming machine PC can capture the current process scan and invoke the existing
 brokered factory operations-data path. The resulting typed telemetry packet,
@@ -64,7 +77,7 @@ Body Preparation
 
 | Zone | Area |
 | --- | --- |
-| `OT-AREA-01` | [Body Preparation](material/body-preparation/README.md) |
+| `OT-AREA-01` | [Body Preparation gateway](material/body-preparation/README.md), with separate slip, water preparation/distribution, and glaze buildings |
 | `OT-AREA-02` | [Forming](material/forming/README.md) |
 | `OT-AREA-03` | [Controlled Drying](material/controlled-drying/README.md) |
 | `OT-AREA-04` | [Industrial Dryer](thermal/industrial-dryer/README.md) |
@@ -79,13 +92,18 @@ Body Preparation
 
 The Svelte views currently consume
 [`process-view.json`](../../../../packages/web/src/generated/process-view.json), a versioned
-bootstrap view model for the process sequence and nine representative area
-views. Forming derives its component inventory and descriptions from the
-generated canonical configuration catalog; Svelte retains only its
-presentation grouping and coordinates. Its HMI state, four independent
+bootstrap view model for the process sequence and eight representative area
+views. Body Preparation and Forming derive their component inventories and
+descriptions from the generated canonical configuration catalog; Svelte
+retains only their presentation grouping, building scope, and coordinates.
+Forming HMI state,
+four independent
 accelerated mould cycles, station selector state, mutable development parameters and recipes,
 parsed control-source state, and resolved Forming I/O bindings are supplied by
-the Rust API. Each mould-local HMI owns production enable, Stop, and End for
+the Rust API. Body Preparation supplies independent slip, water, return-water,
+and glaze state, recipes, water inventories, quality checks, phase outputs,
+and validated slip-control-source references through the same API. Each
+mould-local HMI owns production enable, Stop, and End for
 its own sequence; the machine PC supervises without production-start or robot
 authority. The dedicated robot controller provides bounded FIFO arbitration,
 exclusive robot ownership, and mould-specific pickup and handoff completion
@@ -105,7 +123,8 @@ controller. The physical views therefore show:
 - `OT-vPLC-HOST-01/02` as the shared industrial control compute cluster.
 - A dedicated cell VLAN extended from each process-area boundary to its assigned
   runtime.
-- `AREA-xx-RIO-01` as the cell-local distributed I/O station.
+- One or more `AREA-xx-RIO-*` stations as cell-local distributed I/O. Body
+  Preparation uses five stations to separate its process functions.
 - Sensors and actuators terminated at remote I/O rather than directly at the
   virtual workload.
 - Local HMI and safety/status relationships separated from field I/O.

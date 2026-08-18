@@ -178,6 +178,7 @@ impl RobotRuntime {
         self.motion_enabled = enabled;
         if !enabled {
             self.motion.stop();
+            self.program.pause();
         }
     }
 

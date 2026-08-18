@@ -7,6 +7,7 @@
   import OfficeEnvironmentView from "./lib/office/OfficeEnvironmentView.svelte";
   import SecurityConsoleView from "./lib/office/SecurityConsoleView.svelte";
   import FactoryOverview from "./lib/process/FactoryOverview.svelte";
+  import BodyPreparationGateway from "./lib/process/canvas/BodyPreparationGateway.svelte";
   import HmiView from "./lib/process/hmi/HmiView.svelte";
   import ProcessAreaView from "./lib/process/ProcessAreaView.svelte";
   import ProcessCanvas from "./lib/process/canvas/ProcessCanvas.svelte";
@@ -33,6 +34,7 @@
     ViewMode,
     WorkstationRoute,
   } from "./lib/shared/types";
+  import type { BodyPreparationScope } from "./lib/process/layout/body-preparation-area-layout";
 
   type ArchitectureRoute = PlaceId | EnvironmentRoute | ProcessAreaRoute;
   type ConfigRoute = ApplianceConfigRoute | ConnectionConfigRoute;
@@ -52,7 +54,14 @@
     const processAreaKey = route.startsWith("factory/process/")
       ? route.slice("factory/process/".length)
       : "";
-    const isProcessArea = processAreaKey !== "" && findProcessArea(processAreaKey) !== null;
+    const bodyPreparationBuilding = processAreaKey.startsWith("body-preparation/")
+      ? processAreaKey.slice("body-preparation/".length)
+      : "";
+    const isBodyPreparationBuilding = ["slip", "water", "glaze"].includes(
+      bodyPreparationBuilding,
+    );
+    const isProcessArea = processAreaKey !== "" &&
+      (findProcessArea(processAreaKey) !== null || isBodyPreparationBuilding);
     const applianceId = route.startsWith("config/appliances/")
       ? route.slice("config/appliances/".length)
       : "";
@@ -198,6 +207,21 @@
     );
   }
 
+  function enterBodyPreparationBuilding(building: BodyPreparationScope) {
+    const route = `factory/process/body-preparation/${building}` as ProcessAreaRoute;
+    activeRoute = route;
+    window.location.hash = route;
+  }
+
+  function returnToBodyPreparation() {
+    activeRoute = "factory/process/body-preparation";
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}${window.location.search}#factory/process/body-preparation`,
+    );
+  }
+
   function openApplianceConfig(applianceId: string) {
     if (!findAppliance(applianceId)) return;
     openDetailRoute(`config/appliances/${applianceId}` as ApplianceConfigRoute);
@@ -312,6 +336,21 @@
     onBack={returnToFactory}
     onEnterArea={enterProcessArea}
     onOpenAppliance={openApplianceConfig}
+  />
+{:else if activeRoute === "factory/process/body-preparation"}
+  <BodyPreparationGateway
+    bind:viewMode
+    onBack={returnToProcess}
+    onEnterBuilding={enterBodyPreparationBuilding}
+    onOpenHmi={openHmi}
+  />
+{:else if activeRoute.startsWith("factory/process/body-preparation/")}
+  <ProcessAreaView
+    bind:viewMode
+    routeKey={activeRoute.slice("factory/process/".length)}
+    onBack={returnToBodyPreparation}
+    onOpenAppliance={openApplianceConfig}
+    onOpenHmi={openHmi}
   />
 {:else if activeRoute.startsWith("factory/process/")}
   <ProcessAreaView

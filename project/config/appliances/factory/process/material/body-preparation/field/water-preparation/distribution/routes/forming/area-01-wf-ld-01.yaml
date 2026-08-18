@@ -1,0 +1,14 @@
+schema_version: "0.10.0"
+id: "area-01-wf-ld-01"
+label: "AREA-01-WF-LD-01"
+kind: "field-sensor"
+site: "Factory"
+environment: "Body Preparation"
+zone: "OT-AREA-01"
+role: "Forming branch flow balance"
+summary: "Reports the derived branch loss from inlet and destination measurements."
+lifecycle: "simulated"
+tags: ["ot-area-01", "water-pipeline", "forming-branch", "leak-detection"]
+render: [{ view: "factory/process/body-preparation", node: "area-01-wf-ld-01", mode: "any" }]
+interfaces: [{ id: "field-io", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }]
+behavior: { family: "field-sensor", signal_tag: "area-01-wf-ld-01", unit: "percent", minimum: 0, maximum: 100, initial_value: 1 }

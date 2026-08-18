@@ -1,6 +1,6 @@
 use hearthline_engine::{
-    FormingFault, FormingMeasurements, FormingOutputs, FormingPhase, FormingProcess,
-    FormingSetpoints, FormingTrip, SequenceInputs,
+    CeramicSlipBatch, FormingFault, FormingMeasurements, FormingOutputs, FormingPhase,
+    FormingProcess, FormingSetpoints, FormingTrip, SequenceInputs,
 };
 
 use crate::hmi::actions::process::ConfiguredControlProgram;
@@ -214,6 +214,10 @@ impl MouldProcessRuntime {
 
     pub(in crate::hmi) fn set_fault(&mut self, fault: Option<FormingFault>) {
         self.process.set_fault(fault);
+    }
+
+    pub(in crate::hmi) fn apply_slip_batch(&mut self, batch: CeramicSlipBatch) {
+        self.process.apply_slip_batch(batch);
     }
 
     pub(in crate::hmi) fn reset_after_trip(&mut self, safety_ready: bool) -> bool {

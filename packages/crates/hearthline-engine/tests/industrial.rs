@@ -1,6 +1,7 @@
 use hearthline_engine::{
-    Comparison, DropReason, Effect, FormingFault, FormingMeasurements, FormingPhase,
-    FormingProcess, FormingSetpoints, FormingTrip, HistorianBuffer, LogicRule, RobotCellArbiter,
+    BodyPreparationFault, BodyPreparationProcess, Comparison, DropReason, Effect, FormingFault,
+    FormingMeasurements, FormingPhase, FormingProcess, FormingSetpoints, FormingTrip,
+    HistorianBuffer, LogicRule, PUMP_HEARTBEAT_TIMEOUT_MS, PumpMaintenanceState, RobotCellArbiter,
     RobotCellRequestStatus, RobotCellStage, RobotJoints, RobotMotionKind, RobotMotionRuntime,
     RobotPose, RobotWorkspace, SafetyInterface, SequenceAssignment, SequenceCondition,
     SequenceInputs, SequenceProgram, SequenceRuntime, SequenceStep, SequenceTransition,
@@ -57,6 +58,19 @@ fn robot_cell_arbiter_grants_one_mould_and_preserves_fifo_order() {
     assert_eq!(arbiter.stage(), RobotCellStage::Approach);
 }
 
+#[test]
+fn robot_cell_cancellation_does_not_count_as_a_completed_handoff() {
+    let mut arbiter = RobotCellArbiter::default();
+    assert_eq!(arbiter.request("mould-01"), RobotCellRequestStatus::Granted);
+    assert_eq!(arbiter.request("mould-02"), RobotCellRequestStatus::Queued);
+
+    arbiter.cancel("mould-01");
+
+    assert_eq!(arbiter.completed(), 0);
+    assert_eq!(arbiter.active(), Some("mould-02"));
+    assert_eq!(arbiter.stage(), RobotCellStage::Approach);
+}
+
 fn signal(tag: &str, value: SignalValue) -> ProcessSignal {
     ProcessSignal {
         tag: tag.into(),
@@ -66,6 +80,101 @@ fn signal(tag: &str, value: SignalValue) -> ProcessSignal {
     }
 }
 
+#[test]
+fn slip_pipeline_leak_adds_air_and_degrades_the_forming_material_contract() {
+    let mut reference = BodyPreparationProcess::default();
+    reference.start(true).expect("reference slip start");
+    for _ in 0..120 {
+        reference.tick(500);
+        if reference.released_slip().is_some() {
+            break;
+        }
+    }
+    let reference_batch = reference.released_slip().expect("reference released slip");
+
+    let mut leaking = BodyPreparationProcess::default();
+    leaking.start(true).expect("leaking slip start");
+    leaking.set_fault(Some(BodyPreparationFault::SlipPipelineLeak));
+    for _ in 0..120 {
+        leaking.tick(500);
+        if leaking.phase() == hearthline_engine::SlipPhase::Transfer {
+            let line = leaking.measurements().pipelines.slip_to_forming;
+            assert!(line.leak_detected);
+            assert!(line.outlet_flow_l_min < line.inlet_flow_l_min);
+            assert!(line.entrained_air_percent > 3.0);
+        }
+        if leaking.released_slip().is_some() {
+            break;
+        }
+    }
+    let leaking_batch = leaking.released_slip().expect("degraded released slip");
+    assert!(leaking_batch.entrained_air_percent > reference_batch.entrained_air_percent);
+    assert!(
+        leaking_batch.effects.filling_flow_factor < reference_batch.effects.filling_flow_factor
+    );
+    assert!(
+        leaking_batch.effects.green_strength_index < reference_batch.effects.green_strength_index
+    );
+    assert!(
+        leaking_batch.effects.fired_defect_risk_percent
+            > reference_batch.effects.fired_defect_risk_percent
+    );
+    let retained_line = leaking.measurements().pipelines.slip_to_forming;
+    assert!(retained_line.leak_detected);
+    assert!(retained_line.line_loss_percent > 20.0);
+    assert_eq!(leaking.slip_effects_preview(), leaking_batch.effects);
+}
+#[test]
+fn water_distribution_exposes_measured_hydraulics_and_quality() {
+    let mut process = BodyPreparationProcess::default();
+    process.tick(500);
+
+    let networks = process.measurements().water_networks;
+    let header = networks
+        .routes
+        .iter()
+        .find(|route| route.id == "industrial-header")
+        .expect("industrial header");
+    assert!(header.available);
+    assert!(header.inlet_pressure_bar > header.outlet_pressure_bar);
+    assert!(header.outlet_flow_l_min > 0.0);
+    assert_eq!(header.quality.ph, process.measurements().water.product.ph);
+    assert!(networks.pumps.iter().all(|pump| pump.heartbeat_ok));
+}
+#[test]
+fn lost_water_pump_heartbeat_transfers_duty_and_requires_maintenance() {
+    let mut process = BodyPreparationProcess::default();
+    process.tick(500);
+    assert!(process.set_water_pump_failed("area-01-wd-pmp-01a", true));
+    process.tick(PUMP_HEARTBEAT_TIMEOUT_MS);
+
+    let networks = process.measurements().water_networks;
+    let duty = networks
+        .pumps
+        .iter()
+        .find(|pump| pump.id == "area-01-wd-pmp-01a")
+        .expect("duty pump");
+    let standby = networks
+        .pumps
+        .iter()
+        .find(|pump| pump.id == "area-01-wd-pmp-01b")
+        .expect("standby pump");
+    assert!(!duty.heartbeat_ok);
+    assert_eq!(duty.maintenance, PumpMaintenanceState::Required);
+    assert!(standby.running_feedback);
+    assert!(process.dispatch_water_pump_maintenance(duty.id));
+    assert_eq!(
+        process
+            .measurements()
+            .water_networks
+            .pumps
+            .iter()
+            .find(|pump| pump.id == duty.id)
+            .expect("dispatched pump")
+            .maintenance,
+        PumpMaintenanceState::Dispatched
+    );
+}
 #[test]
 fn virtual_plc_scans_on_period_and_updates_output() {
     let mut plc = VirtualPlc::new(
@@ -102,7 +211,6 @@ fn virtual_plc_scans_on_period_and_updates_output() {
         Some(&SignalValue::Bool(true))
     );
 }
-
 #[test]
 fn safety_reset_requires_authorization_and_all_permissives() {
     let mut safety = SafetyInterface::new(
@@ -146,9 +254,13 @@ fn forming_process() -> FormingProcess {
         vacuum_pressure_kpa: 0.0,
         robot_position_mm: 0.0,
         piece_gripped: false,
+        piece_moisture_percent: 20.5,
+        predicted_drying_shrinkage_percent: 2.1,
+        drying_energy_factor: 1.0,
+        green_strength_index: 100.0,
+        fired_defect_risk_percent: 3.0,
     })
 }
-
 #[test]
 fn forming_cycle_changes_measurements_and_returns_to_idle() {
     let mut process = forming_process();
@@ -169,7 +281,6 @@ fn forming_cycle_changes_measurements_and_returns_to_idle() {
     assert!(!process.measurements().piece_gripped);
     assert_eq!(process.scan_count(), 700);
 }
-
 #[test]
 fn forming_cycle_keeps_release_assist_separate_from_mould_cleaning() {
     let mut process = forming_process();

@@ -40,13 +40,16 @@ pub use connection::{
 };
 pub use hmi::{
     HMI_SCHEMA_VERSION, HmiAction, HmiActionReport, HmiActionStatus, HmiActuator, HmiAlarm,
-    HmiAlarmSeverity, HmiAuditEntry, HmiCellGuardState, HmiControlMode, HmiControlProgramDocument,
-    HmiControlProgramState, HmiControlStation, HmiGuardedCellState, HmiHandoffStationState,
-    HmiMouldProcessState, HmiParameter, HmiPermissive, HmiProcessFault, HmiProcessPhase,
-    HmiProcessState, HmiRecipe, HmiRobotAxis, HmiRobotCoordinateSystem, HmiRobotMotionState,
-    HmiRobotPose, HmiRobotProgramLine, HmiRobotProgramState, HmiRobotState, HmiRobotTaughtPosition,
-    HmiRobotWorkspace, HmiSafety, HmiSession, HmiSessionStore, HmiSignal, HmiSnapshot,
-    HmiStationStatus, HmiTraceEntry, build_forming_telemetry_packet,
+    HmiAlarmSeverity, HmiAuditEntry, HmiBodyIngredientState, HmiBodyPreparationState,
+    HmiBodyQualityCheck, HmiCellGuardState, HmiControlMode, HmiControlProgramDocument,
+    HmiControlProgramState, HmiControlStation, HmiDownstreamMaterialEffects,
+    HmiGlazePreparationState, HmiGuardedCellState, HmiHandoffStationState, HmiMouldProcessState,
+    HmiParameter, HmiPermissive, HmiPreparationTrain, HmiPreparationTrainState, HmiProcessFault,
+    HmiProcessPhase, HmiProcessState, HmiRecipe, HmiReturnWaterState, HmiRobotAxis,
+    HmiRobotCoordinateSystem, HmiRobotMotionState, HmiRobotPose, HmiRobotProgramLine,
+    HmiRobotProgramState, HmiRobotState, HmiRobotTaughtPosition, HmiRobotWorkspace, HmiSafety,
+    HmiSession, HmiSessionStore, HmiSignal, HmiSlipPreparationState, HmiSnapshot, HmiStationStatus,
+    HmiTraceEntry, HmiWaterPreparationState, HmiWaterQuality, build_forming_telemetry_packet,
 };
 pub use runtime::{
     ConfiguredAppliance, ConfiguredNetwork, RuntimeDeviceSnapshot, RuntimeFirewallSessionEntry,

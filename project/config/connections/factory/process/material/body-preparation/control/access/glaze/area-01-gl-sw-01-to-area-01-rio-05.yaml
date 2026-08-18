@@ -1,0 +1,9 @@
+schema_version: "0.2.0"
+id: "area-01-gl-sw-01-to-area-01-rio-05"
+label: "Glaze Preparation RIO 5 access link"
+lifecycle: "simulated"
+transport: "ethernet"
+medium: { type: "copper", wiring: "straight-through", category: "cat6a", length_m: 18.0 }
+endpoints: { a: { appliance: "area-01-gl-sw-01", interface: "rio-access-05" }, b: { appliance: "area-01-rio-05", interface: "cell-network" } }
+properties: { capacity_mbps: 1000, latency_ms: 0, loss_every: null, direction: "bidirectional", operational: true }
+tags: ["ot", "ot-area-01", "remote-io"]

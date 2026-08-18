@@ -1,0 +1,18 @@
+schema_version: "0.10.0"
+id: "area-01-gl-intlk-01"
+label: "AREA-01-GL-INTLK-01"
+kind: "safety-interface"
+site: "Factory"
+environment: "Body Preparation"
+zone: "OT-AREA-01"
+role: "Glaze Preparation safety interface"
+summary: "Latches glaze preparation safe on E-stop, mill guard, drive, containment, or receiving-capacity loss."
+lifecycle: "simulated"
+tags: ["ot-area-01", "glaze", "safety"]
+render: [{ view: "factory/process/body-preparation", node: "area-01-gl-intlk-01", mode: "any" }]
+interfaces: [{ id: "field-io", hardware: "field-io-channel", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 10, duplex: "half", mtu: 256 }, mode: "field-io", addresses: [], vlans: [] }]
+behavior:
+  family: "safety"
+  permissives: ["emergency-stop-healthy", "mill-guard-closed", "drives-ready", "spill-containment-healthy", "glazing-receiving-capacity-available"]
+  latched_trip: true
+  initially_permissive: ["emergency-stop-healthy", "mill-guard-closed", "drives-ready", "spill-containment-healthy", "glazing-receiving-capacity-available"]

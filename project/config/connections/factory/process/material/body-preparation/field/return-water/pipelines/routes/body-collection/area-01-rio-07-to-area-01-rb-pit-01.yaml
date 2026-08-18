@@ -1,0 +1,9 @@
+schema_version: "0.2.0"
+id: "area-01-rio-07-to-area-01-rb-pit-01"
+label: "AREA-01-RB-PIT-01 field-I/O channel"
+lifecycle: "simulated"
+transport: "field-io"
+medium: { type: "field-wiring", signal: "area-01-rb-pit-01 process I/O", length_m: 37.0 }
+endpoints: { a: { appliance: "area-01-rio-07", interface: "field-io-01" }, b: { appliance: "area-01-rb-pit-01", interface: "field-io" } }
+properties: { capacity_mbps: 10, latency_ms: 0, loss_every: null, direction: "bidirectional", operational: true }
+tags: ["ot", "ot-area-01", "field-io", "return-pipeline"]

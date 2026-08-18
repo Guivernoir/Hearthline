@@ -1,0 +1,36 @@
+schema_version: "0.10.0"
+id: "area-01-hmi-01"
+label: "AREA-01-HMI-01"
+kind: "hmi"
+site: "Factory"
+environment: "Body Preparation"
+zone: "OT-AREA-01"
+role: "Slip Preparation operator HMI"
+summary: "Operates the slip batching, conditioning, quality-release, and monitored Forming handoff cell."
+lifecycle: "simulated"
+tags: ["ot-area-01", "operator-interface", "interactive", "slip-control-cell"]
+render: [{ view: "factory/process/body-preparation", node: "area-01-hmi-01", mode: "any" }]
+interfaces:
+  - { id: "cell-network", hardware: "ethernet-rj45", state: { administrative: "up", initial_operational: "up" }, settings: { speed_mbps: 1000, duplex: "full", mtu: 1500 }, mode: "access", addresses: [], vlans: [101] }
+behavior:
+  family: "operator-interface"
+  controller: "area-01-vplc-01"
+  permissions: ["observe", "acknowledge-alarms", "authorized-command", "reset-safety", "start-process", "inject-faults", "configure-parameters", "select-recipe", "view-control-source"]
+  signal_tags: ["area-01-wit-01", "area-01-ft-02", "area-01-lt-02", "area-01-tt-01", "area-01-pwt-01", "area-01-dt-01", "area-01-vis-01", "area-01-vis-02", "area-01-thix-01", "area-01-psa-01", "area-01-res-01", "area-01-cr-01", "area-01-tt-02", "area-01-lt-01", "area-01-ft-01", "area-01-slip-pit-01", "area-01-slip-pit-02", "area-01-slip-ft-02", "area-01-slip-ae-01", "area-01-slip-ld-01"]
+  command_tags: ["area-01-xv-02-command", "area-01-dp-01-command", "area-01-feed-01-command", "area-01-feed-02-command", "area-01-feed-03-command", "area-01-feed-04-command", "area-01-ag-01-command", "area-01-scr-01-command", "area-01-mag-01-command", "area-01-ag-02-command", "area-01-ht-01-command", "area-01-xv-01-command", "area-01-pmp-01-command"]
+  safety_components: ["area-01-intlk-01"]
+  parameters:
+    - { id: "body-ball-clay-kg", label: "Ball clay", target: "slip-preparation-cell", unit: "kg", minimum: 200, maximum: 450, step: 1, initial_value: 350 }
+    - { id: "body-kaolin-kg", label: "Kaolin", target: "slip-preparation-cell", unit: "kg", minimum: 80, maximum: 250, step: 1, initial_value: 150 }
+    - { id: "body-feldspar-kg", label: "Feldspar", target: "slip-preparation-cell", unit: "kg", minimum: 150, maximum: 350, step: 1, initial_value: 250 }
+    - { id: "body-quartz-kg", label: "Quartz", target: "slip-preparation-cell", unit: "kg", minimum: 150, maximum: 350, step: 1, initial_value: 250 }
+    - { id: "body-water-kg", label: "Process water", target: "slip-preparation-cell", unit: "kg", minimum: 250, maximum: 450, step: 0.1, initial_value: 333.3 }
+    - { id: "body-sodium-silicate-kg", label: "Sodium silicate", target: "slip-preparation-cell", unit: "kg", minimum: 0.5, maximum: 5, step: 0.05, initial_value: 2 }
+    - { id: "body-mixing-minutes", label: "Wet mixing", target: "slip-preparation-cell", unit: "min", minimum: 30, maximum: 240, step: 5, initial_value: 90 }
+    - { id: "body-conditioning-hours", label: "Conditioning / ageing", target: "slip-preparation-cell", unit: "h", minimum: 1, maximum: 24, step: 0.5, initial_value: 8 }
+    - { id: "body-temperature-c", label: "Slip transfer temperature", target: "slip-preparation-cell", unit: "deg C", minimum: 25, maximum: 45, step: 0.5, initial_value: 40 }
+    - { id: "body-screen-micrometres", label: "Slip screen aperture", target: "slip-preparation-cell", unit: "micrometre", minimum: 90, maximum: 250, step: 5, initial_value: 125 }
+    - { id: "body-mixing-energy-kwh-t", label: "Slip mixing energy", target: "slip-preparation-cell", unit: "kWh/t", minimum: 1, maximum: 8, step: 0.05, initial_value: 3.75 }
+  recipes:
+    - { id: "public-slip-reference", label: "Public slip reference", description: "Development baseline assembled from public ceramic-slip literature; not a production recommendation." }
+  active_recipe: "public-slip-reference"

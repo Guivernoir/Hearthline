@@ -249,7 +249,7 @@ pub struct OperatorInterface {
     id: ComponentId,
     kind: ComponentKind,
     ports: Ports,
-    allowed_command_tags: FixedList<Text<64>, 16>,
+    allowed_command_tags: FixedList<Text<64>, 64>,
     operational: bool,
 }
 

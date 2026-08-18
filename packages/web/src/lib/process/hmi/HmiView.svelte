@@ -4,6 +4,7 @@
     Activity,
     AlarmClock,
     ArrowLeft,
+    BellOff,
     Check,
     CircleGauge,
     Code2,
@@ -32,6 +33,7 @@
   } from "./hmi-api";
   import ControlProgramPanel from "./ControlProgramPanel.svelte";
   import ControlStationPanel from "./ControlStationPanel.svelte";
+  import BodyPreparationWorkspace from "./body-preparation/BodyPreparationWorkspace.svelte";
   import MachinePcWorkspace from "./machine/MachinePcWorkspace.svelte";
   import MouldVisualization from "./machine/MouldVisualization.svelte";
   import RobotPendant from "./machine/RobotPendant.svelte";
@@ -216,6 +218,13 @@
         <section class="hmi-process-panel" aria-label="Process overview">
           <header><span><Waves size={17} />{snapshot.interfaceKind === "scada-workstation" ? "Cell overview" : "Module overview"}</span><small>{snapshot.role}</small></header>
 
+          {#if snapshot.bodyPreparation}
+            <BodyPreparationWorkspace
+              {snapshot}
+              {busyTarget}
+              onExecute={(action: HmiAction, target: string) => void execute(action, target)}
+            />
+          {:else}
           {#if isMouldPanel && localMould}
             <MouldVisualization
               signals={snapshot.signals}
@@ -380,6 +389,7 @@
             </div>
           </section>
           {/if}
+          {/if}
 
           <section class="hmi-safety-section" aria-label="Safety status">
             <header><span><ShieldCheck size={16} />Safety circuit</span><small>{snapshot.safety.length} interface</small></header>
@@ -396,11 +406,13 @@
                 </ul>
                 <button
                   type="button"
-                  disabled={!canResetSafety || !safety.tripLatched || Boolean(busyTarget)}
+                  aria-label={snapshot.guardedCell?.guard.safetyComponent === safety.componentId ? "Clear fence alarm" : `Reset ${safety.label}`}
+                  title={snapshot.guardedCell?.guard.safetyComponent === safety.componentId && !snapshot.guardedCell.guard.closedPermissive ? "Close the access gate before clearing the fence alarm" : "Clear the latched safety trip"}
+                  disabled={!canResetSafety || !safety.tripLatched || Boolean(busyTarget) || (snapshot.guardedCell?.guard.safetyComponent === safety.componentId && !snapshot.guardedCell.guard.closedPermissive)}
                   onclick={() => void execute({ kind: "reset-safety", safetyId: safety.componentId }, safety.componentId)}
                 >
-                  {#if busyTarget === safety.componentId}<LoaderCircle class="spin" size={14} />{:else}<RotateCcw size={14} />{/if}
-                  Reset
+                  {#if busyTarget === safety.componentId}<LoaderCircle class="spin" size={14} />{:else if snapshot.guardedCell?.guard.safetyComponent === safety.componentId}<BellOff size={14} />{:else}<RotateCcw size={14} />{/if}
+                  {snapshot.guardedCell?.guard.safetyComponent === safety.componentId ? "Clear fence alarm" : "Reset"}
                 </button>
               </div>
             {/each}
