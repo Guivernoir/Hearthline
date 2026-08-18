@@ -104,10 +104,9 @@ fn body_preparation_quality_failure_blocks_transfer_until_reset() {
 
     for _ in 0..100 {
         let tick = process.tick(500);
-        if tick.trip.is_some() {
+        if let Some(trip) = tick.trip {
             assert_eq!(
-                tick.trip.expect("trip").code(),
-                "BODY-SLIP-QUALITY-RELEASE-DENIED"
+                trip.code(), "BODY-SLIP-QUALITY-RELEASE-DENIED"
             );
             break;
         }

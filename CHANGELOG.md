@@ -5,6 +5,8 @@ All notable changes to Hearthline are recorded here. Releases follow
 development, so minor releases may include documented configuration or API
 migrations.
 
+## 0.3.2 - XXXX-XX-XX
+
 ## 0.3.1 - 2026-08-17
 
 ### Added
