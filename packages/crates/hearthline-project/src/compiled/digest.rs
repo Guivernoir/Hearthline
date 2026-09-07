@@ -14,7 +14,7 @@ use crate::{ExpandedBlueprint, SourceDigest};
 use super::{COMPILED_PROJECT_SCHEMA_VERSION, ProjectError};
 
 pub(super) fn source_digests(root: &Path) -> Result<Vec<SourceDigest>, ProjectError> {
-    let mut paths = WalkDir::new(root)
+    let paths = WalkDir::new(root)
         .follow_links(false)
         .into_iter()
         .map(|entry| entry.map_err(ProjectError::io))
@@ -24,22 +24,20 @@ pub(super) fn source_digests(root: &Path) -> Result<Vec<SourceDigest>, ProjectEr
         .map(|entry| entry.into_path())
         .filter(|path| path.file_name().and_then(|name| name.to_str()) != Some("model.lock.json"))
         .collect::<Vec<_>>();
-    paths.sort();
-    paths
+    let mut sources = paths
         .into_iter()
         .map(|path| {
             let bytes = fs::read(&path).map_err(ProjectError::io)?;
-            Ok(SourceDigest {
-                path: path
-                    .strip_prefix(root)
-                    .unwrap_or(&path)
-                    .to_string_lossy()
-                    .replace('\\', "/"),
-                kind: source_kind(&path).into(),
+            let relative_path = portable_relative_path(root, &path);
+            Ok::<_, ProjectError>(SourceDigest {
+                kind: source_kind(&relative_path).into(),
+                path: relative_path,
                 sha256: sha256(&bytes),
             })
         })
-        .collect()
+        .collect::<Result<Vec<_>, _>>()?;
+    sources.sort_by(|left, right| left.path.cmp(&right.path));
+    Ok(sources)
 }
 
 pub(super) fn object_digests(
@@ -149,19 +147,26 @@ pub(super) fn project_digest(
     Ok(sha256(&normalized))
 }
 
-fn source_kind(path: &Path) -> &'static str {
-    let value = path.to_string_lossy();
-    if value.contains("/blueprints/") {
+fn portable_relative_path(root: &Path, path: &Path) -> String {
+    path.strip_prefix(root)
+        .unwrap_or(path)
+        .to_string_lossy()
+        .replace('\\', "/")
+}
+
+fn source_kind(relative_path: &str) -> &'static str {
+    let top_level = relative_path.split('/').next().unwrap_or_default();
+    if top_level == "blueprints" {
         "blueprint"
-    } else if value.contains("/instances/") {
+    } else if top_level == "instances" {
         "instance"
-    } else if value.contains("/appliances/") {
+    } else if top_level == "appliances" {
         "appliance"
-    } else if value.contains("/connections/") {
+    } else if top_level == "connections" {
         "connection"
-    } else if value.contains("/scenarios/") {
+    } else if top_level == "scenarios" {
         "scenario"
-    } else if value.ends_with(".st") || value.ends_with(".g") {
+    } else if relative_path.ends_with(".st") || relative_path.ends_with(".g") {
         "control-program"
     } else {
         "project"
@@ -170,4 +175,29 @@ fn source_kind(path: &Path) -> &'static str {
 
 pub(super) fn sha256(bytes: &[u8]) -> String {
     sha256_hex(Sha256::digest(bytes).as_slice())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{portable_relative_path, source_kind};
+    use std::path::Path;
+
+    #[test]
+    fn source_paths_and_kinds_are_platform_neutral() {
+        assert_eq!(
+            portable_relative_path(Path::new("."), Path::new(r"appliances\customer\pc.yaml")),
+            "appliances/customer/pc.yaml"
+        );
+        for (path, expected) in [
+            ("appliances/customer/pc.yaml", "appliance"),
+            ("blueprints/factory-cell.yaml", "blueprint"),
+            ("connections/customer/pc-switch.yaml", "connection"),
+            ("instances/factory-one.yaml", "instance"),
+            ("scenarios/customer-dns.yaml", "scenario"),
+            ("controls/forming.g", "control-program"),
+            ("runtime/capacity.yaml", "project"),
+        ] {
+            assert_eq!(source_kind(path), expected, "unexpected kind for {path}");
+        }
+    }
 }
