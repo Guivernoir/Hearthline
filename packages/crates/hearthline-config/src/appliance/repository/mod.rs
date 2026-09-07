@@ -6,7 +6,8 @@ use crate::connection::ConnectionRepository;
 
 use super::{
     APPLIANCE_SCHEMA_VERSION, ApplianceConfig, ConfigError, FRONTEND_CATALOG_SCHEMA_VERSION,
-    FrontendAppliance, FrontendApplianceCatalog, collect_yaml_paths, source_revision,
+    FrontendAppliance, FrontendApplianceCatalog, canonical_source_text, collect_yaml_paths,
+    source_revision,
 };
 
 mod process_view;
@@ -90,6 +91,7 @@ impl ConfigRepository {
                     ConfigError::new(format!("cannot read {}: {error}", path.display()))
                 })?
             };
+            let source_yaml = canonical_source_text(&source_yaml).into_owned();
             let config =
                 ApplianceConfig::from_yaml(&source_yaml).map_err(|error| error.with_path(&path))?;
             let expected_file = format!("{}.yaml", config.id);

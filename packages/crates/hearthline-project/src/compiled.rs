@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use hearthline_config::{
     APPLIANCE_SCHEMA_VERSION, CONNECTION_SCHEMA_VERSION, ConfigRepository, ConnectionRepository,
     ProcessViewConfig, RUNTIME_CAPACITY_SCHEMA_VERSION, RuntimeCapacityManifest,
-    SCENARIO_SCHEMA_VERSION, ScenarioRepository,
+    SCENARIO_SCHEMA_VERSION, ScenarioRepository, source_revision,
 };
 use hearthline_engine::{
     MediaLink, RUNTIME_COMPONENT_HANDLE_BYTES, Simulator, appliance_contracts,
@@ -225,9 +225,12 @@ impl ProjectCompiler {
         let mut expected = compiled.model_lock.clone();
         expected.update_reason = lock.update_reason.clone();
         if lock != expected {
+            let difference = lock
+                .first_difference(&expected)
+                .unwrap_or_else(|| "unknown field".into());
             return Err(ProjectError::Lock(format!(
-                "{} is stale; run model lock --update with a review reason",
-                lock_path.display()
+                "{} is stale at {difference}; run model lock --update with a review reason",
+                lock_path.display(),
             )));
         }
         compiled.verify_generated_catalogs()?;
@@ -242,13 +245,13 @@ impl CompiledProject {
         })?;
         for expected in &self.model_lock.generated_catalogs {
             let path = repository.join(&expected.path);
-            let source = fs::read(&path).map_err(|error| {
+            let source = fs::read_to_string(&path).map_err(|error| {
                 ProjectError::Lock(format!(
                     "cannot read generated catalog {}: {error}",
                     path.display()
                 ))
             })?;
-            if sha256(&source) != expected.sha256 {
+            if source_revision(&source) != expected.sha256 {
                 return Err(ProjectError::Lock(format!(
                     "generated catalog {} differs from compiled model",
                     expected.path

@@ -81,6 +81,87 @@ impl ModelLock {
             ModelLockStatus::Stale
         }
     }
+
+    pub fn first_difference(&self, expected: &Self) -> Option<String> {
+        for (field, equal) in [
+            (
+                "schema_version",
+                self.schema_version == expected.schema_version,
+            ),
+            (
+                "compiler_version",
+                self.compiler_version == expected.compiler_version,
+            ),
+            (
+                "schema_versions",
+                self.schema_versions == expected.schema_versions,
+            ),
+            (
+                "partition_assignments",
+                self.partition_assignments == expected.partition_assignments,
+            ),
+            ("capacity", self.capacity == expected.capacity),
+            (
+                "update_reason",
+                self.update_reason == expected.update_reason,
+            ),
+        ] {
+            if !equal {
+                return Some(field.into());
+            }
+        }
+        digest_difference("sources", &self.sources, &expected.sources)
+            .or_else(|| {
+                digest_difference(
+                    "object_digests",
+                    &self.object_digests,
+                    &expected.object_digests,
+                )
+            })
+            .or_else(|| {
+                digest_difference(
+                    "generated_catalogs",
+                    &self.generated_catalogs,
+                    &expected.generated_catalogs,
+                )
+            })
+            .or_else(|| {
+                (self.project_digest != expected.project_digest).then(|| "project_digest".into())
+            })
+    }
+}
+
+fn digest_difference(
+    field: &str,
+    locked: &[SourceDigest],
+    compiled: &[SourceDigest],
+) -> Option<String> {
+    if locked.len() != compiled.len() {
+        return Some(format!(
+            "{field}.length (locked {}, compiled {})",
+            locked.len(),
+            compiled.len()
+        ));
+    }
+    locked
+        .iter()
+        .zip(compiled)
+        .enumerate()
+        .find_map(|(index, (locked, compiled))| {
+            if locked == compiled {
+                None
+            } else {
+                Some(format!(
+                    "{field}[{index}] (locked {}:{} {}, compiled {}:{} {})",
+                    locked.kind,
+                    locked.path,
+                    locked.sha256,
+                    compiled.kind,
+                    compiled.path,
+                    compiled.sha256
+                ))
+            }
+        })
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

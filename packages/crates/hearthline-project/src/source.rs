@@ -1,6 +1,7 @@
 use std::fmt::Write as _;
 use std::path::PathBuf;
 
+use hearthline_config::canonical_source_text;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -41,9 +42,10 @@ impl ModelSourceDocument {
 
     pub fn digest(&self) -> String {
         let mut digest = Sha256::new();
-        digest.update(self.path.to_string_lossy().as_bytes());
+        let path = self.path.to_string_lossy().replace('\\', "/");
+        digest.update(path.as_bytes());
         digest.update([0]);
-        digest.update(self.source.as_bytes());
+        digest.update(canonical_source_text(&self.source).as_bytes());
         sha256_hex(digest.finalize().as_slice())
     }
 }

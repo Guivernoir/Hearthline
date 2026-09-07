@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use crate::appliance::{ConfigError, ConfigRepository, source_revision};
+use crate::appliance::{ConfigError, ConfigRepository, canonical_source_text, source_revision};
 
 use super::{
     ConnectionConfig, FrontendConnection, collect_yaml_paths,
@@ -74,6 +74,7 @@ impl ConnectionRepository {
                     ConfigError::new(format!("cannot read {}: {error}", path.display()))
                 })?
             };
+            let source_yaml = canonical_source_text(&source_yaml).into_owned();
             let config = ConnectionConfig::from_yaml(&source_yaml)
                 .map_err(|error| ConfigError::new(format!("{}: {error}", path.display())))?;
             let expected_file = format!("{}.yaml", config.id);

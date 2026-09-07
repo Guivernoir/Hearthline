@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 
 use hearthline_config::{
-    ConfigRepository, ConnectionRepository, ProcessViewConfig, ScenarioRepository,
+    ConfigRepository, ConnectionRepository, ProcessViewConfig, ScenarioRepository, source_revision,
 };
 use serde::Serialize;
 use sha2::{Digest, Sha256};
@@ -27,12 +27,12 @@ pub(super) fn source_digests(root: &Path) -> Result<Vec<SourceDigest>, ProjectEr
     let mut sources = paths
         .into_iter()
         .map(|path| {
-            let bytes = fs::read(&path).map_err(ProjectError::io)?;
+            let source = fs::read_to_string(&path).map_err(ProjectError::io)?;
             let relative_path = portable_relative_path(root, &path);
             Ok::<_, ProjectError>(SourceDigest {
                 kind: source_kind(&relative_path).into(),
                 path: relative_path,
-                sha256: sha256(&bytes),
+                sha256: source_revision(&source),
             })
         })
         .collect::<Result<Vec<_>, _>>()?;
@@ -61,7 +61,7 @@ pub(super) fn object_digests(
         .chain(scenarios.scenarios().map(|item| SourceDigest {
             path: item.config.id.clone(),
             kind: "scenario".into(),
-            sha256: sha256(item.source_yaml.as_bytes()),
+            sha256: source_revision(&item.source_yaml),
         }))
         .chain(blueprints.iter().flat_map(|blueprint| {
             let nodes = blueprint.nodes.iter().map(|node| SourceDigest {
@@ -103,12 +103,12 @@ pub(super) fn generated_catalog_digests(
         (
             "packages/web/src/generated/appliance-configs.json",
             serde_json::to_string(&appliances.frontend_catalog(connections))
-                .map(|source| format!("{source}\n").into_bytes()),
+                .map(|source| format!("{source}\n")),
         ),
         (
             "packages/web/src/generated/process-view.json",
             serde_json::to_string(&process.into_frontend(appliances)?)
-                .map(|source| format!("{source}\n").into_bytes()),
+                .map(|source| format!("{source}\n")),
         ),
     ];
     catalogs
@@ -117,7 +117,7 @@ pub(super) fn generated_catalog_digests(
             Ok(SourceDigest {
                 path: path.into(),
                 kind: "generated-catalog".into(),
-                sha256: sha256(
+                sha256: source_revision(
                     &source.map_err(|error| ProjectError::Configuration(error.to_string()))?,
                 ),
             })
@@ -180,16 +180,21 @@ pub(super) fn sha256(bytes: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::{portable_relative_path, source_kind};
+    use hearthline_config::source_revision;
     use std::path::Path;
 
     #[test]
-    fn source_paths_and_kinds_are_platform_neutral() {
+    fn source_paths_kinds_and_newlines_are_platform_neutral() {
+        let windows_path =
+            portable_relative_path(Path::new("."), Path::new(r"appliances\customer\pc.yaml"));
+        assert_eq!(windows_path, "appliances/customer/pc.yaml");
+        assert_eq!(source_kind(&windows_path), "appliance");
         assert_eq!(
-            portable_relative_path(Path::new("."), Path::new(r"appliances\customer\pc.yaml")),
-            "appliances/customer/pc.yaml"
+            source_revision("id: pc\nstate: up\n"),
+            source_revision("id: pc\r\nstate: up\r\n")
         );
+
         for (path, expected) in [
-            ("appliances/customer/pc.yaml", "appliance"),
             ("blueprints/factory-cell.yaml", "blueprint"),
             ("connections/customer/pc-switch.yaml", "connection"),
             ("instances/factory-one.yaml", "instance"),

@@ -41,7 +41,7 @@ pub use schema::{
 };
 pub use support::ConfigError;
 #[doc(hidden)]
-pub use support::source_revision;
+pub use support::{canonical_source_text, source_revision};
 
 use application::{application_gateway_facts, validate_application_gateway, validate_dns_records};
 use support::{

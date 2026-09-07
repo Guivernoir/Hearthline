@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 
 use hearthline_model::{ComponentKind, Ipv4InterfaceAddress};
 
-use crate::{ConfigError, ConfigRepository, ConnectionRepository};
+use crate::{ConfigError, ConfigRepository, ConnectionRepository, canonical_source_text};
 
 use super::{
     ScenarioConfig, ScenarioConnectionState, ScenarioFirewallHaState, ScenarioFirstHopState,
@@ -51,6 +51,7 @@ impl ScenarioRepository {
             let source_yaml = fs::read_to_string(&path).map_err(|error| {
                 ConfigError::new(format!("cannot read {}: {error}", path.display()))
             })?;
+            let source_yaml = canonical_source_text(&source_yaml).into_owned();
             let config = ScenarioConfig::from_yaml(&source_yaml)
                 .map_err(|error| ConfigError::new(format!("{}: {error}", path.display())))?;
             let expected_file = format!("{}.yaml", config.id);

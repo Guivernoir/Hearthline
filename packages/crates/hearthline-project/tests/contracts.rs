@@ -24,10 +24,16 @@ fn model_source_documents_have_content_and_path_sensitive_digests() {
         ModelSourceKind::Blueprint,
         "id: other\n".into(),
     );
+    let windows_checkout = ModelSourceDocument::new(
+        PathBuf::from(r"blueprints\cell.yaml"),
+        ModelSourceKind::Blueprint,
+        "id: cell\r\n".into(),
+    );
     assert_eq!(first.schema_version, MODEL_SOURCE_SCHEMA_VERSION);
     assert_eq!(first.digest(), same.digest());
     assert_ne!(first.digest(), different_path.digest());
     assert_ne!(first.digest(), different_source.digest());
+    assert_eq!(first.digest(), windows_checkout.digest());
     assert_eq!(first.digest().len(), 64);
 
     let kinds = [

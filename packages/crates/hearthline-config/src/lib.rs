@@ -33,7 +33,7 @@ pub use appliance::{
     SupervisoryDeploymentNodeConfig, SupervisoryHistoryConfig, SupervisoryIdentityConfig,
     SupervisoryNodeRoleConfig, SupervisoryNodeStateConfig, SupervisoryProfileConfig,
     SupervisoryRepositoryConfig, SupervisoryRoleConfig, SupervisoryTemplateConfig,
-    UtilityMediumConfig, source_revision,
+    UtilityMediumConfig, canonical_source_text, source_revision,
 };
 pub use connection::{
     CONNECTION_SCHEMA_VERSION, ConnectionConfig, ConnectionDirection, ConnectionEndpoint,

@@ -2,14 +2,13 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use hearthline_config::source_revision;
 use hearthline_model::ComponentId;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 use walkdir::WalkDir;
 
 use crate::ProjectError;
-use crate::source::sha256_hex;
 
 pub const BLUEPRINT_SCHEMA_VERSION: &str = "0.1.0";
 const PREVIOUS_BLUEPRINT_SCHEMA_VERSION: &str = "0.0.1";
@@ -220,10 +219,7 @@ impl BlueprintRepository {
             let definition = BlueprintDefinition::from_yaml(source)?;
             if repository
                 .definitions
-                .insert(
-                    definition.id.clone(),
-                    (definition, sha256(source.as_bytes())),
-                )
+                .insert(definition.id.clone(), (definition, source_revision(source)))
                 .is_some()
             {
                 return Err(ProjectError::Blueprint("duplicate blueprint".into()));
@@ -251,7 +247,7 @@ impl BlueprintRepository {
             let source = fs::read_to_string(&path).map_err(ProjectError::io)?;
             let definition = BlueprintDefinition::from_yaml(&source)
                 .map_err(|error| ProjectError::Blueprint(format!("{}: {error}", path.display())))?;
-            let digest = sha256(source.as_bytes());
+            let digest = source_revision(&source);
             if repository
                 .definitions
                 .insert(definition.id.clone(), (definition, digest))
@@ -532,8 +528,4 @@ fn yaml_paths(root: &Path) -> Result<Vec<PathBuf>, ProjectError> {
         .collect::<Vec<_>>();
     paths.sort();
     Ok(paths)
-}
-
-fn sha256(bytes: &[u8]) -> String {
-    sha256_hex(Sha256::digest(bytes).as_slice())
 }

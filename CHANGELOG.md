@@ -100,8 +100,8 @@ migrations.
 - Produced resolvable OpenAPI component schemas, declared every templated path
   parameter, and generated a callable TypeScript model API client used by the
   configuration editor.
-- Normalized model source paths before classification and ordering so Windows
-  checkouts produce the same lock and golden-replay authority as Unix hosts.
+- Canonicalized model source paths and text newlines before lock hashing so
+  Windows and Unix checkouts produce the same lock and golden-replay authority.
 - Prevented recurrence of the Body Preparation HMI stack overflow by moving
   large construction work off constrained caller stacks and adding explicit
   construction, snapshot, projection, and replay stack tests.

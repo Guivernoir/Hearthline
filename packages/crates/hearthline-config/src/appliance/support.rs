@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter, Write as _};
 use std::fs;
@@ -82,10 +83,19 @@ pub(super) fn join_numbers(values: &[u16]) -> String {
 }
 
 pub fn source_revision(source: &str) -> String {
-    let digest = Sha256::digest(source.as_bytes());
+    let canonical = canonical_source_text(source);
+    let digest = Sha256::digest(canonical.as_bytes());
     let mut revision = String::with_capacity(digest.len() * 2);
     for byte in digest {
         write!(&mut revision, "{byte:02x}").expect("writing to a String cannot fail");
     }
     revision
+}
+
+pub fn canonical_source_text(source: &str) -> Cow<'_, str> {
+    if source.contains('\r') {
+        Cow::Owned(source.replace("\r\n", "\n").replace('\r', "\n"))
+    } else {
+        Cow::Borrowed(source)
+    }
 }
