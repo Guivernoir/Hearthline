@@ -2,9 +2,10 @@ use core::net::Ipv4Addr;
 
 use criterion::{BatchSize, Criterion, black_box, criterion_group, criterion_main};
 use hearthline_engine::{
-    ConnectionMedium, CopperCategory, CopperMedium, CopperWiring, LinkAppliance, LinkEndpoint,
-    LinkMode, MediaLink, MediaLinkConfig, PortDuplex, PortHardwareKind, PortSettings, PortState,
-    PortStateConfig, RoutedInterface, RoutingTable, ServiceNode, SimulatedPort, Simulator,
+    BodyPreparationProcess, ConnectionMedium, CopperCategory, CopperMedium, CopperWiring,
+    LinkAppliance, LinkEndpoint, LinkMode, MediaLink, MediaLinkConfig, PortDuplex,
+    PortHardwareKind, PortSettings, PortState, PortStateConfig, RoutedInterface, RoutingTable,
+    ServiceNode, SimulatedPort, Simulator,
 };
 use hearthline_model::{
     ApplicationData, ComponentId, ComponentKind, EthernetFrame, Ipv4Cidr, Ipv4InterfaceAddress,
@@ -120,7 +121,7 @@ fn benchmark_traversal(criterion: &mut Criterion) {
                         config: CopperMedium {
                             wiring: CopperWiring::StraightThrough,
                             category: CopperCategory::Cat6a,
-                            length_m: 10.0,
+                            length: hearthline_model::Position::from_raw(10_000_000),
                         },
                     },
                 )
@@ -142,5 +143,29 @@ fn benchmark_traversal(criterion: &mut Criterion) {
     });
 }
 
-criterion_group!(runtime, benchmark_routes, benchmark_traversal);
+fn benchmark_body_preparation(criterion: &mut Criterion) {
+    criterion.bench_function("body_preparation_batch", |bencher| {
+        bencher.iter_batched(
+            || {
+                let mut process = BodyPreparationProcess::default();
+                process.start(true).expect("benchmark batch start");
+                process
+            },
+            |mut process| {
+                while process.released_slip().is_none() {
+                    process.tick(500);
+                }
+                black_box(process.released_slip())
+            },
+            BatchSize::SmallInput,
+        );
+    });
+}
+
+criterion_group!(
+    runtime,
+    benchmark_routes,
+    benchmark_traversal,
+    benchmark_body_preparation
+);
 criterion_main!(runtime);

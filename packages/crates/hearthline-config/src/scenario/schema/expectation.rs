@@ -2,7 +2,7 @@ use hearthline_model::ComponentId;
 use serde::{Deserialize, Serialize};
 
 use crate::ConfigError;
-use crate::runtime::parse_service_kind;
+use crate::service::parse_service_kind;
 
 use super::require_value;
 

@@ -31,7 +31,7 @@ PLC runtimes, and hardware-in-the-loop laboratories remain external validation
 targets where their fidelity is required.
 
 This decision increases the verification burden. A feature is not considered
-implemented merely because the Svelte application can draw it or YAML can
+implemented merely because the SvelteKit application can draw it or YAML can
 describe it. Claims require parsed input, deterministic evaluation, diagnostics,
 repeatable scenarios, and tests at the appropriate abstraction level.
 
@@ -91,7 +91,7 @@ Ladder / PLCopen XML ------+          +--> topology and addressing validation
                                          Generated JSON
                                                 |
                                                 v
-                                  Static Svelte architecture application
+                                  Static SvelteKit architecture application
 
 Structured Text / Ladder --> virtual PLC runtime --> simulated I/O
                                                        |
@@ -99,25 +99,28 @@ Structured Text / Ladder --> virtual PLC runtime --> simulated I/O
                                               Rust plant model
 ```
 
-The Svelte application may filter, select, highlight paths, and inspect
+The SvelteKit application may filter, select, highlight paths, and inspect
 scenario results. It must not become a second routing, policy, PLC, or process
 engine.
 
 ## Current Frontend Contracts
 
-The initial process view model is
+The generated process view model is
 [`packages/web/src/generated/process-view.json`](../../../packages/web/src/generated/process-view.json).
-It defines:
+Rust derives it from the validated process-topology YAML and canonical
+appliance repository. It defines:
 
 - Ten ordered process areas with stable routes.
 - Individual component records and roles.
-- Upstream presentation relationships.
-- Future canonical configuration references.
+- Network and material-flow relationships.
+- Canonical configuration references.
 - A versioned schema marker.
 
-This bootstrap establishes the process presentation contract. It is not
-evidence that area connectivity, control-source references, I/O bindings,
-simulation state, or scenario outcomes have been validated.
+This derivative establishes the process presentation contract. Its generation
+validates identities, routes, area references, and topology-edge endpoints. It
+is not evidence that every configured edge has executable communication,
+control-source references and I/O bindings are complete, or all scenario
+outcomes have been validated.
 
 The appliance configuration catalog is
 [`packages/web/src/generated/appliance-configs.json`](../../../packages/web/src/generated/appliance-configs.json).
@@ -125,32 +128,42 @@ Rust generates it from 394 parsed per-appliance and 450 per-connection YAML
 files. It provides stable IDs, typed kind and behavior-family metadata,
 resolved connection endpoints, lifecycle state, source revisions, full source
 text, and environment-scoped render bindings. Svelte uses this derivative
-catalog for appliance and connection inspection. A localhost Rust API accepts
-revision-checked edits and regenerates the catalog only after whole-project
-validation succeeds.
+catalog for appliance and connection inspection. A loopback Rust API accepts
+revisioned draft overlays and commits source, model lock, and catalogs together
+only after complete overlay validation succeeds.
 
 ## Current Rust Foundation
 
-The initial Rust workspace now contains:
+The `0.3.2` Rust workspace contains:
 
 - `hearthline-model` for stable identifiers, appliance kinds, network data, and
   process events without `std` or heap allocation.
 - `hearthline-engine` for allocator-free deterministic appliance behavior,
   process-component behavior, event scheduling, trace output, and drop reasons.
-- `hearthline-config` for host-side appliance and connection parsing,
-  filesystem repositories, cross-file validation, and frontend projection.
-- `hearthline-api` for localhost-only validated and atomic configuration
-  editing plus configured scenario catalog and execution.
-- `hearthline-cli` for behavior-catalog inspection, rendered-role coverage,
-  configuration validation and generation, a hand-built forwarding
-  demonstration, and versioned YAML-built scenarios.
+- `hearthline-config` for versioned YAML contracts, validation, and current or
+  immediately previous schema migration.
+- `hearthline-project` for blueprint expansion, normalized graph compilation,
+  capacity planning, locking, generated catalogs, and draft transactions.
+- `hearthline-sim` for dynamically composed site/cell runtimes, bounded
+  conduits, deterministic scheduling, snapshots, recording, and replay.
+- `hearthline-operator` for typed commands, permissions, projections, and
+  model-revision-pinned operator sessions.
+- `hearthline-api` and `hearthline-cli` as loopback HTTP and command-line
+  adapters over those packages.
+- `xtask` for Cargo-metadata dependency policy, Rust-AST runtime policy, and
+  generated OpenAPI/JSON Schema/TypeScript contract drift.
 
 External integration suites cover switching, static routing, PAT, stateful
 policy, connectors, DNS, services, web gateways, controller scans, media
-compatibility, and safety behavior. Selected endpoint, switch, router, NAT
-router, stateful firewall, DNS, web-server, web-gateway, HMI, virtual-PLC,
-remote-I/O, field-device, safety-interface, and link components are now
-constructed from YAML. Thirty versioned end-to-end scenarios cover
+compatibility, and safety behavior. All 394 canonical appliances and 450
+connections compile into an immutable 29-cell canonical project;
+selected endpoint, switch, router, NAT router, stateful firewall, DNS,
+web-server, web-gateway, HMI, virtual-PLC, remote-I/O, field-device,
+safety-interface, and link paths have executable scenario evidence. A central
+capacity compiler measures 255 accepted assessments with explicit saturation
+behavior and at least 25 percent reserve before the graph is accepted. Host-side
+composition has no project-wide site, factory, or cell ceiling; each cell keeps
+fixed allocator-free engine limits. Thirty versioned end-to-end scenarios cover
 independent customer public paths, Business IT PC-01 through PC-04 internal DNS
 and HTTPS, approved or denied factory operations-data transfer, Forming
 controller-to-Level-3 collection, Level-3-to-DMZ replication, three
@@ -171,11 +184,14 @@ remains operational; passing requires the expected historian-path failure and
 the configured local pump command. Rust exposes each trace through the local API and
 Svelte simulation workspace; security evidence can also
 enter a bounded Central SOC session. The engine does not yet execute the
-complete rendered topology. The YAML pipeline cross-validates connection
+complete rendered topology continuously or prove arbitrary reachability. The
+YAML pipeline cross-validates connection
 endpoints, appliance port hardware, port state and settings, physical-media
 compatibility and capacity, point-to-point port ownership, and each selected
 scenario path; broader policy, service, controller-program, and process-state
-scenarios remain pending.
+scenarios remain pending. Six compact golden artifacts record representative
+network, safety, Forming, Body Preparation, overload, and recovery behavior with
+component/field divergence diagnostics.
 
 ## YAML Scope
 
@@ -270,7 +286,7 @@ The engine milestones are:
 5. Evaluate complete declared flows using the existing component primitives.
 6. Explain the selected path or exact denial reason.
 7. Parse supported control sources and resolve symbols, tasks, tags, and I/O.
-8. Emit stable JSON for the Svelte application.
+8. Emit stable JSON for the SvelteKit application.
 9. Execute positive, negative, process, and fault scenarios in CI.
 
 The reference deployment keeps physical vPLC hosts in factory-local Level 3
@@ -291,8 +307,12 @@ packet emulator or substitute for qualified hardware testing.
 |   |   |-- hearthline-model
 |   |   |-- hearthline-engine
 |   |   |-- hearthline-config
+|   |   |-- hearthline-project
+|   |   |-- hearthline-sim
+|   |   |-- hearthline-operator
 |   |   |-- hearthline-api
 |   |   `-- hearthline-cli
+|   |-- xtask
 |   |-- fuzz
 |   `-- web
 |-- project
@@ -323,11 +343,11 @@ for 60 seconds per workstation across browser, `curl`, `ping`, and SSH actions;
 endpoint resolver state. A compatible scenario-session runner now follows it:
 each workstation owns a union baseline topology with monotonic simulator time,
 retained endpoint ARP and customer PAT state, and action-relative reports.
-Controlled resilience contracts remain isolated by design. Broader inspection,
-mutation, and formal contracts for switch, router, firewall, and connector
-session state remain planned. Complete topology
-construction and deeper network cross-validation follow; later steps remain
-unimplemented unless stated otherwise in the repository-level README.
+Controlled resilience contracts remain isolated by design. The complete
+topology now compiles, locks, and receives capacity evidence, while broader
+inspection, mutation, arbitrary-path execution, and deeper network
+cross-validation remain planned. Later steps remain unimplemented unless
+stated otherwise in the repository-level README.
 
 All ten process areas have configured operator sessions. Forming includes one
 embedded machine-PC supervisory scope, four mould-local HMI scopes, and one
@@ -376,10 +396,12 @@ behavior.
    reference rules.
 7. Translate remaining site and environment presentation data into canonical
    inputs.
-8. Extend parsed component construction to behavior families not yet supported.
-9. Assemble routing, NAT, stateful-policy, and conduit primitives into broader
-   configured topologies.
-10. Extend versioned JSON generation to topology and scenario data.
+8. Replace unaddressed and provisional adapters with complete configured
+   behavior as executable values mature.
+9. Extend formal boundary-media communication through additional compiled
+   component families without creating one plant-sized runtime.
+10. Migrate repeated process cells and presentation structures to typed
+    blueprint instances while retaining unique direct YAML assets.
 11. Add positive and negative network scenarios.
 12. Replace provisional configuration and architecture content with
     scenario-derived, cross-validated engineering definitions.
@@ -387,7 +409,8 @@ behavior.
     interchange formats before broadening the implemented Forming subset.
 14. Extend control parsing and I/O cross-reference validation to selected
     constructs and additional process areas.
-15. Extend source-driven virtual PLC execution beyond Forming.
+15. Extend source-driven virtual PLC execution beyond Forming and the Body
+    Preparation slip train.
 16. Extend process state, accelerated time, material tracking, and fault
     injection beyond the first Forming implementation.
 17. Add device-family-specific rendering only as a separate tested capability.

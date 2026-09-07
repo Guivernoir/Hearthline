@@ -1,13 +1,14 @@
 use heapless::Vec as FixedList;
 use hearthline_model::{ComponentId, ComponentKind, PortId};
 
+use crate::capacity::MONITOR_PORT_CAPACITY;
 use crate::runtime::{collect_fixed, runtime_text, single_effect};
 use crate::{DropReason, Effect, EffectList, SimulatedComponent, SimulationEvent};
 
 #[derive(Clone, Debug)]
 pub struct PassiveSensor {
     id: ComponentId,
-    ports: FixedList<PortId, 16>,
+    ports: FixedList<PortId, MONITOR_PORT_CAPACITY>,
     operational: bool,
     observations: u64,
 }

@@ -2,6 +2,7 @@ use axum::Json;
 use axum::extract::{Path as RoutePath, State};
 use axum::http::StatusCode;
 use hearthline_config::{HmiAction, HmiActionReport, HmiControlProgramDocument, HmiSnapshot};
+use hearthline_operator::PlantOperatorGateway;
 
 use crate::{ApiError, AppState};
 
@@ -11,10 +12,10 @@ pub(super) async fn profile(
 ) -> Result<Json<HmiSnapshot>, ApiError> {
     let (appliances, _) = state.paths.load()?;
     require_appliance(&appliances, &id)?;
-    let mut sessions = state.hmi_sessions.lock().await;
+    let mut sessions = state.plant_runtime.lock().await;
     Ok(Json(
-        sessions
-            .profile(&appliances, &id)
+        PlantOperatorGateway::new(&appliances, &mut sessions)
+            .projection(&id)
             .map_err(ApiError::validation)?,
     ))
 }
@@ -26,10 +27,10 @@ pub(super) async fn action(
 ) -> Result<Json<HmiActionReport>, ApiError> {
     let (appliances, _) = state.paths.load()?;
     require_appliance(&appliances, &id)?;
-    let mut sessions = state.hmi_sessions.lock().await;
+    let mut sessions = state.plant_runtime.lock().await;
     Ok(Json(
-        sessions
-            .execute(&appliances, &id, action)
+        PlantOperatorGateway::new(&appliances, &mut sessions)
+            .submit(&id, action)
             .map_err(ApiError::validation)?,
     ))
 }
@@ -40,9 +41,9 @@ pub(super) async fn control_program(
 ) -> Result<Json<HmiControlProgramDocument>, ApiError> {
     let (appliances, _) = state.paths.load()?;
     require_appliance(&appliances, &id)?;
-    let mut sessions = state.hmi_sessions.lock().await;
-    let document = sessions
-        .control_program(&appliances, &id)
+    let mut sessions = state.plant_runtime.lock().await;
+    let document = PlantOperatorGateway::new(&appliances, &mut sessions)
+        .control_program(&id)
         .map_err(ApiError::validation)?
         .ok_or_else(|| {
             ApiError::new(

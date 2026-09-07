@@ -1,9 +1,15 @@
 packages/web/node_modules/
 packages/web/dist/
+packages/web/build/
 packages/web/.svelte-kit/
 /target/
 packages/target/
 packages/fuzz/target/
 packages/fuzz/corpus/
 packages/fuzz/artifacts/
+/artifacts/
+packages/web/artifacts/
+packages/web/web-sbom.json
+packages/*.cdx.json
+packages/mutants.out*/
 *.log

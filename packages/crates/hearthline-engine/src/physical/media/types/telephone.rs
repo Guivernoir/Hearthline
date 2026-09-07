@@ -1,16 +1,14 @@
-use hearthline_model::Text;
-use serde::Deserialize;
-
 use super::{
-    MediaError, MediaFacts, MediaText, SimulatedMedium, facts, message, propagation_delay_us,
+    MediaError, MediaFacts, MediaText, SimulatedMedium, distance_text, facts, message,
+    propagation_delay_us,
 };
+use hearthline_model::{Position, Text};
 
-#[derive(Clone, Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone, Debug)]
 pub struct TelephoneMedium {
     pub connector: Text<32>,
     pub pairs: u8,
-    pub length_m: f64,
+    pub length: Position,
 }
 
 impl SimulatedMedium for TelephoneMedium {
@@ -21,7 +19,7 @@ impl SimulatedMedium for TelephoneMedium {
         if self.pairs == 0 || self.pairs > 4 {
             return Err("telephone cabling must declare between one and four pairs".into());
         }
-        if self.length_m <= 0.0 || self.length_m > 5_000.0 {
+        if self.length <= Position::ZERO || self.length > Position::from_raw(5_000_000_000) {
             return Err("telephone segment length must be within 0 and 5000 m".into());
         }
         Ok(())
@@ -29,8 +27,10 @@ impl SimulatedMedium for TelephoneMedium {
 
     fn detail(&self) -> MediaText {
         message(format_args!(
-            "{} / {} pair(s) / {:.1} m",
-            self.connector, self.pairs, self.length_m
+            "{} / {} pair(s) / {} m",
+            self.connector,
+            self.pairs,
+            distance_text(self.length)
         ))
     }
 
@@ -41,12 +41,15 @@ impl SimulatedMedium for TelephoneMedium {
                 self.connector
             )),
             message(format_args!("{} copper pair(s)", self.pairs)),
-            message(format_args!("{:.1} m physical segment", self.length_m)),
+            message(format_args!(
+                "{} m physical segment",
+                distance_text(self.length)
+            )),
         ])
     }
 
     fn propagation_delay_us(&self) -> u64 {
-        propagation_delay_us(self.length_m, 200_000_000.0)
+        propagation_delay_us(self.length, 200_000_000)
     }
 
     fn max_capacity_mbps(&self) -> Option<u64> {

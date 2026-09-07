@@ -1,37 +1,8 @@
-use hearthline_engine::{
-    LinkDirection, LinkEndpoint, MediaLink, MediaLinkConfig, MediumKind, PortDuplex, SimulatedPort,
-};
-use hearthline_model::{ComponentId, PortId};
+use hearthline_engine::{MediumKind, PortDuplex};
 
 use crate::appliance::{ConfigError, ConfigRepository, InterfaceConfig, InterfaceMode};
 
-use super::{ConnectionConfig, ConnectionDirection, ConnectionEndpoint};
-
-pub(super) fn build_media_link(
-    connection: &ConnectionConfig,
-    appliances: &ConfigRepository,
-) -> Result<MediaLink, ConfigError> {
-    let endpoint_a = runtime_endpoint(appliances, &connection.endpoints.a)?;
-    let endpoint_b = runtime_endpoint(appliances, &connection.endpoints.b)?;
-    MediaLink::new(
-        ComponentId::new(&connection.id).map_err(|error| ConfigError::new(error.to_string()))?,
-        endpoint_a,
-        endpoint_b,
-        MediaLinkConfig {
-            capacity_mbps: connection.properties.capacity_mbps,
-            latency_ms: connection.properties.latency_ms,
-            loss_every: connection.properties.loss_every,
-            direction: match connection.properties.direction {
-                ConnectionDirection::Bidirectional => LinkDirection::Bidirectional,
-                ConnectionDirection::AToB => LinkDirection::AToB,
-                ConnectionDirection::BToA => LinkDirection::BToA,
-            },
-            operational: connection.properties.operational,
-        },
-        connection.medium.clone(),
-    )
-    .map_err(|error| ConfigError::new(format!("connection {}: {error}", connection.id)))
-}
+use super::{ConnectionConfig, ConnectionEndpoint};
 
 pub(super) fn validate_endpoint(
     appliances: &ConfigRepository,
@@ -121,22 +92,4 @@ pub(super) fn negotiated_duplex(a: PortDuplex, b: PortDuplex, medium: MediumKind
     } else {
         PortDuplex::Full
     }
-}
-
-fn runtime_endpoint(
-    appliances: &ConfigRepository,
-    endpoint: &ConnectionEndpoint,
-) -> Result<LinkEndpoint, ConfigError> {
-    let interface = endpoint_port(appliances, endpoint)?;
-    Ok(LinkEndpoint {
-        component: ComponentId::new(&endpoint.appliance)
-            .map_err(|error| ConfigError::new(error.to_string()))?,
-        port: PortId::new(&endpoint.interface)
-            .map_err(|error| ConfigError::new(error.to_string()))?,
-        profile: SimulatedPort {
-            hardware: interface.hardware,
-            state: interface.state,
-            settings: interface.settings,
-        },
-    })
 }

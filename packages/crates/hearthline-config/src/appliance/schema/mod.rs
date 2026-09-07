@@ -8,7 +8,8 @@ use hearthline_model::{
 use serde::Deserialize;
 
 use hearthline_engine::{
-    PortHardwareKind, PortSettings, PortState, PortStateConfig, appliance_supports_port,
+    PortHardwareKind, PortSettings, PortState, PortStateConfig, appliance_family_contract,
+    appliance_supports_port,
 };
 
 use super::{BehaviorConfig, ConfigError, deserialize_component_kind, require_text};
@@ -91,10 +92,17 @@ impl ApplianceConfig {
 
         let expected_family = self.kind.behavior_family();
         let configured_family = self.behavior.family();
+        let family_contract = appliance_family_contract(expected_family);
         if expected_family != configured_family {
             return Err(ConfigError::new(format!(
                 "appliance {} kind {} requires behavior family {}, not {}",
                 self.id, self.kind, expected_family, configured_family
+            )));
+        }
+        if family_contract.schema_mapping != format!("behavior.{configured_family}") {
+            return Err(ConfigError::new(format!(
+                "appliance {} family {} has no matching schema registry entry",
+                self.id, configured_family
             )));
         }
         if let Some(spanning_tree) = &self.spanning_tree {

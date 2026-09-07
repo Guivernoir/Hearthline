@@ -1,0 +1,17 @@
+[package]
+name = "xtask"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+hearthline-api = { path = "../crates/hearthline-api", version = "=0.3.2" }
+serde_json.workspace = true
+serde_yaml_ng.workspace = true
+syn.workspace = true
+walkdir.workspace = true
+
+[lints]
+workspace = true

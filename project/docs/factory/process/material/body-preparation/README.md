@@ -115,11 +115,13 @@ substitutes for laboratory trials and site-specific engineering.
 
 ## Implementation Boundary
 
-All four bounded process trains currently execute in Rust. The Structured Text
-source and YAML I/O binding cover only the slip sequence; they are parsed and
-validated as a controller definition, but the composite Body Preparation model
-does not claim a general IEC 61131-3 runtime. Water, return-water, and glaze
-control sources remain planned.
+The slip train executes its bounded Structured Text source through the explicit
+YAML I/O binding. That controller owns phase, running, scan, and batch state;
+Rust owns material and equipment physics and returns typed phase-complete or
+trip feedback. Rust cannot advance the controller-owned phase. Water,
+return-water, and glaze sequences remain Rust-owned development models, and
+the composite Body Preparation model does not claim a general IEC 61131-3
+runtime. Their control sources remain planned.
 
 The model does not yet represent particle-size distributions, detailed
 rheological constitutive behavior, chemical equilibrium, membrane fouling,

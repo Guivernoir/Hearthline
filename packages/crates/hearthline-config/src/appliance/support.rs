@@ -14,7 +14,7 @@ pub struct ConfigError {
 }
 
 impl ConfigError {
-    pub(crate) fn new(message: impl Into<String>) -> Self {
+    pub fn new(message: impl Into<String>) -> Self {
         Self {
             message: message.into(),
         }
@@ -81,7 +81,7 @@ pub(super) fn join_numbers(values: &[u16]) -> String {
         .join(", ")
 }
 
-pub(crate) fn source_revision(source: &str) -> String {
+pub fn source_revision(source: &str) -> String {
     let digest = Sha256::digest(source.as_bytes());
     let mut revision = String::with_capacity(digest.len() * 2);
     for byte in digest {

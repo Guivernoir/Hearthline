@@ -8,10 +8,20 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
-hearthline-config = { path = "../hearthline-config" }
-hearthline-engine = { path = "../hearthline-engine" }
-hearthline-model = { path = "../hearthline-model" }
+clap.workspace = true
+hearthline-config = { path = "../hearthline-config", version = "=0.3.2" }
+hearthline-engine = { path = "../hearthline-engine", version = "=0.3.2" }
+hearthline-model = { path = "../hearthline-model", version = "=0.3.2" }
+hearthline-project = { path = "../hearthline-project", version = "=0.3.2" }
+hearthline-sim = { path = "../hearthline-sim", version = "=0.3.2" }
 serde_json.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[[bin]]
+name = "hearthline"
+path = "src/main.rs"
 
 [lints]
 workspace = true

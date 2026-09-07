@@ -8,6 +8,10 @@
   user-select: none;
 }
 
+.mobile-region-world {
+  display: none;
+}
+
 .region-world {
   position: absolute;
   overflow: hidden;
@@ -476,4 +480,3 @@
 .enter-place:hover {
   background: #1e6058;
 }
-

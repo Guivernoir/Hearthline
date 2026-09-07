@@ -1,0 +1,400 @@
+{
+  "$defs": {
+    "BlueprintConnection": {
+      "additionalProperties": false,
+      "properties": {
+        "from_node": {
+          "type": "string"
+        },
+        "from_port": {
+          "type": "string"
+        },
+        "local_id": {
+          "type": "string"
+        },
+        "mode": {
+          "$ref": "#/$defs/BlueprintConnectionMode"
+        },
+        "to_node": {
+          "type": "string"
+        },
+        "to_port": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "local_id",
+        "from_node",
+        "from_port",
+        "to_node",
+        "to_port",
+        "mode"
+      ],
+      "type": "object"
+    },
+    "BlueprintConnectionMode": {
+      "enum": [
+        "single",
+        "pairwise",
+        "fan-out"
+      ],
+      "type": "string"
+    },
+    "BlueprintExport": {
+      "additionalProperties": false,
+      "properties": {
+        "contract": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/BlueprintExportKind"
+        },
+        "node": {
+          "type": "string"
+        },
+        "port": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "node",
+        "port",
+        "contract"
+      ],
+      "type": "object"
+    },
+    "BlueprintExportKind": {
+      "enum": [
+        "port",
+        "signal",
+        "material-handoff",
+        "network-conduit"
+      ],
+      "type": "string"
+    },
+    "BlueprintImport": {
+      "additionalProperties": false,
+      "properties": {
+        "blueprint": {
+          "type": "string"
+        },
+        "schema_version": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "blueprint",
+        "schema_version",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "BlueprintNestedInstance": {
+      "additionalProperties": false,
+      "properties": {
+        "blueprint": {
+          "type": "string"
+        },
+        "local_id": {
+          "type": "string"
+        },
+        "repeat_parameter": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "values": {
+          "additionalProperties": {
+            "$ref": "#/$defs/BlueprintParameterValue"
+          },
+          "default": {},
+          "type": "object"
+        }
+      },
+      "required": [
+        "local_id",
+        "blueprint"
+      ],
+      "type": "object"
+    },
+    "BlueprintNode": {
+      "additionalProperties": false,
+      "properties": {
+        "family": {
+          "type": "string"
+        },
+        "local_id": {
+          "type": "string"
+        },
+        "ports": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "repeat_parameter": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "local_id",
+        "family"
+      ],
+      "type": "object"
+    },
+    "BlueprintParameter": {
+      "additionalProperties": false,
+      "properties": {
+        "default": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BlueprintParameterValue"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/BlueprintParameterKind"
+        },
+        "required": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "kind"
+      ],
+      "type": "object"
+    },
+    "BlueprintParameterKind": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "boolean",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "maximum": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "minimum": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": {
+              "const": "integer",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "minimum",
+            "maximum"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "maximum_raw": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "minimum_raw": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "scale": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": {
+              "const": "quantity",
+              "type": "string"
+            },
+            "unit": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "unit",
+            "scale",
+            "minimum_raw",
+            "maximum_raw"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "identifier",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "choice",
+              "type": "string"
+            },
+            "values": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "type",
+            "values"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "maximum": {
+              "format": "uint",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "minimum": {
+              "format": "uint",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "type": {
+              "const": "identifier-list",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "minimum",
+            "maximum"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "BlueprintParameterValue": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "format": "int64",
+          "type": "integer"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "connections": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/BlueprintConnection"
+      },
+      "type": "array"
+    },
+    "exports": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/BlueprintExport"
+      },
+      "type": "array"
+    },
+    "id": {
+      "type": "string"
+    },
+    "imports": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/BlueprintImport"
+      },
+      "type": "array"
+    },
+    "nested": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/BlueprintNestedInstance"
+      },
+      "type": "array"
+    },
+    "nodes": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/BlueprintNode"
+      },
+      "type": "array"
+    },
+    "parameters": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/BlueprintParameter"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id"
+  ],
+  "title": "BlueprintDefinition",
+  "type": "object"
+}

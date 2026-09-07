@@ -11,8 +11,8 @@ Final Inspection is the post-Kiln-2 quality gate before release to Logistics.
 
 ## Current Representation
 
-The architecture view renders the representative assets below from bootstrap
-JSON. `AREA-09-HMI-01` is enterable as a Rust-backed operator session assembled
+The architecture view renders the representative assets below from the
+Rust-generated process topology and canonical appliance catalog. `AREA-09-HMI-01` is enterable as a Rust-backed operator session assembled
 from the area appliance YAML. It displays configured vision and dimensional
 states, requires a healthy interlock reset, and exposes stopped, pass, and
 reject diverter states plus conveyor control. Accepted commands traverse the

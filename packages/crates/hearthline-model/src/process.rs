@@ -1,10 +1,10 @@
-use crate::Text;
+use crate::{FixedValue, Text};
 
 /// Typed process value exchanged between plant models, I/O, and controllers.
 #[derive(Clone, Debug, PartialEq)]
 pub enum SignalValue {
     Bool(bool),
-    Analog(f64),
+    Analog(FixedValue),
     Integer(i64),
     Text(Text<128>),
 }

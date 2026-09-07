@@ -1,6 +1,6 @@
 # Hearthline Documentation
 
-The documentation follows the same hierarchy as the Svelte application. Each
+The documentation follows the same hierarchy as the SvelteKit application. Each
 folder represents a documented application view and contains a local
 `README.md`, a physical `screenshot.png`, and a logical
 `logical-screenshot.png`.
@@ -13,9 +13,9 @@ folder represents a documented application view and contains a local
 
 The documentation currently covers all 25 documented application views with
 matching physical and logical captures. It documents the rendered Svelte model,
-the parsed appliance and connection YAML baseline, the bootstrap process
-contract, and target engineering requirements. Captures and supporting
-evidence track development release `0.3.1`; the Body Preparation and Forming
+the parsed appliance, connection, and process-topology YAML baseline, the
+Rust-generated frontend contracts, and target engineering requirements. Captures and supporting
+evidence track development release `0.3.2`; the Body Preparation and Forming
 operator captures are refreshed as their executable views change. Reference
 pages also document the
 30 current configured scenarios, including Business IT internal
@@ -24,9 +24,10 @@ converged and protocol-timed northbound-firewall recovery, and the customer
 access-circuit outage and restoration expectation. The set also includes one
 composite factory case that proves the expected conduit-path drop and an
 independent local HMI-to-pump command path, plus Forming historian collection
-and OT DMZ replication. Complete topology,
-controller-program, plant-process, and vendor-protocol HA validation do not
-yet exist.
+and OT DMZ replication. The immutable compiled model, capacity plan, and
+selected-path replay evidence are generated and locked. Complete arbitrary-path,
+controller-language, plant-process, and protocol-conformance validation does
+not yet exist.
 
 Customer LAN documentation also includes a representative interactive
 appliance capture. Both customer PCs expose the same class of endpoint session
@@ -122,7 +123,7 @@ project/docs
 - [Implementation direction](reference/project-direction.md)
 - [Deployment conformance review](reference/deployment-conformance.md)
 - [Rust simulation engine](reference/simulation-engine.md)
-- [Svelte architecture application](reference/svelte-application.md)
+- [SvelteKit architecture application](reference/svelte-application.md)
 - [Configuration model](../config/README.md)
 - [Continuous integration policy](../standards/CI_POLICY.md)
 - [Changelog](../../CHANGELOG.md)
@@ -135,16 +136,14 @@ inventories.
 ## Status Language
 
 - **Implemented** describes behavior that can be exercised in the current
-  Svelte application or build pipeline.
-- **Bootstrap** describes representative data used to establish a view or
-  interface contract before authoritative generation exists.
+  SvelteKit application or build pipeline.
 - **Provisional baseline** describes structurally valid configuration or
   architecture placeholders that are intentionally unfinished and expected to
   change as executable requirements mature.
 - **Planned** describes work for which no executable implementation currently
   exists.
-- **Validation target** describes an expected result that the future Rust
-  engine must prove; it is not a passing test today.
+- **Validation target** describes an expected result not yet established by a
+  current compiler, scenario, replay, or acceptance test.
 
 Paired devices express a redundancy requirement or logical role. They do not,
 by themselves, prove independent failure domains, synchronized state, or
@@ -152,7 +151,8 @@ tested failover. The Business IT core pair is the current exception only for
 its explicitly configured VRRP identities, deterministic Rapid-PVST
 converged-state calculation, and selected recovery scenario.
 
-Future documentation will be generated or cross-checked against canonical YAML,
-Rust diagnostics, control-source references, and reproducible scenario
-results. Screenshots and architecture text must be updated together whenever a
+Canonical inventories, process topology, model locks, API contracts, and
+selected replay evidence are generated or cross-checked against YAML and Rust
+contracts. Remaining presentation-owned layouts will migrate as their schemas
+mature. Screenshots and architecture text must be updated together whenever a
 rendered route changes.

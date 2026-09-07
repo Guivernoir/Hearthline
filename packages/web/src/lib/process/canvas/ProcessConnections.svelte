@@ -1,3 +1,43 @@
+<script lang="ts">
+  import { processView, type ProcessEdge, type ProcessPosition } from "../process-model";
+
+  const positions = new Map<string, ProcessPosition>([
+    ...processView.supportNodes.map((node) => [node.id, node.position] as const),
+    ...processView.areas.map((area) => [area.id, area.position] as const),
+  ]);
+  const supportIds = new Set(processView.supportNodes.map((node) => node.id));
+  const supportEdges = processView.networkEdges.filter(
+    (edge) => supportIds.has(edge.source) && supportIds.has(edge.destination),
+  );
+
+  function edgePath(edge: ProcessEdge) {
+    const source = positions.get(edge.source);
+    const destination = positions.get(edge.destination);
+    if (!source || !destination) return "";
+    const sourceCenterX = source.x + source.width / 2;
+    const sourceCenterY = source.y + source.height / 2;
+    const destinationCenterX = destination.x + destination.width / 2;
+    const destinationCenterY = destination.y + destination.height / 2;
+    if (Math.abs(sourceCenterY - destinationCenterY) < 20) {
+      const sourceX = sourceCenterX < destinationCenterX
+        ? source.x + source.width
+        : source.x;
+      const destinationX = sourceCenterX < destinationCenterX
+        ? destination.x
+        : destination.x + destination.width;
+      return `M${sourceX} ${sourceCenterY} H${destinationX}`;
+    }
+    const sourceY = sourceCenterY < destinationCenterY
+      ? source.y + source.height
+      : source.y;
+    const destinationY = sourceCenterY < destinationCenterY
+      ? destination.y
+      : destination.y + destination.height;
+    const middleY = (sourceY + destinationY) / 2;
+    return `M${sourceCenterX} ${sourceY} V${middleY} H${destinationCenterX} V${destinationY}`;
+  }
+</script>
+
 <svg
   class="connections"
   viewBox="0 0 1640 1080"
@@ -57,43 +97,21 @@
   </g>
 
   <g class="network-connections">
-    <path d="M260 165 H350" marker-end="url(#network-arrow)"></path>
-    <path d="M570 165 H660" marker-end="url(#network-arrow)"></path>
-    <path d="M880 165 H970" marker-end="url(#network-arrow)"></path>
-    <path d="M1190 165 H1280" marker-end="url(#network-arrow)"></path>
-    <path d="M1080 225 V355"></path>
-    <path d="M180 355 H1420"></path>
-    <path d="M180 690 H1420"></path>
-    <path d="M1265 355 V690"></path>
-    <path d="M180 355 V430"></path>
-    <path d="M490 355 V430"></path>
-    <path d="M800 355 V430"></path>
-    <path d="M1110 355 V430"></path>
-    <path d="M1420 355 V430"></path>
-    <path d="M180 690 V760"></path>
-    <path d="M490 690 V760"></path>
-    <path d="M800 690 V760"></path>
-    <path d="M1110 690 V760"></path>
-    <path d="M1420 690 V760"></path>
+    {#each processView.networkEdges as edge (`${edge.source}:${edge.destination}`)}
+      <path d={edgePath(edge)} marker-end="url(#network-arrow)"></path>
+    {/each}
   </g>
 
   <g class="material-connections">
-    <path d="M215 495 H455" marker-end="url(#material-arrow)"></path>
-    <path d="M525 495 H765" marker-end="url(#material-arrow)"></path>
-    <path d="M835 495 H1075" marker-end="url(#material-arrow)"></path>
-    <path d="M1145 495 H1385" marker-end="url(#material-arrow)"></path>
-    <path d="M1420 530 V790" marker-end="url(#material-arrow)"></path>
-    <path d="M1385 825 H1145" marker-end="url(#material-arrow)"></path>
-    <path d="M1075 825 H835" marker-end="url(#material-arrow)"></path>
-    <path d="M765 825 H525" marker-end="url(#material-arrow)"></path>
-    <path d="M455 825 H215" marker-end="url(#material-arrow)"></path>
+    {#each processView.materialFlow as edge (`${edge.source}:${edge.destination}`)}
+      <path d={edgePath(edge)} marker-end="url(#material-arrow)"></path>
+    {/each}
   </g>
 
   <g class="physical-support-connections">
-    <path class="site-support-link" d="M177 156 H433"></path>
-    <path class="site-support-link" d="M487 156 H743"></path>
-    <path d="M797 156 H1053"></path>
-    <path d="M1107 156 H1363"></path>
+    {#each supportEdges as edge (`${edge.source}:${edge.destination}`)}
+      <path class:site-support-link={edge.source === "operations-intelligence" || edge.source === "site-conduit"} d={edgePath(edge)}></path>
+    {/each}
   </g>
 
   <text x="74" y="335" class="line-label network-label">CONTROL NETWORK</text>

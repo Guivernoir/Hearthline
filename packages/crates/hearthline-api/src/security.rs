@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use axum::Json;
 use axum::extract::{Path as RoutePath, State};
 use axum::http::StatusCode;
-use hearthline_config::{ScenarioReport, ScenarioSecurityEvent};
+use hearthline_sim::{ScenarioReport, ScenarioSecurityEvent};
 use serde::Serialize;
 
 use crate::{ApiError, AppState};
@@ -60,11 +60,6 @@ impl SecurityEventStore {
     fn clear_console(&mut self, console_id: &str) {
         self.events
             .retain(|record| record.event.defender != console_id);
-    }
-
-    pub(super) fn clear(&mut self) {
-        self.events.clear();
-        self.next_sequence = 0;
     }
 
     fn session(&self, console_id: &str) -> SecurityConsoleSession {

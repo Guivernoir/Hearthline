@@ -1,311 +1,550 @@
+use std::collections::BTreeMap;
 use std::error::Error;
 use std::fs;
-use std::net::Ipv4Addr;
 use std::path::{Path, PathBuf};
 
-use hearthline_config::{
-    ConfigRepository, ConfiguredNetwork, ConnectionRepository, ScenarioRepository, run_scenario,
+use clap::{Parser, Subcommand, ValueEnum};
+use hearthline_project::{CapacityStatus, ProjectCompiler};
+use hearthline_sim::{
+    CONDUIT_OVERLOAD_SCENARIO, QUANTIZATION_CONTRACT_VERSION, REPLAY_SCHEMA_VERSION,
+    ReplayArtifact, ReplayCheckpoint, ReplayOutcome, ReplayVerifier, RunInput, RunManifest,
+    ScenarioConfig, ScenarioContinuityFault, ScenarioReport, run_conduit_overload_contract,
+    run_scenario,
 };
-use hearthline_engine::{
-    ConnectionMedium, CopperCategory, CopperMedium, CopperWiring, Effect, LinkAppliance,
-    LinkEndpoint, LinkMode, MediaLink, MediaLinkConfig, PortDuplex, PortHardwareKind, PortSettings,
-    PortState, PortStateConfig, RENDERED_ROLE_CONTRACTS, RoutedInterface, ServiceNode,
-    SimulatedPort, Simulator, appliance_contracts,
-};
-use hearthline_model::{
-    ApplicationData, ComponentId, ComponentKind, EthernetFrame, IcmpMessage, Ipv4InterfaceAddress,
-    Ipv4Packet, MacAddress, NetworkPayload, PortId, ServiceKind, TcpFlags, TcpSegment, Transport,
-    VlanId,
-};
+
+const PROJECT_ROOT_ENV: &str = "HEARTHLINE_PROJECT_ROOT";
+
+#[derive(Parser)]
+#[command(
+    name = "hearthline",
+    version,
+    about = "Deterministic industrial architecture simulation"
+)]
+struct Cli {
+    #[command(subcommand)]
+    command: Command,
+}
+
+#[derive(Subcommand)]
+enum Command {
+    Model {
+        #[command(subcommand)]
+        command: ModelCommand,
+    },
+    Capacity {
+        #[command(subcommand)]
+        command: CapacityCommand,
+    },
+    Run {
+        scenario: String,
+        #[arg(long)]
+        record: Option<PathBuf>,
+    },
+    Replay {
+        #[command(subcommand)]
+        command: ReplayCommand,
+    },
+}
+
+#[derive(Subcommand)]
+enum ModelCommand {
+    Validate,
+    Compile {
+        #[arg(long)]
+        locked: bool,
+    },
+    Lock {
+        #[arg(long, required = true)]
+        update: bool,
+        #[arg(long, requires = "update")]
+        reason: String,
+    },
+    Expand {
+        #[arg(long)]
+        output: PathBuf,
+    },
+}
+
+#[derive(Subcommand)]
+enum CapacityCommand {
+    Report {
+        #[arg(long, value_enum, default_value_t = ReportFormat::Text)]
+        format: ReportFormat,
+    },
+}
+
+#[derive(Clone, Copy, ValueEnum)]
+enum ReportFormat {
+    Text,
+    Json,
+}
+
+#[derive(Subcommand)]
+enum ReplayCommand {
+    Verify { artifact: PathBuf },
+}
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let command = std::env::args().nth(1).unwrap_or_else(|| "help".into());
-    match command.as_str() {
-        "catalog" => print_catalog(),
-        "coverage" => print_coverage(),
-        "demo" => run_demo()?,
-        "config-demo" => run_config_demo()?,
-        "scenario-run" => run_configured_scenario()?,
-        "config-validate" => validate_configs()?,
-        "config-generate" => generate_frontend_configs()?,
-        "version" | "--version" | "-V" => print_version(),
-        "help" | "--help" | "-h" => print_help(),
-        unknown => {
-            eprintln!("unknown command: {unknown}");
-            print_help();
-            std::process::exit(2);
+    let cli = Cli::parse();
+    match cli.command {
+        Command::Model { command } => model(command)?,
+        Command::Capacity { command } => capacity(command)?,
+        Command::Run { scenario, record } => run(&scenario, record.as_deref())?,
+        Command::Replay { command } => replay(command)?,
+    }
+    Ok(())
+}
+
+fn model(command: ModelCommand) -> Result<(), Box<dyn Error>> {
+    let config_root = project_config_root()?;
+    let compiler = ProjectCompiler::new(&config_root);
+    match command {
+        ModelCommand::Validate => {
+            let project = compiler.compile("validation")?;
+            println!(
+                "validated {} appliances, {} connections, {} scenarios, {} cells, and {} blueprint instances at {}",
+                project.appliances().len(),
+                project.connections().len(),
+                project.scenarios().len(),
+                project.runtime_plan().partitions.len() + project.expanded_blueprints().len(),
+                project.expanded_blueprints().len(),
+                project.digest()
+            );
+        }
+        ModelCommand::Compile { locked } => {
+            let project = if locked {
+                compiler.compile_locked()?
+            } else {
+                compiler.compile("unlocked compilation")?
+            };
+            write_generated_catalogs(&project)?;
+            println!(
+                "compiled immutable model {} with {} normalized objects",
+                project.digest(),
+                project.model_lock().object_digests.len()
+            );
+        }
+        ModelCommand::Lock {
+            update: true,
+            reason,
+        } => {
+            let project = compiler.compile(reason)?;
+            write_atomic(
+                &config_root.join("model.lock.json"),
+                &project.model_lock().to_json()?,
+            )?;
+            write_generated_catalogs(&project)?;
+            println!("updated model lock at revision {}", project.digest());
+        }
+        ModelCommand::Lock { update: false, .. } => unreachable!("--update is required by clap"),
+        ModelCommand::Expand { output } => {
+            let project = compiler.compile("blueprint expansion")?;
+            fs::create_dir_all(&output)?;
+            for blueprint in project.expanded_blueprints() {
+                let path = output.join(format!("{}.json", blueprint.instance));
+                write_atomic(&path, &(serde_json::to_string_pretty(blueprint)? + "\n"))?;
+            }
+            println!(
+                "expanded {} blueprint instances into {}",
+                project.expanded_blueprints().len(),
+                output.display()
+            );
         }
     }
     Ok(())
 }
 
-fn print_version() {
-    println!("hearthline {}", env!("CARGO_PKG_VERSION"));
-}
-
-fn print_help() {
-    println!("Hearthline simulation CLI");
-    println!();
-    println!("USAGE:");
-    println!("  cargo run -p hearthline-cli -- <command>");
-    println!();
-    println!("COMMANDS:");
-    println!("  catalog  List every appliance kind and assigned behavior family");
-    println!("  coverage List rendered roles and their Rust appliance kinds");
-    println!("  demo     Run a small deterministic forwarding scenario");
-    println!("  config-demo      Run the YAML-built Customer LAN scenario");
-    println!("  scenario-run     Run a configured scenario by ID");
-    println!("  config-validate  Validate appliance, connection, and scenario YAML");
-    println!("  config-generate  Validate project YAML and generate Svelte config data");
-    println!("  version          Print the Hearthline release version");
-}
-
-fn validate_configs() -> Result<(), Box<dyn Error>> {
-    let appliances = ConfigRepository::load("project/config/appliances")?;
-    let connections = ConnectionRepository::load("project/config/connections", &appliances)?;
-    let scenarios =
-        ScenarioRepository::load("project/config/scenarios", &appliances, &connections)?;
-    println!(
-        "validated {} appliance, {} connection, and {} scenario configuration files",
-        appliances.len(),
-        connections.len(),
-        scenarios.len()
-    );
-    Ok(())
-}
-
-fn generate_frontend_configs() -> Result<(), Box<dyn Error>> {
-    let appliances = ConfigRepository::load("project/config/appliances")?;
-    let connections = ConnectionRepository::load("project/config/connections", &appliances)?;
-    let scenarios =
-        ScenarioRepository::load("project/config/scenarios", &appliances, &connections)?;
-    let json = serde_json::to_string(&appliances.frontend_catalog(&connections))? + "\n";
-    let output = Path::new("packages/web/src/generated/appliance-configs.json");
-    let temporary = temporary_path(output);
-    fs::write(&temporary, json)?;
-    fs::rename(&temporary, output)?;
-    let scenario_unit = if scenarios.len() == 1 {
-        "scenario"
-    } else {
-        "scenarios"
-    };
-    println!(
-        "generated {} from {} appliances, {} connections, and {} validated {}",
-        output.display(),
-        appliances.len(),
-        connections.len(),
-        scenarios.len(),
-        scenario_unit
-    );
-    Ok(())
-}
-
-fn temporary_path(output: &Path) -> PathBuf {
-    let mut path = output.as_os_str().to_owned();
-    path.push(".tmp");
-    PathBuf::from(path)
-}
-
-fn print_coverage() {
-    println!("{:<38} APPLIANCE KIND", "RENDERED ROLE");
-    for contract in RENDERED_ROLE_CONTRACTS {
-        println!("{:<38} {}", contract.rendered_role, contract.kind);
-    }
-}
-
-fn print_catalog() {
-    println!("{:<30} {:<22} BASELINE", "APPLIANCE", "BEHAVIOR");
-    for contract in appliance_contracts() {
-        println!(
-            "{:<30} {:<22} {}",
-            contract.kind, contract.family, contract.baseline
-        );
-    }
-}
-
-fn run_demo() -> Result<(), Box<dyn Error>> {
-    let cpe_id = component_id("customer-inet-cpe-01")?;
-    let service_id = component_id("public-service-01")?;
-    let customer_port = port_id("customer")?;
-    let access_port = port_id("access")?;
-    let network_port = port_id("network")?;
-
-    let mut cpe = LinkAppliance::new(
-        cpe_id.clone(),
-        ComponentKind::TransparentCpe,
-        [customer_port.clone(), access_port.clone()],
-        LinkMode::Transparent,
-    );
-    let mut service = ServiceNode::new(
-        service_id.clone(),
-        ComponentKind::ServiceCluster,
-        [RoutedInterface::new(
-            network_port.clone(),
-            MacAddress::new([0x02, 0, 0, 0, 0, 2]),
-            [Ipv4InterfaceAddress::new(Ipv4Addr::new(192, 0, 2, 10), 24)
-                .ok_or("invalid demo interface address")?],
-            VlanId::new(10).ok_or("invalid demo VLAN")?,
-            1_500,
-        )],
-        [ServiceKind::Https],
-    );
-    let mut connection = MediaLink::new(
-        component_id("cpe-to-service")?,
-        ethernet_endpoint(cpe_id.clone(), access_port.clone()),
-        ethernet_endpoint(service_id.clone(), network_port.clone()),
-        MediaLinkConfig::default(),
-        ConnectionMedium::Copper {
-            config: CopperMedium {
-                wiring: CopperWiring::StraightThrough,
-                category: CopperCategory::Cat6a,
-                length_m: 10.0,
-            },
-        },
-    )?;
-    let mut simulator = Simulator::new();
-    simulator.add(&mut cpe)?;
-    simulator.add(&mut service)?;
-    simulator.add_link(&mut connection)?;
-    simulator.inject_network(
-        &cpe_id,
-        &customer_port,
-        EthernetFrame {
-            source: MacAddress::new([0x02, 0, 0, 0, 0, 1]),
-            destination: MacAddress::new([0x02, 0, 0, 0, 0, 2]),
-            vlan: VlanId::new(10).ok_or("invalid demo VLAN")?,
-            payload: NetworkPayload::Ipv4(Ipv4Packet {
-                source: Ipv4Addr::new(203, 0, 113, 2),
-                destination: Ipv4Addr::new(192, 0, 2, 10),
-                ttl: 64,
-                transport: Transport::Tcp(TcpSegment {
-                    source_port: 50_000,
-                    destination_port: 443,
-                    flags: TcpFlags {
-                        syn: true,
-                        ..TcpFlags::default()
-                    },
-                }),
-                application: ApplicationData::Service(ServiceKind::Https),
-            }),
-            wire_len_bytes: 64,
-        },
-    )?;
-
-    for entry in simulator.run(16)? {
-        match &entry.effect {
-            Effect::Transmit { egress, .. } => {
+fn capacity(command: CapacityCommand) -> Result<(), Box<dyn Error>> {
+    let CapacityCommand::Report { format } = command;
+    let project = ProjectCompiler::new(project_config_root()?).compile("capacity report")?;
+    match format {
+        ReportFormat::Json => println!("{}", serde_json::to_string_pretty(project.capacity())?),
+        ReportFormat::Text => {
+            println!(
+                "RESOURCE                         SCOPE                         DEMAND REVIEWED RESERVE STATUS"
+            );
+            for item in &project.capacity().assessments {
                 println!(
-                    "{:>5} ms  {:<28} transmit via {}",
-                    entry.time_ms, entry.component, egress
+                    "{:<32} {:<29} {:>6} {:>8} {:>6}% {:?}",
+                    format!("{:?}", item.resource),
+                    item.scope,
+                    item.demand,
+                    item.reviewed_limit,
+                    item.reserve_percent,
+                    item.status
                 );
             }
-            Effect::Deliver { service, detail } => {
-                println!(
-                    "{:>5} ms  {:<28} deliver {:?}: {}",
-                    entry.time_ms, entry.component, service, detail
-                );
-            }
-            other => {
-                println!(
-                    "{:>5} ms  {:<28} {:?}",
-                    entry.time_ms, entry.component, other
-                );
+            if project
+                .capacity()
+                .assessments
+                .iter()
+                .any(|item| item.status != CapacityStatus::Accepted)
+            {
+                return Err("capacity plan requires review".into());
             }
         }
     }
     Ok(())
 }
 
-fn run_config_demo() -> Result<(), Box<dyn Error>> {
-    let appliances = ConfigRepository::load("project/config/appliances")?;
-    let connections = ConnectionRepository::load("project/config/connections", &appliances)?;
-    let source = component_id("customer-pc-01")?;
-    let mut network = ConfiguredNetwork::from_selection(
-        &appliances,
-        &connections,
-        ["customer-pc-01", "customer-sw-01", "customer-rtr-01"],
-    )?;
-    let trace = network.run_ipv4(
-        &source,
-        Ipv4Packet {
-            source: Ipv4Addr::new(192, 168, 0, 2),
-            destination: Ipv4Addr::new(192, 168, 0, 1),
-            ttl: 64,
-            transport: Transport::Icmp(IcmpMessage::EchoRequest {
-                identifier: 1,
-                sequence: 1,
-            }),
-            application: ApplicationData::None,
-        },
-        64,
-    )?;
-    println!(
-        "configured {} appliances and {} links",
-        network.appliance_count(),
-        network.link_count()
-    );
-    for entry in trace {
+fn run(scenario_id: &str, record: Option<&Path>) -> Result<(), Box<dyn Error>> {
+    let project = ProjectCompiler::new(project_config_root()?).compile_locked()?;
+    if scenario_id == CONDUIT_OVERLOAD_SCENARIO {
+        let artifact = run_conduit_overload_contract(project.digest(), env!("CARGO_PKG_VERSION"))?;
+        if let Some(path) = record {
+            artifact.write(path)?;
+        }
         println!(
-            "{:>8} us  {:<28} {:?}",
-            entry.time_us, entry.component, entry.effect
+            "{}: {}; {} events, digest {}",
+            scenario_id,
+            artifact.outcome.status,
+            artifact.outcome.event_count,
+            artifact.outcome.final_digest
         );
+        return Ok(());
     }
-    Ok(())
-}
-
-fn run_configured_scenario() -> Result<(), Box<dyn Error>> {
-    let id = std::env::args()
-        .nth(2)
-        .unwrap_or_else(|| "customer-dns-lookup".into());
-    let appliances = ConfigRepository::load("project/config/appliances")?;
-    let connections = ConnectionRepository::load("project/config/connections", &appliances)?;
-    let scenarios =
-        ScenarioRepository::load("project/config/scenarios", &appliances, &connections)?;
-    let scenario = scenarios
-        .get(&id)
-        .ok_or_else(|| format!("unknown configured scenario {id}"))?;
-    let report = run_scenario(&appliances, &connections, &scenario.config, None)?;
+    let scenario = project
+        .scenarios()
+        .get(scenario_id)
+        .ok_or_else(|| format!("unknown scenario {scenario_id}"))?;
+    let report = run_scenario(
+        project.appliances(),
+        project.connections(),
+        &scenario.config,
+        None,
+    )?;
+    let artifact = artifact(&project, &scenario.config, &report)?;
+    if let Some(path) = record {
+        artifact.write(path)?;
+    }
     println!(
-        "{}: {:?}; {} appliances, {} links, {} trace entries, {} us",
+        "{}: {:?}; {} events, {} us, digest {}",
         report.scenario_label,
         report.status,
-        report.appliance_count,
-        report.link_count,
         report.statistics.events,
-        report.duration_us
+        report.duration_us,
+        artifact.outcome.final_digest
     );
-    for entry in report.trace {
+    Ok(())
+}
+
+fn replay(command: ReplayCommand) -> Result<(), Box<dyn Error>> {
+    let ReplayCommand::Verify { artifact: path } = command;
+    let expected = ReplayArtifact::load(&path)?;
+    let project = ProjectCompiler::new(project_config_root()?).compile_locked()?;
+    if expected.manifest.model_digest != project.digest() {
+        return Err(format!(
+            "replay model {} differs from current {}",
+            expected.manifest.model_digest,
+            project.digest()
+        )
+        .into());
+    }
+    if expected.manifest.scenario == CONDUIT_OVERLOAD_SCENARIO {
+        let actual = run_conduit_overload_contract(project.digest(), env!("CARGO_PKG_VERSION"))?;
+        let outcome = ReplayVerifier::verify(&expected, &actual)?;
         println!(
-            "{:>8} us  {:<28} {:<12?} {}",
-            entry.time_us, entry.component, entry.kind, entry.summary
+            "verified replay {} with {} events and digest {}",
+            path.display(),
+            outcome.event_count,
+            outcome.final_digest
         );
+        return Ok(());
+    }
+    let scenario = project
+        .scenarios()
+        .get(&expected.manifest.scenario)
+        .ok_or_else(|| format!("unknown replay scenario {}", expected.manifest.scenario))?;
+    let report = run_scenario(
+        project.appliances(),
+        project.connections(),
+        &scenario.config,
+        None,
+    )?;
+    let actual = artifact(&project, &scenario.config, &report)?;
+    let outcome = ReplayVerifier::verify(&expected, &actual)?;
+    println!(
+        "verified replay {} with {} events and digest {}",
+        path.display(),
+        outcome.event_count,
+        outcome.final_digest
+    );
+    Ok(())
+}
+
+fn artifact(
+    project: &hearthline_project::CompiledProject,
+    scenario: &ScenarioConfig,
+    report: &ScenarioReport,
+) -> Result<ReplayArtifact, Box<dyn Error>> {
+    let initial_snapshot = report
+        .runtime
+        .initial
+        .project_snapshot(project.digest(), &scenario.id)?;
+    let final_snapshot = report
+        .runtime
+        .final_state
+        .project_snapshot(project.digest(), &scenario.id)?;
+    let final_digest = final_snapshot.digest();
+    Ok(ReplayArtifact {
+        schema_version: REPLAY_SCHEMA_VERSION.into(),
+        manifest: RunManifest {
+            schema_version: REPLAY_SCHEMA_VERSION.into(),
+            model_digest: project.digest().into(),
+            simulation_version: env!("CARGO_PKG_VERSION").into(),
+            scenario: scenario.id.clone(),
+            quantization_contract: QUANTIZATION_CONTRACT_VERSION.into(),
+            clock_policy: "fixed-step".into(),
+            clock_step_us: 1,
+            seed: 0,
+            initial_state_digest: initial_snapshot.digest(),
+            event_limit: scenario.event_limit,
+            limits: BTreeMap::from([
+                ("event-limit".into(), scenario.event_limit as u64),
+                (
+                    "wire-length-bytes".into(),
+                    scenario.packet.wire_length_bytes as u64,
+                ),
+            ]),
+            expected_outcomes: vec![
+                format!("status:{:?}", report.status).to_lowercase(),
+                format!(
+                    "expectation:{}:{:?}",
+                    report.expectation.component, report.expectation.outcome
+                )
+                .to_lowercase(),
+                format!("mode:{:?}", report.expectation_mode).to_lowercase(),
+            ],
+            inputs: scenario_inputs(scenario, report),
+        },
+        checkpoints: vec![
+            ReplayCheckpoint::capture(0, &initial_snapshot),
+            ReplayCheckpoint::capture(report.statistics.events, &final_snapshot),
+        ],
+        outcome: ReplayOutcome {
+            status: format!("{:?}", report.status).to_lowercase(),
+            final_digest,
+            event_count: report.statistics.events,
+            alarms: Vec::new(),
+            metrics: BTreeMap::from([
+                ("deliveries".into(), report.statistics.deliveries as u64),
+                ("drops".into(), report.statistics.drops as u64),
+                (
+                    "transmissions".into(),
+                    report.statistics.transmissions as u64,
+                ),
+            ]),
+        },
+    }
+    .normalize()?)
+}
+
+fn scenario_inputs(scenario: &ScenarioConfig, report: &ScenarioReport) -> Vec<RunInput> {
+    let mut inputs = vec![packet_input(0, &scenario.source, &scenario.packet)];
+    inputs.extend(
+        scenario
+            .connection_overrides
+            .iter()
+            .map(|state| RunInput::Fault {
+                at_us: 0,
+                target: state.connection.clone(),
+                fault: "connection-unavailable".into(),
+                active: !state.operational,
+            }),
+    );
+    inputs.extend(
+        scenario
+            .first_hop_overrides
+            .iter()
+            .map(|state| RunInput::Command {
+                at_us: 0,
+                source: "scenario".into(),
+                target: state.appliance.clone(),
+                command: format!("set-first-hop-role:{}:{}", state.interface, state.role),
+                values: BTreeMap::new(),
+            }),
+    );
+    inputs.extend(
+        scenario
+            .firewall_ha_overrides
+            .iter()
+            .map(|state| RunInput::Command {
+                at_us: 0,
+                source: "scenario".into(),
+                target: state.appliance.clone(),
+                command: format!("set-firewall-ha-role:{}", state.role),
+                values: BTreeMap::new(),
+            }),
+    );
+    if let Some(continuity) = &scenario.continuity {
+        for fault in &continuity.faults {
+            let (at_us, target, fault) = match fault {
+                ScenarioContinuityFault::SyncLinkLoss { at_us } => (
+                    *at_us,
+                    continuity.failed_appliance.clone(),
+                    "firewall-ha-sync-loss",
+                ),
+                ScenarioContinuityFault::StandbySessionLoss { at_us } => (
+                    *at_us,
+                    report.continuity.as_ref().map_or_else(
+                        || "standby-firewall".into(),
+                        |item| item.promoted_appliance.clone(),
+                    ),
+                    "standby-session-state-loss",
+                ),
+            };
+            inputs.push(RunInput::Fault {
+                at_us,
+                target,
+                fault: fault.into(),
+                active: true,
+            });
+        }
+        inputs.push(RunInput::Fault {
+            at_us: continuity.failure_at_us,
+            target: continuity.failed_appliance.clone(),
+            fault: "appliance-unavailable".into(),
+            active: true,
+        });
+        inputs.extend(
+            continuity
+                .connection_overrides
+                .iter()
+                .map(|state| RunInput::Fault {
+                    at_us: continuity.failure_at_us,
+                    target: state.connection.clone(),
+                    fault: "connection-unavailable".into(),
+                    active: !state.operational,
+                }),
+        );
+        inputs.push(packet_input(
+            continuity.continuation_at_us,
+            &continuity.source,
+            &continuity.packet,
+        ));
+    }
+    if let Some(isolation) = &scenario.ha_isolation {
+        inputs.push(RunInput::Fault {
+            at_us: isolation.isolation_at_us,
+            target: isolation.standby_appliance.clone(),
+            fault: "ha-peer-isolation".into(),
+            active: true,
+        });
+        inputs.extend(
+            isolation
+                .connection_overrides
+                .iter()
+                .map(|state| RunInput::Fault {
+                    at_us: isolation.isolation_at_us,
+                    target: state.connection.clone(),
+                    fault: "connection-unavailable".into(),
+                    active: !state.operational,
+                }),
+        );
+        inputs.push(packet_input(
+            isolation.continuation_at_us,
+            &isolation.source,
+            &isolation.packet,
+        ));
+    }
+    if let Some(autonomy) = &scenario.local_autonomy {
+        inputs.push(RunInput::Command {
+            at_us: 1,
+            source: autonomy.hmi.clone(),
+            target: autonomy.safety_interface.clone(),
+            command: "reset-safety".into(),
+            values: BTreeMap::new(),
+        });
+        inputs.push(RunInput::Command {
+            at_us: 2,
+            source: autonomy.hmi.clone(),
+            target: autonomy.actuator.clone(),
+            command: format!("{}={}", autonomy.command_tag, autonomy.command_value),
+            values: BTreeMap::new(),
+        });
+    }
+    inputs
+}
+
+fn packet_input(
+    at_us: u64,
+    source: &str,
+    packet: &hearthline_sim::ScenarioPacketConfig,
+) -> RunInput {
+    RunInput::Command {
+        at_us,
+        source: "scenario".into(),
+        target: source.into(),
+        command: "inject-ipv4".into(),
+        values: BTreeMap::from([(
+            "wire-length-bytes".into(),
+            i64::from(packet.wire_length_bytes),
+        )]),
+    }
+}
+
+fn write_generated_catalogs(
+    project: &hearthline_project::CompiledProject,
+) -> Result<(), Box<dyn Error>> {
+    let repository_root = repository_root_for_config(project.root())
+        .ok_or("compiled configuration root has no repository parent")?;
+    for (path, source) in project.generated_catalogs()? {
+        write_atomic(&repository_root.join(path), &source)?;
     }
     Ok(())
 }
 
-fn component_id(value: &str) -> Result<ComponentId, Box<dyn Error>> {
-    Ok(ComponentId::new(value)?)
+fn repository_root_for_config(config_root: &Path) -> Option<&Path> {
+    config_root.parent().and_then(Path::parent)
 }
 
-fn port_id(value: &str) -> Result<PortId, Box<dyn Error>> {
-    Ok(PortId::new(value)?)
+fn write_atomic(path: &Path, source: &str) -> Result<(), Box<dyn Error>> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    let temporary = path.with_extension("hearthline-tmp");
+    fs::write(&temporary, source)?;
+    fs::rename(temporary, path)?;
+    Ok(())
 }
 
-fn ethernet_endpoint(component: ComponentId, port: PortId) -> LinkEndpoint {
-    LinkEndpoint {
-        component,
-        port,
-        profile: SimulatedPort {
-            hardware: PortHardwareKind::EthernetRj45,
-            state: PortStateConfig {
-                administrative: PortState::Up,
-                initial_operational: PortState::Up,
-            },
-            settings: PortSettings {
-                speed_mbps: 1_000,
-                duplex: PortDuplex::Full,
-                mtu: 1_500,
-            },
-        },
+fn project_config_root() -> Result<PathBuf, Box<dyn Error>> {
+    if let Some(root) = std::env::var_os(PROJECT_ROOT_ENV) {
+        let root = PathBuf::from(root);
+        let config = root.join("project/config");
+        if config.is_dir() {
+            return Ok(config);
+        }
+        return Err(format!(
+            "{PROJECT_ROOT_ENV}={} does not contain project/config",
+            root.display()
+        )
+        .into());
+    }
+    let current = std::env::current_dir()?;
+    for candidate in current.ancestors() {
+        let config = candidate.join("project/config");
+        if config.is_dir() {
+            return Ok(config);
+        }
+    }
+    Err(format!(
+        "cannot find project/config from {}; set {PROJECT_ROOT_ENV}",
+        current.display()
+    )
+    .into())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::repository_root_for_config;
+    use std::path::Path;
+
+    #[test]
+    fn generated_catalogs_are_anchored_to_the_repository() {
+        assert_eq!(
+            repository_root_for_config(Path::new("/workspace/project/config")),
+            Some(Path::new("/workspace"))
+        );
     }
 }

@@ -8,13 +8,12 @@ use hearthline_model::{
 };
 
 use crate::NeighborEntry;
+use crate::capacity::{HOST_INTERFACE_CAPACITY, HOST_PENDING_CAPACITY, HOST_ROUTE_CAPACITY};
 use crate::network::forwarding::NeighborCache;
 use crate::runtime::{collect_fixed, runtime_text, single_effect};
 use crate::{
     DropReason, Effect, EffectList, Ipv4Egress, NetworkIngress, RoutedInterface, RoutingTable,
 };
-
-const PENDING_CAPACITY: usize = 16;
 
 #[derive(Clone, Debug)]
 struct PendingIpv4 {
@@ -36,10 +35,10 @@ pub(crate) enum EndpointReceive {
 
 #[derive(Clone, Debug)]
 pub(crate) struct EndpointStack {
-    interfaces: FixedList<RoutedInterface, 16>,
+    interfaces: FixedList<RoutedInterface, HOST_INTERFACE_CAPACITY>,
     routes: RoutingTable,
     neighbors: NeighborCache,
-    pending: FixedList<PendingIpv4, PENDING_CAPACITY>,
+    pending: FixedList<PendingIpv4, HOST_PENDING_CAPACITY>,
 }
 
 impl EndpointStack {
@@ -64,7 +63,7 @@ impl EndpointStack {
             !interfaces.is_empty(),
             "network endpoint requires at least one interface"
         );
-        let mut routes: FixedList<Route, 16> = FixedList::new();
+        let mut routes: FixedList<Route, HOST_ROUTE_CAPACITY> = FixedList::new();
         for interface in &interfaces {
             for address in &interface.addresses {
                 routes

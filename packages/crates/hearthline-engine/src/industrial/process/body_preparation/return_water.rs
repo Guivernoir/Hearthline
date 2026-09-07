@@ -1,3 +1,5 @@
+use hearthline_model::{FixedValue, fixed};
+
 use super::{
     BodyPreparationFault, BodyPreparationOutputs, BodyPreparationStartError, BodyPreparationTrip,
     ReturnWaterMeasurements, ReturnWaterPhase, WaterQuality, WaterSetpoints,
@@ -18,7 +20,7 @@ pub(super) struct ReturnWaterRuntime {
     pub held: bool,
     pub measurements: ReturnWaterMeasurements,
     stream: ReturnStream,
-    cycle_sludge_start_kg: f64,
+    cycle_sludge_start_kg: FixedValue,
     product_pending: bool,
 }
 
@@ -32,38 +34,38 @@ impl ReturnWaterRuntime {
             held: false,
             measurements: ReturnWaterMeasurements {
                 active_stream: "body-return",
-                body_equalization_l: 1_200.0,
-                glaze_equalization_l: 650.0,
-                body_reuse_tank_l: 300.0,
-                glaze_reuse_tank_l: 180.0,
-                feed_flow_l_min: 0.0,
-                clarified_flow_l_min: 0.0,
-                sludge_cake_kg: 0.0,
-                influent_turbidity_ntu: 480.0,
-                effluent_turbidity_ntu: 1.5,
+                body_equalization_l: fixed!(1_200.0),
+                glaze_equalization_l: fixed!(650.0),
+                body_reuse_tank_l: fixed!(300.0),
+                glaze_reuse_tank_l: fixed!(180.0),
+                feed_flow_l_min: fixed!(0.0),
+                clarified_flow_l_min: fixed!(0.0),
+                sludge_cake_kg: fixed!(0.0),
+                influent_turbidity_ntu: fixed!(480.0),
+                effluent_turbidity_ntu: fixed!(1.5),
                 body_reuse_quality: WaterQuality {
-                    temperature_c: 28.0,
-                    ph: 7.8,
-                    turbidity_ntu: 1.2,
-                    conductivity_us_cm: 230.0,
-                    hardness_mg_l_caco3: 42.0,
-                    suspended_solids_mg_l: 8.0,
-                    glaze_contamination_percent: 0.0,
-                    recovered_fraction_percent: 100.0,
+                    temperature_c: fixed!(28.0),
+                    ph: fixed!(7.8),
+                    turbidity_ntu: fixed!(1.2),
+                    conductivity_us_cm: fixed!(230.0),
+                    hardness_mg_l_caco3: fixed!(42.0),
+                    suspended_solids_mg_l: fixed!(8.0),
+                    glaze_contamination_percent: fixed!(0.0),
+                    recovered_fraction_percent: fixed!(100.0),
                 },
                 glaze_reuse_quality: WaterQuality {
-                    temperature_c: 27.0,
-                    ph: 7.6,
-                    turbidity_ntu: 2.0,
-                    conductivity_us_cm: 340.0,
-                    hardness_mg_l_caco3: 55.0,
-                    suspended_solids_mg_l: 12.0,
-                    glaze_contamination_percent: 1.0,
-                    recovered_fraction_percent: 100.0,
+                    temperature_c: fixed!(27.0),
+                    ph: fixed!(7.6),
+                    turbidity_ntu: fixed!(2.0),
+                    conductivity_us_cm: fixed!(340.0),
+                    hardness_mg_l_caco3: fixed!(55.0),
+                    suspended_solids_mg_l: fixed!(12.0),
+                    glaze_contamination_percent: fixed!(1.0),
+                    recovered_fraction_percent: fixed!(100.0),
                 },
             },
             stream: ReturnStream::Body,
-            cycle_sludge_start_kg: 0.0,
+            cycle_sludge_start_kg: fixed!(0.0),
             product_pending: false,
         }
     }
@@ -92,15 +94,15 @@ impl ReturnWaterRuntime {
             ReturnStream::Body => (
                 self.measurements.body_equalization_l,
                 self.measurements.body_reuse_tank_l,
-                4_000.0,
+                fixed!(4_000.0),
             ),
             ReturnStream::Glaze => (
                 self.measurements.glaze_equalization_l,
                 self.measurements.glaze_reuse_tank_l,
-                3_000.0,
+                fixed!(3_000.0),
             ),
         };
-        let recovered_l = setpoints.return_batch_l * 0.88;
+        let recovered_l = setpoints.return_batch_l * fixed!(0.88);
         if feed_l < setpoints.return_batch_l || product_l + recovered_l > product_capacity_l {
             return Err(BodyPreparationStartError::WaterUnavailable);
         }
@@ -158,7 +160,7 @@ impl ReturnWaterRuntime {
             changed = true;
             self.update_measurements(sp);
             if self.phase == ReturnWaterPhase::Complete && !self.product_pending {
-                self.route_product(sp.return_batch_l * 0.88);
+                self.route_product(sp.return_batch_l * fixed!(0.88));
                 self.product_pending = true;
             }
             if self.phase == ReturnWaterPhase::Idle {
@@ -194,24 +196,24 @@ impl ReturnWaterRuntime {
             self.phase_elapsed_ms,
             sp.return_phase_duration_ms(self.phase),
         );
-        self.measurements.feed_flow_l_min = 0.0;
-        self.measurements.clarified_flow_l_min = 0.0;
+        self.measurements.feed_flow_l_min = fixed!(0.0);
+        self.measurements.clarified_flow_l_min = fixed!(0.0);
         self.measurements.influent_turbidity_ntu = if self.stream == ReturnStream::Body {
-            480.0
+            fixed!(480.0)
         } else {
-            720.0
+            fixed!(720.0)
         };
         self.measurements.effluent_turbidity_ntu = match self.phase {
             ReturnWaterPhase::Idle
             | ReturnWaterPhase::SegregatedCollection
             | ReturnWaterPhase::Equalization => self.measurements.influent_turbidity_ntu,
             ReturnWaterPhase::CoagulationFlocculation => {
-                self.measurements.influent_turbidity_ntu * (1.0 - 0.45 * p)
+                self.measurements.influent_turbidity_ntu * (fixed!(1.0) - fixed!(0.45) * p)
             }
-            ReturnWaterPhase::LamellaClarification => 264.0 - 245.0 * p,
-            ReturnWaterPhase::FilterPress => 19.0 - 13.0 * p,
-            ReturnWaterPhase::PolishingFiltration => 6.0 - 4.5 * p,
-            _ => 1.5,
+            ReturnWaterPhase::LamellaClarification => fixed!(264.0) - fixed!(245.0) * p,
+            ReturnWaterPhase::FilterPress => fixed!(19.0) - fixed!(13.0) * p,
+            ReturnWaterPhase::PolishingFiltration => fixed!(6.0) - fixed!(4.5) * p,
+            _ => fixed!(1.5),
         };
         if matches!(
             self.phase,
@@ -220,30 +222,32 @@ impl ReturnWaterRuntime {
                 | ReturnWaterPhase::FilterPress
                 | ReturnWaterPhase::PolishingFiltration
         ) {
-            self.measurements.feed_flow_l_min = 18.0;
+            self.measurements.feed_flow_l_min = fixed!(18.0);
         }
         if self.phase == ReturnWaterPhase::LamellaClarification {
-            self.measurements.clarified_flow_l_min = 15.8;
+            self.measurements.clarified_flow_l_min = fixed!(15.8);
         }
         if self.phase == ReturnWaterPhase::FilterPress {
-            let wet_cake_kg = sp.return_batch_l * 0.002;
+            let wet_cake_kg = sp.return_batch_l * fixed!(0.002);
             self.measurements.sludge_cake_kg = self.cycle_sludge_start_kg + wet_cake_kg * p;
         }
     }
 
-    fn route_product(&mut self, volume_l: f64) {
+    fn route_product(&mut self, volume_l: FixedValue) {
         match self.stream {
             ReturnStream::Body => {
-                self.measurements.body_equalization_l =
-                    (self.measurements.body_equalization_l - volume_l / 0.88).max(0.0);
+                self.measurements.body_equalization_l = (self.measurements.body_equalization_l
+                    - volume_l / fixed!(0.88))
+                .max(fixed!(0.0));
                 self.measurements.body_reuse_tank_l =
-                    (self.measurements.body_reuse_tank_l + volume_l).min(4_000.0);
+                    (self.measurements.body_reuse_tank_l + volume_l).min(fixed!(4_000.0));
             }
             ReturnStream::Glaze => {
-                self.measurements.glaze_equalization_l =
-                    (self.measurements.glaze_equalization_l - volume_l / 0.88).max(0.0);
+                self.measurements.glaze_equalization_l = (self.measurements.glaze_equalization_l
+                    - volume_l / fixed!(0.88))
+                .max(fixed!(0.0));
                 self.measurements.glaze_reuse_tank_l =
-                    (self.measurements.glaze_reuse_tank_l + volume_l).min(3_000.0);
+                    (self.measurements.glaze_reuse_tank_l + volume_l).min(fixed!(3_000.0));
             }
         }
     }
@@ -253,15 +257,15 @@ impl ReturnWaterRuntime {
         self.held = false;
         self.phase = ReturnWaterPhase::Faulted;
         self.phase_elapsed_ms = 0;
-        self.measurements.feed_flow_l_min = 0.0;
-        self.measurements.clarified_flow_l_min = 0.0;
+        self.measurements.feed_flow_l_min = fixed!(0.0);
+        self.measurements.clarified_flow_l_min = fixed!(0.0);
     }
 }
 
-fn progress(elapsed_ms: u64, duration_ms: u64) -> f64 {
+fn progress(elapsed_ms: u64, duration_ms: u64) -> FixedValue {
     if duration_ms == 0 {
-        0.0
+        fixed!(0.0)
     } else {
-        (elapsed_ms as f64 / duration_ms as f64).clamp(0.0, 1.0)
+        FixedValue::from_u64_ratio(elapsed_ms, duration_ms).clamp(fixed!(0.0), fixed!(1.0))
     }
 }

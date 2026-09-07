@@ -24,7 +24,12 @@ pub use frontend::{
     FrontendInterface, FrontendLinkAggregation, FrontendLinkAggregationGroup, FrontendMultiChassis,
     FrontendSpanningTree,
 };
-pub use repository::{ConfigRepository, LoadedAppliance};
+pub use repository::{
+    ConfigRepository, FrontendProcessArea, FrontendProcessEquipment, FrontendProcessView,
+    LoadedAppliance, PROCESS_VIEW_SCHEMA_VERSION, ProcessEdge, ProcessPosition, ProcessSupportNode,
+    ProcessViewConfig, RUNTIME_CAPACITY_SCHEMA_VERSION, RuntimeCapacityManifest,
+    RuntimePartitionRule, RuntimePartitioningConfig, RuntimeWorkloadEnvelope,
+};
 pub use schema::{
     APPLIANCE_SCHEMA_VERSION, ApplianceConfig, ApplicationUpstreamConfig,
     FRONTEND_CATALOG_SCHEMA_VERSION, FirewallHaConfig, FirewallHaRole, FirewallZoneConfig,
@@ -35,7 +40,8 @@ pub use schema::{
     SpanningTreeConfig, SpanningTreeProtocol,
 };
 pub use support::ConfigError;
-pub(crate) use support::source_revision;
+#[doc(hidden)]
+pub use support::source_revision;
 
 use application::{application_gateway_facts, validate_application_gateway, validate_dns_records};
 use support::{

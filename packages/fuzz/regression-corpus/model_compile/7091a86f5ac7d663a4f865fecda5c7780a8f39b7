@@ -1,0 +1,11 @@
+schema_version: 0.1.0
+id: wate
+    kind: integer
+    required: true
+    minimum: 2
+    maxilum: 8
+nodt: water-train
+site: factory
+environment: water-preparatin
+values:
+  pump-count: o

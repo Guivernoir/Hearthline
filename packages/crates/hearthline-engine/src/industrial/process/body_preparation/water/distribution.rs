@@ -1,3 +1,5 @@
+use hearthline_model::{FixedValue, fixed};
+
 use super::{BodyPreparationFault, GlazePhase, ReturnWaterPhase, SlipPhase, WaterQuality};
 
 pub const WATER_NETWORK_PUMP_COUNT: usize = 16;
@@ -47,10 +49,10 @@ pub struct WaterRouteMeasurements {
     pub pump_group: &'static str,
     pub demanded: bool,
     pub available: bool,
-    pub inlet_flow_l_min: f64,
-    pub outlet_flow_l_min: f64,
-    pub inlet_pressure_bar: f64,
-    pub outlet_pressure_bar: f64,
+    pub inlet_flow_l_min: FixedValue,
+    pub outlet_flow_l_min: FixedValue,
+    pub inlet_pressure_bar: FixedValue,
+    pub outlet_pressure_bar: FixedValue,
     pub leak_detected: bool,
     pub quality: WaterQuality,
 }
@@ -251,8 +253,26 @@ impl WaterNetworkRuntime {
             context.slip_phase == SlipPhase::WaterCharge,
             context.glaze_phase == GlazePhase::WaterCharge,
         ];
-        let flows = [72.0, 80.0, 55.0, 36.0, 42.0, 28.0, 32.0, 24.0];
-        let pressures = [4.2, 3.1, 3.0, 3.4, 2.8, 2.6, 2.9, 2.7];
+        let flows = [
+            fixed!(72.0),
+            fixed!(80.0),
+            fixed!(55.0),
+            fixed!(36.0),
+            fixed!(42.0),
+            fixed!(28.0),
+            fixed!(32.0),
+            fixed!(24.0),
+        ];
+        let pressures = [
+            fixed!(4.2),
+            fixed!(3.1),
+            fixed!(3.0),
+            fixed!(3.4),
+            fixed!(2.8),
+            fixed!(2.6),
+            fixed!(2.9),
+            fixed!(2.7),
+        ];
         let qualities = [
             context.industrial_quality,
             context.industrial_quality,
@@ -312,17 +332,22 @@ impl WaterNetworkRuntime {
             route.inlet_flow_l_min = if demands[group] && available {
                 flows[group]
             } else {
-                0.0
+                fixed!(0.0)
             };
-            route.outlet_flow_l_min = route.inlet_flow_l_min * if leaking { 0.72 } else { 0.99 };
-            route.inlet_pressure_bar = if available { pressures[group] } else { 0.0 };
+            route.outlet_flow_l_min =
+                route.inlet_flow_l_min * if leaking { fixed!(0.72) } else { fixed!(0.99) };
+            route.inlet_pressure_bar = if available {
+                pressures[group]
+            } else {
+                fixed!(0.0)
+            };
             route.outlet_pressure_bar = route.inlet_pressure_bar
                 * if leaking {
-                    0.46
+                    fixed!(0.46)
                 } else if demands[group] {
-                    0.91
+                    fixed!(0.91)
                 } else {
-                    0.97
+                    fixed!(0.97)
                 };
             route.leak_detected = leaking;
             route.quality = qualities[group];
@@ -481,10 +506,10 @@ const fn route(
         pump_group: id,
         demanded: false,
         available: true,
-        inlet_flow_l_min: 0.0,
-        outlet_flow_l_min: 0.0,
-        inlet_pressure_bar: 0.0,
-        outlet_pressure_bar: 0.0,
+        inlet_flow_l_min: fixed!(0.0),
+        outlet_flow_l_min: fixed!(0.0),
+        inlet_pressure_bar: fixed!(0.0),
+        outlet_pressure_bar: fixed!(0.0),
         leak_detected: false,
         quality,
     }

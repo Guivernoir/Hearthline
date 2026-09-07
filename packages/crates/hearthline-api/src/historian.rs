@@ -3,10 +3,13 @@ use axum::extract::{Path as RoutePath, State};
 use axum::http::StatusCode;
 use hearthline_config::{
     ConfigRepository, ConnectionRepository, HmiSnapshot, ScenarioApplicationConfig,
-    ScenarioPacketConfig, ScenarioReport, ScenarioRepository, build_forming_telemetry_packet,
-    run_scenario_with_state_overrides,
+    ScenarioPacketConfig, ScenarioRepository, retarget_telemetry_packet,
 };
 use hearthline_engine::HistorianBuffer;
+use hearthline_operator::PlantOperatorGateway;
+use hearthline_sim::{
+    ScenarioReport, build_forming_telemetry_packet, run_scenario_with_state_overrides,
+};
 use serde::Serialize;
 
 use crate::{ApiError, AppState};
@@ -118,10 +121,6 @@ impl HistorianStore {
         }
     }
 
-    pub(super) fn clear(&mut self) {
-        *self = Self::default();
-    }
-
     fn collect(
         &mut self,
         snapshot: &HmiSnapshot,
@@ -171,7 +170,8 @@ impl HistorianStore {
         };
         let source = source.clone();
         let scenario = scenario(scenarios, REPLICATION_SCENARIO)?;
-        let packet = retarget_telemetry_packet(&source.packet, scenario.packet.clone())?;
+        let packet = retarget_telemetry_packet(&source.packet, scenario.packet.clone())
+            .map_err(|error| error.to_string())?;
         self.replication_attempts = self.replication_attempts.saturating_add(1);
         let report = run_scenario_with_state_overrides(
             appliances,
@@ -212,7 +212,7 @@ impl HistorianStore {
         let record = self.replica.latest().ok_or_else(|| {
             "the OT DMZ historian replica has no telemetry records yet".to_owned()
         })?;
-        retarget_telemetry_packet(&record.packet, template)
+        retarget_telemetry_packet(&record.packet, template).map_err(|error| error.to_string())
     }
 }
 
@@ -253,12 +253,11 @@ pub(super) async fn publish(
         None,
     )
     .map_err(ApiError::validation)?;
-    state
-        .hmi_sessions
-        .lock()
-        .await
-        .record_telemetry_publication(&appliances, &id, report.expectation_met)
+    let mut plant = state.plant_runtime.lock().await;
+    PlantOperatorGateway::new(&appliances, &mut plant)
+        .record_telemetry_publication(&id, report.expectation_met)
         .map_err(ApiError::validation)?;
+    drop(plant);
     state.historian.lock().await.last_publication = Some(report.clone());
     Ok(Json(report))
 }
@@ -266,11 +265,9 @@ pub(super) async fn publish(
 async fn authorize_scada(state: &AppState, id: &str) -> Result<(), ApiError> {
     let (appliances, _) = state.paths.load()?;
     super::hmi::require_appliance(&appliances, id)?;
-    let snapshot = state
-        .hmi_sessions
-        .lock()
-        .await
-        .profile(&appliances, id)
+    let mut plant = state.plant_runtime.lock().await;
+    let snapshot = PlantOperatorGateway::new(&appliances, &mut plant)
+        .projection(id)
         .map_err(ApiError::validation)?;
     if snapshot.interface_kind == "scada-workstation"
         && snapshot
@@ -331,35 +328,6 @@ fn stored_record(
         },
         packet,
     })
-}
-
-fn retarget_telemetry_packet(
-    source: &ScenarioPacketConfig,
-    mut target: ScenarioPacketConfig,
-) -> Result<ScenarioPacketConfig, String> {
-    let ScenarioApplicationConfig::Telemetry {
-        source: component,
-        sequence,
-        payload,
-        ..
-    } = &source.application
-    else {
-        return Err("source historian record is not telemetry".into());
-    };
-    let service = match &target.application {
-        ScenarioApplicationConfig::Telemetry { service, .. }
-        | ScenarioApplicationConfig::Service { service } => service.clone(),
-        _ => return Err("historian target scenario does not declare a service".into()),
-    };
-    target.wire_length_bytes = source.wire_length_bytes;
-    target.application = ScenarioApplicationConfig::Telemetry {
-        service,
-        source: component.clone(),
-        sequence: *sequence,
-        payload: payload.clone(),
-    };
-    target.validate().map_err(|error| error.to_string())?;
-    Ok(target)
 }
 
 fn tier_status(

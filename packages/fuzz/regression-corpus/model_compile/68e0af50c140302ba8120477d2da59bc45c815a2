@@ -1,0 +1,14 @@
+schlum: 8
+nodes:
+  - id: pump
+    appliance_kind: field-actuator
+$    repeat: pump-count
+connections: []
+ex)))))))))))))))ter-train-a
+blueprint: water-train
+site: Factory
+environment: water-pr appliance_kind: field-actuat1o_kind: field-actuator
+$    repeat: pump-count
+connections: []
+ex)))))))))))))))ter-train-a
+blueprint: watero

@@ -1,17 +1,15 @@
-use hearthline_model::Text;
-use serde::Deserialize;
-
 use super::{
-    MediaError, MediaFacts, MediaText, SimulatedMedium, error, facts, message, propagation_delay_us,
+    MediaError, MediaFacts, MediaText, SimulatedMedium, distance_text, error, facts, message,
+    propagation_delay_us,
 };
+use hearthline_model::{Position, Text};
 
-#[derive(Clone, Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone, Debug)]
 pub struct RadioMedium {
     pub standard: Text<32>,
     pub ssid: Text<64>,
     pub security: Text<64>,
-    pub distance_m: f64,
+    pub distance: Position,
 }
 
 impl SimulatedMedium for RadioMedium {
@@ -25,13 +23,13 @@ impl SimulatedMedium for RadioMedium {
                 return Err(error(format_args!("{field} cannot be empty")));
             }
         }
-        if self.distance_m <= 0.0 {
+        if self.distance <= Position::ZERO {
             return Err("radio distance must be greater than zero".into());
         }
-        if self.distance_m > 300.0 {
+        if self.distance > Position::from_raw(300_000_000) {
             return Err(error(format_args!(
                 "radio path {:.1} m exceeds 300 m",
-                self.distance_m
+                distance_text(self.distance)
             )));
         }
         Ok(())
@@ -39,8 +37,11 @@ impl SimulatedMedium for RadioMedium {
 
     fn detail(&self) -> MediaText {
         message(format_args!(
-            "{} / {} / {} / {:.1} m",
-            self.standard, self.ssid, self.security, self.distance_m
+            "{} / {} / {} / {} m",
+            self.standard,
+            self.ssid,
+            self.security,
+            distance_text(self.distance)
         ))
     }
 
@@ -48,13 +49,16 @@ impl SimulatedMedium for RadioMedium {
         facts([
             Text::from(self.standard.as_str()),
             message(format_args!("{} security", self.security)),
-            message(format_args!("{:.1} m modeled radio path", self.distance_m)),
+            message(format_args!(
+                "{} m modeled radio path",
+                distance_text(self.distance)
+            )),
             "Interference and stochastic fading are not yet modeled".into(),
         ])
     }
 
     fn propagation_delay_us(&self) -> u64 {
-        propagation_delay_us(self.distance_m, 299_792_458.0)
+        propagation_delay_us(self.distance, 299_792_458)
     }
 
     fn max_capacity_mbps(&self) -> Option<u64> {

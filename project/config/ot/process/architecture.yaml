@@ -1,0 +1,191 @@
+schema_version: 0.3.0
+support_nodes:
+  - id: operations-intelligence
+    label: Operations Intelligence
+    subtitle: Governance and analysis
+    zone: Central Office
+    accent: "#3567a6"
+    icon: monitor
+    tags: [NOC/SOC, Analytics]
+    detail: Owns network governance, security oversight, production analysis, and approved change decisions without directly controlling the process.
+    kind: platform
+    position: { x: 40, y: 105, width: 220, height: 120 }
+  - id: site-conduit
+    label: Encrypted Site Conduit
+    subtitle: Named inter-site flows
+    zone: Central Office to Factory
+    accent: "#476f88"
+    icon: network
+    tags: [Encrypted, Audited]
+    detail: Carries brokered factory data and governed administration or change workflows; it is not a direct controller path.
+    kind: boundary
+    position: { x: 350, y: 105, width: 220, height: 120 }
+  - id: ot-dmz
+    label: Factory OT DMZ
+    subtitle: Access, exchange, monitoring
+    zone: Factory / Level 3.5
+    accent: "#bd5c35"
+    icon: shield
+    tags: [Jump, Broker]
+    detail: Terminates cross-boundary sessions at the factory and hosts controlled access, exchange, and monitoring services.
+    kind: boundary
+    position: { x: 660, y: 105, width: 220, height: 120 }
+  - id: ot-operations
+    label: OT Operations
+    subtitle: SCADA, historian, engineering
+    zone: Level 3
+    accent: "#257168"
+    icon: server
+    tags: [SCADA, Historian]
+    detail: Provides factory-local supervision, engineering access, operations data, and OT management when the inter-site conduit is unavailable.
+    kind: platform
+    position: { x: 970, y: 105, width: 220, height: 120 }
+  - id: vplc-platform
+    label: vPLC Compute Cluster
+    subtitle: Redundant Level 3 control compute
+    zone: Factory / Level 3
+    accent: "#6959a8"
+    icon: server
+    tags: [Virtual runtimes, Cell VLANs]
+    detail: Hosts isolated area vPLC workloads on redundant industrial compute while distributed I/O remains inside each automation cell.
+    kind: platform
+    position: { x: 1280, y: 105, width: 220, height: 120 }
+
+areas:
+  - id: ot-area-01
+    route_key: body-preparation
+    environment: Body Preparation
+    label: Body Preparation
+    subtitle: Ceramic slip preparation
+    zone: OT-AREA-01
+    accent: "#7a6546"
+    icon: droplets
+    tags: [vPLC, HMI, I/O]
+    detail: Raw-material storage, batching, mixing, conditioning, and prepared ceramic-slip delivery to Forming.
+    position: { x: 60, y: 430, width: 240, height: 130 }
+  - id: ot-area-02
+    route_key: forming
+    environment: Forming
+    label: Forming
+    subtitle: Slip pressure casting and demoulding
+    zone: OT-AREA-02
+    accent: "#2f6f70"
+    icon: factory
+    tags: [vPLC, SCADA, I/O]
+    detail: Pressure casting, draining, controlled release, robotic transfer, mould cleaning, air purge, and vacuum drying.
+    position: { x: 370, y: 430, width: 240, height: 130 }
+  - id: ot-area-03
+    route_key: controlled-drying
+    environment: Controlled Drying
+    label: Controlled Drying
+    subtitle: Multi-day environment
+    zone: OT-AREA-03
+    accent: "#36708a"
+    icon: snowflake
+    tags: [vPLC, HVAC, I/O]
+    detail: Residence time, temperature, humidity, airflow, and material-moisture history.
+    position: { x: 680, y: 430, width: 240, height: 130 }
+  - id: ot-area-04
+    route_key: industrial-dryer
+    environment: Industrial Dryer
+    label: Industrial Dryer
+    subtitle: Profile and discharge
+    zone: OT-AREA-04
+    accent: "#b76c2e"
+    icon: wind
+    tags: [vPLC, HMI, I/O]
+    detail: Loading, temperature and airflow profile, interlocks, and discharge.
+    position: { x: 990, y: 430, width: 240, height: 130 }
+  - id: ot-area-05
+    route_key: color-and-glaze
+    environment: Color and Glaze
+    label: Color and Glaze
+    subtitle: Preparation and application
+    zone: OT-AREA-05
+    accent: "#9b4d68"
+    icon: paintbrush
+    tags: [vPLC, Recipe, I/O]
+    detail: Tanks, pumps, recipes, application equipment, and controlled cleaning cycles.
+    position: { x: 1300, y: 430, width: 240, height: 130 }
+  - id: ot-area-06
+    route_key: kiln-one
+    environment: Kiln 1
+    label: Kiln 1
+    subtitle: Primary firing
+    zone: OT-AREA-06
+    accent: "#b84932"
+    icon: flame
+    tags: [vPLC, BMS, I/O]
+    detail: Firing profile, temperature zones, airflow, combustion interfaces, and unloading.
+    position: { x: 1300, y: 760, width: 240, height: 130 }
+  - id: ot-area-07
+    route_key: intermediate-inspection
+    environment: Intermediate Inspection
+    label: Intermediate Inspection
+    subtitle: Classification and routing
+    zone: OT-AREA-07
+    accent: "#426d9d"
+    icon: scan
+    tags: [Vision, HMI, Trace]
+    detail: Defect classification, routing, and traceability before the second firing.
+    position: { x: 990, y: 760, width: 240, height: 130 }
+  - id: ot-area-08
+    route_key: kiln-two
+    environment: Kiln 2
+    label: Kiln 2
+    subtitle: Second firing
+    zone: OT-AREA-08
+    accent: "#9e3f2f"
+    icon: flame
+    tags: [vPLC, BMS, I/O]
+    detail: Second firing profile, combustion interfaces, interlocks, and unloading.
+    position: { x: 680, y: 760, width: 240, height: 130 }
+  - id: ot-area-09
+    route_key: final-inspection
+    environment: Final Inspection
+    label: Final Inspection
+    subtitle: Post-firing quality gate
+    zone: OT-AREA-09
+    accent: "#3567a6"
+    icon: check-circle
+    tags: [Vision, Quality, Trace]
+    detail: Visual, dimensional, and traceability checks before release to logistics.
+    position: { x: 370, y: 760, width: 240, height: 130 }
+  - id: ot-area-10
+    route_key: logistics
+    environment: Logistics
+    label: Logistics
+    subtitle: Packing and warehouse handoff
+    zone: OT-AREA-10
+    accent: "#51704c"
+    icon: package
+    tags: [Pack, Track, Report]
+    detail: Packing, palletizing, material tracking, warehouse handoff, and production reporting.
+    position: { x: 60, y: 760, width: 240, height: 130 }
+
+network_edges:
+  - { source: operations-intelligence, destination: site-conduit }
+  - { source: site-conduit, destination: ot-dmz }
+  - { source: ot-dmz, destination: ot-operations }
+  - { source: ot-operations, destination: vplc-platform }
+  - { source: vplc-platform, destination: ot-area-01 }
+  - { source: vplc-platform, destination: ot-area-02 }
+  - { source: vplc-platform, destination: ot-area-03 }
+  - { source: vplc-platform, destination: ot-area-04 }
+  - { source: vplc-platform, destination: ot-area-05 }
+  - { source: vplc-platform, destination: ot-area-06 }
+  - { source: vplc-platform, destination: ot-area-07 }
+  - { source: vplc-platform, destination: ot-area-08 }
+  - { source: vplc-platform, destination: ot-area-09 }
+  - { source: vplc-platform, destination: ot-area-10 }
+
+material_flow:
+  - { source: ot-area-01, destination: ot-area-02 }
+  - { source: ot-area-02, destination: ot-area-03 }
+  - { source: ot-area-03, destination: ot-area-04 }
+  - { source: ot-area-04, destination: ot-area-05 }
+  - { source: ot-area-05, destination: ot-area-06 }
+  - { source: ot-area-06, destination: ot-area-07 }
+  - { source: ot-area-07, destination: ot-area-08 }
+  - { source: ot-area-08, destination: ot-area-09 }
+  - { source: ot-area-09, destination: ot-area-10 }

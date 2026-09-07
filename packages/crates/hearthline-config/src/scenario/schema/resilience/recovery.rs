@@ -40,7 +40,8 @@ impl ScenarioRecoveryConfig {
         self.expectation.validate()
     }
 
-    pub(in crate::scenario::schema) fn matches(
+    #[doc(hidden)]
+    pub fn matches(
         &self,
         connection_states: &[crate::ScenarioConnectionState],
         first_hop_states: &[crate::ScenarioFirstHopState],

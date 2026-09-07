@@ -3,13 +3,14 @@ use heapless::Vec as FixedList;
 use hearthline_model::{ComponentId, EthernetFrame, PortId, VlanId};
 
 use super::SwitchPort;
+use crate::capacity::SWITCH_AGGREGATION_MEMBER_CAPACITY;
 use crate::runtime::collect_fixed;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SwitchAggregationGroup {
     pub id: ComponentId,
     pub logical_id: ComponentId,
-    pub(super) members: FixedList<SwitchAggregationMember, 16>,
+    pub(super) members: FixedList<SwitchAggregationMember, SWITCH_AGGREGATION_MEMBER_CAPACITY>,
     pub(super) multi_chassis: bool,
     pub(super) peer_forwarding: bool,
 }

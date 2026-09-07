@@ -68,7 +68,9 @@ predictions rather than downstream plant state.
 pipeline-monitoring channels. The transfer line adds discharge and receiving
 pressure, receiving flow, ultrasonic entrained-air, and derived leak-balance
 measurements. The validated Structured Text sequence and explicit YAML binding
-currently cover this train.
+drive this train's controller phase and batch state. Rust advances the bounded
+material and equipment model and reports phase completion or a trip through a
+typed feedback contract; it does not select the next sequence phase.
 
 Deterministic disturbances cover ingredient shortage, mixer overload, blocked
 screen, out-of-range quality, transfer no-flow, and slip-pipeline leakage. The

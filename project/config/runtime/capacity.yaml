@@ -1,0 +1,39 @@
+schema_version: 1.2.0
+reserve_percent: 25
+workload:
+  conduit_queue_capacity: 32
+  conduit_reviewed_burst: 24
+  immediate_event_burst: 48
+  delayed_event_burst: 48
+  trace_entry_limit: 168
+  session_memory_limit_bytes: 268435456
+  loader_stack_limit_bytes: 2097152
+  conduit_overflow_policy: reject-newest
+partitioning:
+  strategy: site-environment-with-rules
+  rules:
+    - id: factory-body-preparation-water-treatment
+      site: Factory
+      environment: Body Preparation
+      appliance_ids: [area-01-rio-03]
+      appliance_prefixes: [area-01-wt-]
+    - id: factory-body-preparation-water-distribution
+      site: Factory
+      environment: Body Preparation
+      appliance_ids: [area-01-rio-06]
+      appliance_prefixes: [area-01-wd-, area-01-wf-, area-01-ws-, area-01-wg-]
+    - id: factory-body-preparation-return-treatment
+      site: Factory
+      environment: Body Preparation
+      appliance_ids: [area-01-rio-04]
+      appliance_prefixes: [area-01-rw-]
+    - id: factory-body-preparation-return-distribution
+      site: Factory
+      environment: Body Preparation
+      appliance_ids: [area-01-rio-07]
+      appliance_prefixes: [area-01-rc-, area-01-rb-, area-01-rbd-, area-01-rg-, area-01-rgd-]
+    - id: factory-body-preparation-glaze
+      site: Factory
+      environment: Body Preparation
+      appliance_ids: [area-01-rio-05]
+      appliance_prefixes: [area-01-gl-]

@@ -32,24 +32,38 @@ to reproduce vendor firmware or every byte exchanged by a production protocol.
 | Services | Explicit service acceptance, ICMP echo response, authoritative test-record DNS responses, configured bounded HTTP documents, typed bounded process telemetry, and operational state |
 | Web gateway | HTTP redirect, published-host validation, configuration-owned method allowlists and path/body inspection rules, body limits, configured static routing, bounded request correlation, upstream request origination, and response relay |
 | Monitoring | Passive frame observation without forwarding |
-| OT control | Periodic virtual-controller scans, bounded Structured Text and robot `.g` parsers/runtimes, explicit Forming and Body Preparation slip I/O binding validation, four Rust-owned Body Preparation trains, Rust-owned Forming dynamics and trips, typed slip handoff, and workspace-limited robot motion interpolation |
-| Operator interface | HMI/SCADA allowed-tag command submission, scoped observation, shared process state, independent preparation-train control, mould-local production control, retained manual commands, fault injection, alarm handling, and audit history |
+| OT control | Periodic virtual-controller scans, bounded Structured Text and robot `.g` parsers/runtimes, source-driven Forming and Body Preparation slip sequences, Rust-owned plant dynamics and trips, three additional Rust-sequenced Body Preparation trains, typed slip handoff, and workspace-limited robot motion interpolation |
+| Operator interface | HMI/SCADA allowed-tag command submission, scoped observation, one canonical plant runtime with lightweight operator contexts, independent preparation-train control, mould-local production control, retained manual commands, fault injection, alarm handling, and audit history |
 | Distributed I/O | Declared input and output channels, channel validation, and output effects |
 | Field devices | Scaled sensor samples, actuator commands, failures, and safe-state handling |
 | Safety interface | Required permissives, latched trips, safe denial, and authorized reset |
-| Runtime | Borrowed registry for up to 192 components, deterministic fixed-capacity queues, 256 links, microsecond delivery, media-transit trace records, capacity failures, and event limits |
+| Runtime | Host-composed sites and cells, fixed-capacity allocator-free cell execution, preallocated directional conduits, stable microsecond scheduling, explicit overload policies, high-water diagnostics, component/cell snapshots, and compiler-generated capacity evidence with at least 25 percent reviewed reserve |
 | Configured scenarios | Versioned YAML packet, baseline expectation, optional recovery, continuity, isolation, local-autonomy, security, and connection-state contracts; participant and topology validation; selected-subgraph construction; packet and link-state overrides where permitted; stable JSON report projection; and API execution |
 | Security evidence | Trace-derived prevention or control-failure disposition, configured detector and defender ownership, bounded session retention, acknowledgement, and local API projection |
 
 The `hearthline-model` and `hearthline-engine` crates compile independently as
 `no_std` code and use fixed-capacity storage. Host allocation, filesystem
-access, YAML parsing, generated projection, HTTP, and CLI concerns are isolated
-in adapter crates. The workspace currently contains 38 appliance kinds and 45
-rendered-role contracts. The manually maintained coverage register records a
-Rust kind for every currently identified rendered appliance role, and external
-integration tests ensure those kinds exist in the catalog. It cannot
-independently discover Svelte inventory drift and does not prove that every
-node is instantiated in a running topology.
+access, YAML parsing, project compilation, generated projection, HTTP, and CLI
+concerns are isolated above that boundary. Compile-time appliance-family
+contracts bind behavior, capabilities, schema mapping, saturation policy, and
+snapshot requirements. Generated catalog and process-view drift is rejected by
+CI; catalog coverage does not prove arbitrary reachability.
+
+The fixed-capacity engine uses typed resource IDs and named structural budgets.
+The project compiler measures topology demand, workload and queue bursts,
+object and loader-stack size, and aggregate preallocation. It rejects missing
+workload evidence, missing overflow behavior, demand above the structural
+limit, or less than `25%` reserve. Structural maximum changes require an ADR,
+updated lock, saturation/recovery tests, and stack, object, acceptance, and
+benchmark evidence. An oversized area is split into more cells instead of
+raising a project-wide ceiling.
+
+HMI sessions no longer own copies of Body Preparation or Forming state. One
+store owns each plant runtime, while each HMI contributes only its operator
+context and area controller. A scoped binding temporarily exposes the relevant
+context and restores it on drop. This prevents plant-sized session cloning and
+keeps all operator views on one canonical state; constrained-stack regression
+coverage guards that ownership contract.
 
 The configuration repositories discover 394 per-appliance and 450
 per-connection YAML documents. They dispatch appliance behavior, validate
@@ -60,8 +74,30 @@ catalog. Every appliance participates in at least one connection. This
 improves topology coverage. The host adapter now constructs selected endpoint,
 DNS, web-server, switch, router, NAT-router, stateful-firewall, web-gateway,
 HMI, virtual-PLC, remote-I/O, field-device, safety-interface, and link
-subgraphs directly from these records. Thirty versioned scenarios are
-executable: independent Customer PC-01 and PC-02 variants cover public paths;
+subgraphs directly from these records. The complete canonical graph compiles
+into an immutable `29`-cell project. Every appliance is constructed and every
+connection is classified as internal or boundary media. Host loading composes
+cells and preallocates directional conduit queues before sealing. The scheduler
+orders envelopes by `(time, site, cell, conduit, sequence)` and permits no
+post-seal allocation. This proves normalized construction and capacity
+feasibility, not arbitrary end-to-end reachability or continuous whole-plant
+execution.
+
+Component/cell snapshot schema `0.2.0`, replay schema `0.3.0`, model-lock
+schema `0.2.0`, and blueprint schema `0.1.0` each read their immediately
+previous version and write only current form. Long-duration and generated-event
+tests cover deterministic replay, concurrent cell failure, every conduit
+overload policy, recovery, and snapshot round trips. Dedicated fuzz targets
+mutate the compiler, scheduler, snapshots, and replay under sanitizers.
+Benchmarks detect trends but do not define real-time or deployment guarantees.
+Recorded scenario manifests contain the ordered packet, topology, fault,
+safety, and operator inputs. Their initial digest is calculated from the
+pre-input runtime rather than copied from the model revision. Initial and final
+checkpoints embed normalized full component and cell snapshots; replay loading
+rejects digest evidence that does not match the embedded state.
+
+Thirty versioned scenarios are executable: independent Customer PC-01 and
+PC-02 variants cover public paths;
 Business IT PC-01 through PC-04 each cover internal DNS and HTTPS through two
 user-access switches and Core-01 SVIs; Factory variants cover approved and
 denied operations data, Forming historian collection, and OT DMZ replication;
@@ -88,8 +124,9 @@ Forming SCADA can replace the canonical payload with an identified active-mould
 phase, controller scan sequence, and selected live measurements for one
 request-scoped run. Each Business IT path uses five
 appliances and four links to prove user VLAN access, Core-01 inter-VLAN routing,
-internal DNS or HTTPS response, and return delivery. Complete-project graph
-construction remains unfinished.
+internal DNS or HTTPS response, and return delivery. These selected scenarios
+remain the reachability evidence; whole-graph construction is only a capacity
+and instantiation check.
 
 Body Preparation executes four independently controlled process trains. The
 slip train carries a `1,000 kg` dry-mineral recipe through batching,
@@ -104,11 +141,14 @@ quality, and slip entrained air. Injected disturbances produce scoped trips or
 pipeline warnings. A released slip batch updates all active Forming
 sessions and carries bounded drying and firing indicators; this is not yet
 finite material balance or a downstream drying/kiln simulation. The slip
-Structured Text and I/O source are validated, while all four train transitions
-remain Rust-owned.
+Structured Text and I/O source drive controller phase and batch state. Rust
+applies that typed control state, advances process physics, and returns
+completion or trip feedback without selecting the next controller phase.
+Water, return-water, and glaze transitions remain Rust-owned development
+models.
 
-Forming is the first source-driven area-specific plant implementation. One shared
-Rust session supplies its embedded machine-PC supervisory application, four
+Forming is the first source-driven area-specific plant implementation. One canonical
+Rust plant runtime supplies its embedded machine-PC supervisory application, four
 mould-local HMIs, and independent robot pendant. Each mould owns an
 independently started runtime of the same bounded Structured Text sequence.
 Seven mould-specific values bind timer transitions and the casting-pressure
@@ -127,6 +167,13 @@ templates, assets, quality-aware timestamped tags, bounded history, events,
 roles, repository revision, and active/standby nodes. This is a tested
 Hearthline subset, not ceramic-process physics, complete IEC 61131-3
 conformance, or a production controller or supervisory runtime.
+
+The Forming execution boundary is explicit: the Structured Text controller
+owns phase transitions and emits typed control state and physics inputs; Rust
+owns plant dynamics and returns typed completion or trip feedback. Physics may
+report that a phase has completed, but it cannot advance the controller phase
+directly. This preserves one control authority while allowing the physical
+model to become more detailed independently.
 
 The factory local-autonomy scenario combines two independent execution roots.
 Both factory-facing inter-site handoffs are down, and the historian HTTPS
@@ -197,10 +244,11 @@ development placeholders. Validation proves the implemented structural rules,
 not that the current values or topology are complete. The simulator will be
 used to expose the requirements needed to replace those placeholders.
 
-`hearthline-api` provides localhost-only, revision-checked editing plus
-scenario catalog and execution routes. Candidate configuration source is
-validated in memory against both repositories before atomic source and
-generated-catalog replacement. Scenario packet, selected-connection,
+`hearthline-api` provides loopback-first draft transactions plus scenario,
+operator, and execution routes. Candidate blueprint, instance, appliance,
+connection, and scenario documents compile as one in-memory overlay. Commit
+requires an unchanged base revision and atomically installs source, model lock,
+and generated catalogs through a recoverable write-ahead journal. Scenario packet, selected-connection,
 first-hop role, and firewall-HA role overrides are validated for one execution
 and do not modify
 canonical YAML.
@@ -257,11 +305,12 @@ the same event order.
 
 The current engine does not yet implement:
 
-- Complete graph assembly or configured construction for every behavior family.
+- Continuous full-graph execution through all boundary media and behavior
+  families; current full-graph construction is a bounded feasibility check.
 - Full cross-file validation for addressing, VLAN consistency, routes, NAT,
   firewall policy, services, and HA relationships.
-- The complete Hearthline topology or broader IT, policy, HA, and process
-  scenarios beyond the current DNS, public-service, and operations-data paths.
+- Broader complete-topology IT, policy, HA, and process scenarios beyond the
+  current DNS, public-service, and operations-data paths.
 - Router-generated ICMP unreachable or time-exceeded messages,
   duplicate-address detection, or IPv6 neighbor discovery.
 - TCP sequence numbers, retransmission, full handshake tracking, or congestion
@@ -297,13 +346,17 @@ The current engine does not yet implement:
   protocols. The current Forming workflow samples compact typed records into
   two bounded API-session stores and retries only the modeled DMZ path.
 - General IEC 61131-3 parsing or production-equivalent virtual PLC execution;
-  only the declared Forming sequence subset is source-driven. The Body
-  Preparation slip source is validated but its plant transitions are Rust-owned.
+  only the declared Forming and Body Preparation slip sequence subsets are
+  source-driven.
 - Plant models, material state, and area-specific dynamics beyond Body
   Preparation and Forming.
-- Source-driven area-specific control programs beyond Forming.
+- Source-driven area-specific control programs beyond Forming and the Body
+  Preparation slip train.
 - General cross-area process propagation beyond the Body Preparation release
-  into Forming's current material properties and predicted effects.
+  into Forming's current material properties and predicted effects. The
+  implemented handoff and telemetry path preserve identity through local
+  historian retention, DMZ retry, and analytics publication, but do not model
+  general plant-wide material or data transport.
 - Functional-safety, burner-management, deterministic timing, or deployment
   certification.
 
@@ -319,38 +372,22 @@ cargo check --manifest-path packages/Cargo.toml -p hearthline-engine
 cargo fmt --manifest-path packages/Cargo.toml --all --check
 cargo test --manifest-path packages/Cargo.toml --workspace --all-features
 cargo clippy --manifest-path packages/Cargo.toml --workspace --all-targets --all-features -- -D warnings
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- catalog
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- coverage
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- demo
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- config-demo
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run customer-dns-lookup
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run customer-public-web-request
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run customer-public-web-management-denied
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run customer-public-web-path-traversal-detected
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run customer-public-web-method-denied
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run factory-operations-data
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run factory-operations-data-denied
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run factory-local-autonomy-conduit-outage
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run business-northbound-firewall-session-continuity
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run business-northbound-firewall-isolation-fenced
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- config-validate
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- config-generate
+cargo run --manifest-path packages/Cargo.toml --bin hearthline -- model validate
+cargo run --manifest-path packages/Cargo.toml --bin hearthline -- model compile --locked
+cargo run --manifest-path packages/Cargo.toml --bin hearthline -- capacity report --format text
+cargo run --manifest-path packages/Cargo.toml --bin hearthline -- run foundation-conduit-overload --record /tmp/hearthline-run.json
+cargo run --manifest-path packages/Cargo.toml --bin hearthline -- replay verify project/replays/conduit-overload.json
 cargo bench --manifest-path packages/Cargo.toml --workspace --all-features
 ```
 
-`catalog` lists appliance kinds and behavior families. `coverage` lists the
-current rendered-role mappings. `demo` runs a hand-built deterministic
-forwarding and HTTPS-delivery scenario. `config-demo` constructs the first
-Customer LAN path from canonical appliance and connection YAML and runs ARP
-plus ICMP across it. `scenario-run` executes a versioned configured scenario
-and prints its projected trace. `config-validate` parses and cross-validates
-all appliance, connection, and scenario YAML.
-`config-generate` validates the same repositories and atomically emits the
-Svelte configuration catalog. The `hearthline-api` package starts the local
-validated editing and scenario-execution service. `GET /api/simulations`
+The model commands validate or compile the normalized immutable graph and its
+lock; capacity reports expose compiler measurements. `run --record` emits a
+versioned replay artifact, and `replay verify` checks its normalized checkpoints
+and final digest. The `hearthline-api` package starts the local draft-editing
+and scenario-execution service. `GET /api/simulations`
 returns the scenario catalog and `POST /api/simulations/{id}/run` executes a
-canonical or packet-overridden scenario. CI also executes bounded identifier
-and appliance-YAML fuzz campaigns. `GET /api/workstations/{id}` returns an
+canonical or packet-overridden scenario. CI also executes eight bounded parser,
+compiler, scheduler, and replay fuzz campaigns. `GET /api/workstations/{id}` returns an
 eligible endpoint profile; `POST /api/workstations/{id}/actions` executes a
 supported terminal command, browser navigation, or read-only runtime
 inspection. Terminal actions currently
@@ -406,12 +443,12 @@ session.
    routing, NAT, policy, and services.
 3. Extend cross-file validation with address, VLAN, service, NAT, policy, HA,
    and process-reference rules.
-4. Replace the manual role coverage register with component instances
-   constructed from canonical configuration.
-5. Expand configured construction to the remaining behavior families as their
-   placeholder YAML is replaced with executable values.
-6. Extend process-state transitions and shared HMI behavior to the remaining
-   areas as executable industrial models become available.
+4. Replace the manual role coverage register with a configuration-derived
+   coverage contract.
+5. Replace unaddressed and provisional behavior adapters with complete
+   configured behavior as executable values mature.
+6. Extend process-state transitions and canonical plant ownership to the
+   remaining areas as executable industrial models become available.
 7. Extend protocol and service fidelity only where a documented scenario
    requires it.
 8. Replace provisional configuration and architecture content with values and

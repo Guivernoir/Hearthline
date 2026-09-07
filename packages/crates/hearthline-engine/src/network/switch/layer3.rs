@@ -3,6 +3,7 @@ use core::net::Ipv4Addr;
 use heapless::Vec as FixedList;
 use hearthline_model::{ComponentId, ComponentKind, PortId, VlanId};
 
+use crate::capacity::LAYER3_SWITCH_PORT_CAPACITY;
 use crate::runtime::{collect_fixed, runtime_text, single_effect};
 use crate::{DropReason, Effect, EffectList, NetworkIngress, SimulatedComponent, SimulationEvent};
 
@@ -11,16 +12,14 @@ use crate::network::forwarding::{
     ForwardingPlane, NeighborEntry, ReceiveOutcome, RoutedInterface, RoutingTable, local_response,
 };
 
-const PORT_CAPACITY: usize = 16;
-
 #[derive(Clone, Debug)]
 pub struct Layer3Switch {
     id: ComponentId,
     bridge: LearningSwitch,
     plane: ForwardingPlane,
-    bridge_ports: FixedList<PortId, PORT_CAPACITY>,
-    routed_ports: FixedList<PortId, PORT_CAPACITY>,
-    svi_ports: FixedList<PortId, PORT_CAPACITY>,
+    bridge_ports: FixedList<PortId, LAYER3_SWITCH_PORT_CAPACITY>,
+    routed_ports: FixedList<PortId, LAYER3_SWITCH_PORT_CAPACITY>,
+    svi_ports: FixedList<PortId, LAYER3_SWITCH_PORT_CAPACITY>,
     operational: bool,
 }
 
@@ -32,13 +31,14 @@ impl Layer3Switch {
         svi_ports: impl IntoIterator<Item = PortId>,
         routes: RoutingTable,
     ) -> Self {
-        let interfaces: FixedList<RoutedInterface, PORT_CAPACITY> =
+        let interfaces: FixedList<RoutedInterface, LAYER3_SWITCH_PORT_CAPACITY> =
             collect_fixed(routed_interfaces);
-        let svi_ports: FixedList<PortId, PORT_CAPACITY> = collect_fixed(svi_ports);
+        let svi_ports: FixedList<PortId, LAYER3_SWITCH_PORT_CAPACITY> = collect_fixed(svi_ports);
         let mut bridge_ports = FixedList::new();
         let mut routed_ports = FixedList::new();
-        let mut bridge_config: FixedList<SwitchPort, PORT_CAPACITY> = FixedList::new();
-        let mut svi_vlans: FixedList<VlanId, PORT_CAPACITY> = FixedList::new();
+        let mut bridge_config: FixedList<SwitchPort, LAYER3_SWITCH_PORT_CAPACITY> =
+            FixedList::new();
+        let mut svi_vlans: FixedList<VlanId, LAYER3_SWITCH_PORT_CAPACITY> = FixedList::new();
 
         for port in switch_ports {
             assert!(

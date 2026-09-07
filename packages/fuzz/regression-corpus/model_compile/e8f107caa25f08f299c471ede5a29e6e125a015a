@@ -1,0 +1,5 @@
+schema_versioon: 0.1.0
+id: wate
+    kin  ment: water-preparatin
+values:
+  pump-count: o

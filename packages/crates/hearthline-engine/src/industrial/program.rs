@@ -1,8 +1,8 @@
 use heapless::Vec as FixedList;
 use hearthline_model::Text;
 
-pub const SEQUENCE_STEP_CAPACITY: usize = 24;
-pub const SEQUENCE_OUTPUT_CAPACITY: usize = 16;
+use crate::capacity::{SEQUENCE_OUTPUT_CAPACITY, SEQUENCE_STEP_CAPACITY};
+const _: () = assert!(SEQUENCE_OUTPUT_CAPACITY <= u32::BITS as usize);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SequenceCondition {
@@ -28,6 +28,20 @@ pub struct SequenceStep {
     pub number: i64,
     pub assignments: FixedList<SequenceAssignment, SEQUENCE_OUTPUT_CAPACITY>,
     pub transition: Option<SequenceTransition>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct CompiledSequenceStep {
+    number: i64,
+    values: [i64; SEQUENCE_OUTPUT_CAPACITY],
+    assigned: u32,
+    transition: Option<SequenceTransition>,
+}
+
+impl CompiledSequenceStep {
+    fn assignment(&self, index: usize) -> Option<i64> {
+        (self.assigned & (1 << index) != 0).then_some(self.values[index])
+    }
 }
 
 impl SequenceStep {
@@ -61,7 +75,8 @@ pub struct SequenceProgram {
     pub scan_interval_ms: u64,
     pub idle_step: i64,
     pub fault_step: i64,
-    steps: FixedList<SequenceStep, SEQUENCE_STEP_CAPACITY>,
+    variables: FixedList<Text<64>, SEQUENCE_OUTPUT_CAPACITY>,
+    steps: FixedList<CompiledSequenceStep, SEQUENCE_STEP_CAPACITY>,
 }
 
 impl SequenceProgram {
@@ -75,15 +90,42 @@ impl SequenceProgram {
         if scan_interval_ms == 0 {
             return None;
         }
-        let mut bounded = FixedList::new();
+        let mut variables: FixedList<Text<64>, SEQUENCE_OUTPUT_CAPACITY> = FixedList::new();
+        let mut bounded: FixedList<CompiledSequenceStep, SEQUENCE_STEP_CAPACITY> = FixedList::new();
         for step in steps {
             if bounded
                 .iter()
-                .any(|candidate: &SequenceStep| candidate.number == step.number)
+                .any(|candidate| candidate.number == step.number)
             {
                 return None;
             }
-            bounded.push(step).ok()?;
+            let mut values = [0; SEQUENCE_OUTPUT_CAPACITY];
+            let mut assigned = 0_u32;
+            for assignment in step.assignments {
+                let index = if let Some(index) = variables
+                    .iter()
+                    .position(|variable| variable == &assignment.variable)
+                {
+                    index
+                } else {
+                    variables.push(assignment.variable).ok()?;
+                    variables.len() - 1
+                };
+                let bit = 1_u32 << index;
+                if assigned & bit != 0 {
+                    return None;
+                }
+                assigned |= bit;
+                values[index] = assignment.value;
+            }
+            bounded
+                .push(CompiledSequenceStep {
+                    number: step.number,
+                    values,
+                    assigned,
+                    transition: step.transition,
+                })
+                .ok()?;
         }
         if !bounded.iter().any(|step| step.number == idle_step)
             || !bounded.iter().any(|step| step.number == fault_step)
@@ -104,16 +146,21 @@ impl SequenceProgram {
             scan_interval_ms,
             idle_step,
             fault_step,
+            variables,
             steps: bounded,
         })
     }
 
-    pub fn steps(&self) -> &[SequenceStep] {
-        self.steps.as_slice()
+    fn step(&self, number: i64) -> Option<&CompiledSequenceStep> {
+        self.steps.iter().find(|step| step.number == number)
     }
 
-    pub fn step(&self, number: i64) -> Option<&SequenceStep> {
-        self.steps.iter().find(|step| step.number == number)
+    fn assignment(&self, step: i64, variable: &str) -> Option<i64> {
+        let index = self
+            .variables
+            .iter()
+            .position(|candidate| candidate.as_str() == variable)?;
+        self.step(step)?.assignment(index)
     }
 }
 
@@ -183,7 +230,7 @@ impl SequenceRuntime {
     }
 
     pub fn current_assignment(&self, variable: &str) -> Option<i64> {
-        self.program.step(self.current_step)?.assignment(variable)
+        self.program.assignment(self.current_step, variable)
     }
 
     pub fn time_to_next_scan_ms(&self) -> u64 {

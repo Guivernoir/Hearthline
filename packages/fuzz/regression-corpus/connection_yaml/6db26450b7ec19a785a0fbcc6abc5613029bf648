@@ -1,0 +1,3 @@
+schema_version: 0.2.0
+id: area-01-pump-link-I2
+transport: ethernet

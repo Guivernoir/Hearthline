@@ -100,20 +100,33 @@ export interface ProcessArea {
 
 export interface ProcessViewModel {
   schemaVersion: string;
-  generationStatus: "bootstrap" | "generated";
+  generationStatus: "generated";
   generatedBy: string;
   sourceRoot: string;
   supportNodes: ProcessSupportNode[];
   areas: ProcessArea[];
+  networkEdges: ProcessEdge[];
+  materialFlow: ProcessEdge[];
 }
 
-export const SUPPORTED_PROCESS_VIEW_SCHEMA = "0.2.0";
+export interface ProcessEdge {
+  source: string;
+  destination: string;
+}
+
+export const SUPPORTED_PROCESS_VIEW_SCHEMA = "0.3.0";
 
 const candidateProcessView = processViewData as ProcessViewModel;
 
 if (candidateProcessView.schemaVersion !== SUPPORTED_PROCESS_VIEW_SCHEMA) {
   throw new Error(
     `Unsupported process view schema ${candidateProcessView.schemaVersion}; expected ${SUPPORTED_PROCESS_VIEW_SCHEMA}`,
+  );
+}
+
+if (candidateProcessView.generationStatus !== "generated") {
+  throw new Error(
+    `Process view status ${candidateProcessView.generationStatus}; expected generated`,
   );
 }
 

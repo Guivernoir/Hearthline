@@ -1,15 +1,13 @@
-use hearthline_model::Text;
-use serde::Deserialize;
-
 use super::{
-    MediaError, MediaFacts, MediaText, SimulatedMedium, error, facts, message, propagation_delay_us,
+    MediaError, MediaFacts, MediaText, SimulatedMedium, distance_text, error, facts, message,
+    propagation_delay_us,
 };
+use hearthline_model::{Position, Text};
 
-#[derive(Clone, Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone, Debug)]
 pub struct FieldWiringMedium {
     pub signal: Text<64>,
-    pub length_m: f64,
+    pub length: Position,
 }
 
 impl SimulatedMedium for FieldWiringMedium {
@@ -17,32 +15,39 @@ impl SimulatedMedium for FieldWiringMedium {
         if self.signal.trim().is_empty() {
             return Err("field signal cannot be empty".into());
         }
-        if self.length_m <= 0.0 {
+        if self.length <= Position::ZERO {
             return Err("field-wiring length must be greater than zero".into());
         }
-        if self.length_m > 500.0 {
+        if self.length > Position::from_raw(500_000_000) {
             return Err(error(format_args!(
                 "field-wiring length {:.1} m exceeds 500 m",
-                self.length_m
+                distance_text(self.length)
             )));
         }
         Ok(())
     }
 
     fn detail(&self) -> MediaText {
-        message(format_args!("{} / {:.1} m", self.signal, self.length_m))
+        message(format_args!(
+            "{} / {} m",
+            self.signal,
+            distance_text(self.length)
+        ))
     }
 
     fn physical_facts(&self) -> MediaFacts {
         facts([
             Text::from(self.signal.as_str()),
-            message(format_args!("{:.1} m field segment", self.length_m)),
+            message(format_args!(
+                "{} m field segment",
+                distance_text(self.length)
+            )),
             "Protocol-specific electrical limits require a later typed profile".into(),
         ])
     }
 
     fn propagation_delay_us(&self) -> u64 {
-        propagation_delay_us(self.length_m, 200_000_000.0)
+        propagation_delay_us(self.length, 200_000_000)
     }
 
     fn max_capacity_mbps(&self) -> Option<u64> {

@@ -1,10 +1,19 @@
+use hearthline_model::{FixedValue, fixed};
+
+mod control;
 mod glaze;
+#[path = "support/quality.rs"]
 mod quality;
 mod return_water;
+#[path = "support/rheology.rs"]
 mod rheology;
 mod slip;
 mod water;
 
+pub use control::{
+    BodyPreparationControlState, BodyPreparationControlledTick, BodyPreparationPhysicsFeedback,
+    BodyPreparationPhysicsInputs,
+};
 pub use glaze::{GlazeMeasurements, GlazePhase, GlazeSetpoints};
 pub use quality::{
     BodyPreparationFault, BodyPreparationPipelineMeasurements, BodyPreparationStartError,
@@ -31,15 +40,15 @@ pub struct BodyPreparationSetpoints {
 }
 
 impl BodyPreparationSetpoints {
-    pub fn dry_mass_kg(self) -> f64 {
+    pub fn dry_mass_kg(self) -> FixedValue {
         self.slip.dry_mass_kg()
     }
 
-    pub fn total_batch_mass_kg(self) -> f64 {
+    pub fn total_batch_mass_kg(self) -> FixedValue {
         self.slip.total_batch_mass_kg()
     }
 
-    pub fn target_solids_percent(self) -> f64 {
+    pub fn target_solids_percent(self) -> FixedValue {
         self.slip.target_solids_percent()
     }
 
@@ -192,12 +201,14 @@ impl BodyPreparationProcess {
         }
     }
 
-    pub fn phase_progress_percent(&self) -> f64 {
-        self.slip.progress(&self.setpoints.slip) * 100.0
+    pub fn phase_progress_percent(&self) -> FixedValue {
+        self.slip.progress(&self.setpoints.slip) * fixed!(100.0)
     }
-    pub fn phase_target_process_minutes(&self) -> f64 {
-        self.setpoints.slip.phase_duration_ms(self.slip.phase) as f64
-            / SIMULATED_MS_PER_PROCESS_MINUTE as f64
+    pub fn phase_target_process_minutes(&self) -> FixedValue {
+        FixedValue::from_u64_ratio(
+            self.setpoints.slip.phase_duration_ms(self.slip.phase),
+            SIMULATED_MS_PER_PROCESS_MINUTE,
+        )
     }
 
     pub fn start(&mut self, safety_ready: bool) -> Result<(), BodyPreparationStartError> {
@@ -301,15 +312,45 @@ impl BodyPreparationProcess {
     }
 
     pub fn tick(&mut self, elapsed_ms: u64) -> BodyPreparationTick {
-        self.scan_elapsed_ms = self.scan_elapsed_ms.saturating_add(elapsed_ms);
-        self.scan_count = self
-            .scan_count
-            .saturating_add(self.scan_elapsed_ms / Self::SCAN_INTERVAL_MS);
-        self.scan_elapsed_ms %= Self::SCAN_INTERVAL_MS;
+        self.tick_internal(elapsed_ms, None).process
+    }
+
+    pub fn apply_control_state(&mut self, control: BodyPreparationControlState) {
+        self.slip.apply_control_state(control);
+        self.scan_count = control.scan_count;
+        if self.slip.take_release_pending() {
+            let batch = self.slip.release_batch(&self.setpoints.slip);
+            self.released_slip = Some(self.apply_slip_handoff(batch));
+        }
+        self.refresh_outputs();
+    }
+
+    pub fn advance_controlled(
+        &mut self,
+        inputs: BodyPreparationPhysicsInputs,
+    ) -> BodyPreparationControlledTick {
+        debug_assert_eq!(self.slip.phase, inputs.control.phase);
+        debug_assert!(!inputs.automatic_enabled || self.slip.running == inputs.control.running);
+        self.tick_internal(inputs.elapsed_ms, Some(inputs))
+    }
+
+    fn tick_internal(
+        &mut self,
+        elapsed_ms: u64,
+        controlled: Option<BodyPreparationPhysicsInputs>,
+    ) -> BodyPreparationControlledTick {
+        if controlled.is_none() {
+            self.scan_elapsed_ms = self.scan_elapsed_ms.saturating_add(elapsed_ms);
+            self.scan_count = self
+                .scan_count
+                .saturating_add(self.scan_elapsed_ms / Self::SCAN_INTERVAL_MS);
+            self.scan_elapsed_ms %= Self::SCAN_INTERVAL_MS;
+        }
 
         let mut changed = false;
         let mut trip = None;
         let mut trip_train = None;
+        let mut physics = BodyPreparationPhysicsFeedback::default();
         for train in [
             PreparationTrain::Water,
             PreparationTrain::ReturnWater,
@@ -318,7 +359,17 @@ impl BodyPreparationProcess {
         ] {
             let result = match train {
                 PreparationTrain::Slip => {
-                    self.slip.tick(elapsed_ms, &self.setpoints.slip, self.fault)
+                    if let Some(inputs) = controlled {
+                        physics = self.slip.advance_controlled(
+                            inputs.elapsed_ms,
+                            &self.setpoints.slip,
+                            self.fault,
+                            inputs.automatic_enabled,
+                        );
+                        (false, physics.trip)
+                    } else {
+                        self.slip.tick(elapsed_ms, &self.setpoints.slip, self.fault)
+                    }
                 }
                 PreparationTrain::Water => {
                     self.water
@@ -360,10 +411,13 @@ impl BodyPreparationProcess {
             self.released_glaze = Some(self.glaze.release_batch(&self.setpoints.glaze));
         }
         self.refresh_outputs();
-        BodyPreparationTick {
-            phase_changed: changed,
-            trip,
-            train: trip_train,
+        BodyPreparationControlledTick {
+            process: BodyPreparationTick {
+                phase_changed: changed,
+                trip,
+                train: trip_train,
+            },
+            physics,
         }
     }
 

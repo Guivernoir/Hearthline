@@ -1,73 +1,84 @@
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+use hearthline_model::{Angle, AngularSpeed, LinearSpeed, Percentage, Position};
+
+const FULL_PERCENT: i64 = 10_000;
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct RobotPose {
-    pub x: f64,
-    pub y: f64,
-    pub z: f64,
-    pub w: f64,
-    pub p: f64,
-    pub r: f64,
+    pub x: Position,
+    pub y: Position,
+    pub z: Position,
+    pub w: Angle,
+    pub p: Angle,
+    pub r: Angle,
 }
 
 impl RobotPose {
-    pub const fn new(x: f64, y: f64, z: f64, w: f64, p: f64, r: f64) -> Self {
+    pub const fn new(x: Position, y: Position, z: Position, w: Angle, p: Angle, r: Angle) -> Self {
         Self { x, y, z, w, p, r }
     }
 
-    fn interpolate(self, target: Self, progress: f64) -> Self {
+    fn interpolate(self, target: Self, elapsed: u64, duration: u64) -> Self {
         Self {
-            x: lerp(self.x, target.x, progress),
-            y: lerp(self.y, target.y, progress),
-            z: lerp(self.z, target.z, progress),
-            w: lerp(self.w, target.w, progress),
-            p: lerp(self.p, target.p, progress),
-            r: lerp(self.r, target.r, progress),
+            x: Position::from_raw(lerp_raw(self.x.raw(), target.x.raw(), elapsed, duration)),
+            y: Position::from_raw(lerp_raw(self.y.raw(), target.y.raw(), elapsed, duration)),
+            z: Position::from_raw(lerp_raw(self.z.raw(), target.z.raw(), elapsed, duration)),
+            w: Angle::from_raw(lerp_raw(self.w.raw(), target.w.raw(), elapsed, duration)),
+            p: Angle::from_raw(lerp_raw(self.p.raw(), target.p.raw(), elapsed, duration)),
+            r: Angle::from_raw(lerp_raw(self.r.raw(), target.r.raw(), elapsed, duration)),
         }
     }
 
-    fn maximum_scaled_delta(self, target: Self) -> f64 {
+    fn maximum_scaled_delta(self, target: Self) -> u64 {
         [
-            (target.x - self.x).abs(),
-            (target.y - self.y).abs(),
-            (target.z - self.z).abs(),
-            (target.w - self.w).abs() * 8.0,
-            (target.p - self.p).abs() * 8.0,
-            (target.r - self.r).abs() * 8.0,
+            absolute_delta(target.x.raw(), self.x.raw()),
+            absolute_delta(target.y.raw(), self.y.raw()),
+            absolute_delta(target.z.raw(), self.z.raw()),
+            absolute_delta(target.w.raw(), self.w.raw()).saturating_mul(8),
+            absolute_delta(target.p.raw(), self.p.raw()).saturating_mul(8),
+            absolute_delta(target.r.raw(), self.r.raw()).saturating_mul(8),
         ]
         .into_iter()
-        .fold(0.0, f64::max)
+        .max()
+        .unwrap_or_default()
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct RobotJoints {
-    pub axes: [f64; 6],
+    pub axes: [Angle; 6],
 }
 
 impl RobotJoints {
-    pub const fn new(axes: [f64; 6]) -> Self {
+    pub const fn new(axes: [Angle; 6]) -> Self {
         Self { axes }
     }
 
-    fn interpolate(self, target: Self, progress: f64) -> Self {
-        let mut axes = [0.0; 6];
+    fn interpolate(self, target: Self, elapsed: u64, duration: u64) -> Self {
+        let mut axes = [Angle::ZERO; 6];
         let mut index = 0;
         while index < axes.len() {
-            axes[index] = lerp(self.axes[index], target.axes[index], progress);
+            axes[index] = Angle::from_raw(lerp_raw(
+                self.axes[index].raw(),
+                target.axes[index].raw(),
+                elapsed,
+                duration,
+            ));
             index += 1;
         }
         Self { axes }
     }
 
-    fn maximum_delta(self, target: Self) -> f64 {
+    fn maximum_delta(self, target: Self) -> u64 {
         self.axes
             .into_iter()
             .zip(target.axes)
-            .map(|(current, requested)| (requested - current).abs())
-            .fold(0.0, f64::max)
+            .map(|(current, requested)| absolute_delta(requested.raw(), current.raw()))
+            .max()
+            .unwrap_or_default()
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RobotWorkspace {
     pub minimum: RobotPose,
     pub maximum: RobotPose,
@@ -77,12 +88,12 @@ pub struct RobotWorkspace {
 
 impl RobotWorkspace {
     pub fn contains_pose(self, pose: RobotPose) -> bool {
-        in_range(pose.x, self.minimum.x, self.maximum.x)
-            && in_range(pose.y, self.minimum.y, self.maximum.y)
-            && in_range(pose.z, self.minimum.z, self.maximum.z)
-            && in_range(pose.w, self.minimum.w, self.maximum.w)
-            && in_range(pose.p, self.minimum.p, self.maximum.p)
-            && in_range(pose.r, self.minimum.r, self.maximum.r)
+        in_range(pose.x.raw(), self.minimum.x.raw(), self.maximum.x.raw())
+            && in_range(pose.y.raw(), self.minimum.y.raw(), self.maximum.y.raw())
+            && in_range(pose.z.raw(), self.minimum.z.raw(), self.maximum.z.raw())
+            && in_range(pose.w.raw(), self.minimum.w.raw(), self.maximum.w.raw())
+            && in_range(pose.p.raw(), self.minimum.p.raw(), self.maximum.p.raw())
+            && in_range(pose.r.raw(), self.minimum.r.raw(), self.maximum.r.raw())
     }
 
     pub fn contains_joints(self, joints: RobotJoints) -> bool {
@@ -91,7 +102,7 @@ impl RobotWorkspace {
             .into_iter()
             .zip(self.joint_minimum.axes)
             .zip(self.joint_maximum.axes)
-            .all(|((value, minimum), maximum)| in_range(value, minimum, maximum))
+            .all(|((value, minimum), maximum)| in_range(value.raw(), minimum.raw(), maximum.raw()))
     }
 }
 
@@ -125,9 +136,16 @@ pub enum RobotCartesianAxis {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum RobotCartesianIncrement {
+    Linear(Position),
+    Angular(Angle),
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RobotMotionError {
     OutsideWorkspace,
     InvalidSpeed,
+    InvalidIncrement,
     MotionActive,
 }
 
@@ -144,9 +162,9 @@ pub struct RobotMotionRuntime {
     kind: RobotMotionKind,
     elapsed_ms: u64,
     duration_ms: u64,
-    speed_percent: f64,
-    max_linear_speed_mm_s: f64,
-    max_joint_speed_deg_s: f64,
+    speed_percent: Percentage,
+    max_linear_speed: LinearSpeed,
+    max_joint_speed: AngularSpeed,
     active: bool,
 }
 
@@ -154,13 +172,13 @@ impl RobotMotionRuntime {
     pub fn new(
         workspace: RobotWorkspace,
         home: RobotPose,
-        max_linear_speed_mm_s: f64,
-        max_joint_speed_deg_s: f64,
+        max_linear_speed: LinearSpeed,
+        max_joint_speed: AngularSpeed,
     ) -> Result<Self, RobotMotionError> {
         if !workspace.contains_pose(home) {
             return Err(RobotMotionError::OutsideWorkspace);
         }
-        if max_linear_speed_mm_s <= 0.0 || max_joint_speed_deg_s <= 0.0 {
+        if max_linear_speed <= LinearSpeed::ZERO || max_joint_speed <= AngularSpeed::ZERO {
             return Err(RobotMotionError::InvalidSpeed);
         }
         let joints = projected_joints(home, workspace);
@@ -176,9 +194,9 @@ impl RobotMotionRuntime {
             kind: RobotMotionKind::Rapid,
             elapsed_ms: 0,
             duration_ms: 0,
-            speed_percent: 0.0,
-            max_linear_speed_mm_s,
-            max_joint_speed_deg_s,
+            speed_percent: Percentage::ZERO,
+            max_linear_speed,
+            max_joint_speed,
             active: false,
         })
     }
@@ -187,7 +205,7 @@ impl RobotMotionRuntime {
         &mut self,
         target: RobotPose,
         kind: RobotMotionKind,
-        speed_percent: f64,
+        speed_percent: Percentage,
     ) -> Result<(), RobotMotionError> {
         validate_speed(speed_percent)?;
         if !self.workspace.contains_pose(target) {
@@ -200,19 +218,19 @@ impl RobotMotionRuntime {
         self.target_pose = target;
         self.start_joints = self.current_joints;
         self.target_joints = projected_joints(target, self.workspace);
-        let distance = self.current_pose.maximum_scaled_delta(target);
-        self.begin(
-            kind,
+        let duration_ms = duration(
+            self.current_pose.maximum_scaled_delta(target),
+            self.max_linear_speed.raw(),
             speed_percent,
-            duration(distance, self.max_linear_speed_mm_s, speed_percent),
         );
+        self.begin(kind, speed_percent, duration_ms);
         Ok(())
     }
 
     pub fn command_joints(
         &mut self,
         target: RobotJoints,
-        speed_percent: f64,
+        speed_percent: Percentage,
     ) -> Result<(), RobotMotionError> {
         validate_speed(speed_percent)?;
         if !self.workspace.contains_joints(target) {
@@ -225,29 +243,42 @@ impl RobotMotionRuntime {
         self.target_pose = projected_pose(target, self.workspace);
         self.start_joints = self.current_joints;
         self.target_joints = target;
-        let distance = self.current_joints.maximum_delta(target);
-        self.begin(
-            RobotMotionKind::Joint,
+        let duration_ms = duration(
+            self.current_joints.maximum_delta(target),
+            self.max_joint_speed.raw(),
             speed_percent,
-            duration(distance, self.max_joint_speed_deg_s, speed_percent),
         );
+        self.begin(RobotMotionKind::Joint, speed_percent, duration_ms);
         Ok(())
     }
 
     pub fn jog_cartesian(
         &mut self,
         axis: RobotCartesianAxis,
-        increment: f64,
-        speed_percent: f64,
+        increment: RobotCartesianIncrement,
+        speed_percent: Percentage,
     ) -> Result<(), RobotMotionError> {
         let mut target = self.current_pose;
-        match axis {
-            RobotCartesianAxis::X => target.x += increment,
-            RobotCartesianAxis::Y => target.y += increment,
-            RobotCartesianAxis::Z => target.z += increment,
-            RobotCartesianAxis::W => target.w += increment,
-            RobotCartesianAxis::P => target.p += increment,
-            RobotCartesianAxis::R => target.r += increment,
+        match (axis, increment) {
+            (RobotCartesianAxis::X, RobotCartesianIncrement::Linear(value)) => {
+                target.x = target.x.saturating_add(value)
+            }
+            (RobotCartesianAxis::Y, RobotCartesianIncrement::Linear(value)) => {
+                target.y = target.y.saturating_add(value)
+            }
+            (RobotCartesianAxis::Z, RobotCartesianIncrement::Linear(value)) => {
+                target.z = target.z.saturating_add(value)
+            }
+            (RobotCartesianAxis::W, RobotCartesianIncrement::Angular(value)) => {
+                target.w = target.w.saturating_add(value)
+            }
+            (RobotCartesianAxis::P, RobotCartesianIncrement::Angular(value)) => {
+                target.p = target.p.saturating_add(value)
+            }
+            (RobotCartesianAxis::R, RobotCartesianIncrement::Angular(value)) => {
+                target.r = target.r.saturating_add(value)
+            }
+            _ => return Err(RobotMotionError::InvalidIncrement),
         }
         self.command_pose(target, RobotMotionKind::Jog, speed_percent)
     }
@@ -255,14 +286,14 @@ impl RobotMotionRuntime {
     pub fn jog_joint(
         &mut self,
         axis: usize,
-        increment: f64,
-        speed_percent: f64,
+        increment: Angle,
+        speed_percent: Percentage,
     ) -> Result<(), RobotMotionError> {
         let mut target = self.current_joints;
         let Some(value) = target.axes.get_mut(axis) else {
             return Err(RobotMotionError::OutsideWorkspace);
         };
-        *value += increment;
+        *value = value.saturating_add(increment);
         self.command_joints(target, speed_percent)
     }
 
@@ -274,9 +305,12 @@ impl RobotMotionRuntime {
             .elapsed_ms
             .saturating_add(elapsed_ms)
             .min(self.duration_ms);
-        let progress = self.progress();
-        self.current_pose = self.start_pose.interpolate(self.target_pose, progress);
-        self.current_joints = self.start_joints.interpolate(self.target_joints, progress);
+        self.current_pose =
+            self.start_pose
+                .interpolate(self.target_pose, self.elapsed_ms, self.duration_ms);
+        self.current_joints =
+            self.start_joints
+                .interpolate(self.target_joints, self.elapsed_ms, self.duration_ms);
         if self.elapsed_ms < self.duration_ms {
             return false;
         }
@@ -291,62 +325,54 @@ impl RobotMotionRuntime {
         self.target_joints = self.current_joints;
         self.elapsed_ms = 0;
         self.duration_ms = 0;
-        self.speed_percent = 0.0;
+        self.speed_percent = Percentage::ZERO;
         self.active = false;
     }
 
     pub const fn pose(&self) -> RobotPose {
         self.current_pose
     }
-
     pub const fn target_pose(&self) -> RobotPose {
         self.target_pose
     }
-
     pub const fn joints(&self) -> RobotJoints {
         self.current_joints
     }
-
     pub const fn target_joints(&self) -> RobotJoints {
         self.target_joints
     }
-
     pub const fn home(&self) -> RobotPose {
         self.home
     }
-
     pub const fn workspace(&self) -> RobotWorkspace {
         self.workspace
     }
-
     pub const fn motion_kind(&self) -> RobotMotionKind {
         self.kind
     }
-
     pub const fn elapsed_ms(&self) -> u64 {
         self.elapsed_ms
     }
-
     pub const fn duration_ms(&self) -> u64 {
         self.duration_ms
     }
-
-    pub const fn speed_percent(&self) -> f64 {
+    pub const fn speed_percent(&self) -> Percentage {
         self.speed_percent
     }
-
     pub const fn active(&self) -> bool {
         self.active
     }
 
-    pub fn progress(&self) -> f64 {
+    pub fn progress(&self) -> Percentage {
         if !self.active || self.duration_ms == 0 {
-            return 1.0;
+            return Percentage::from_raw(FULL_PERCENT);
         }
-        self.elapsed_ms as f64 / self.duration_ms as f64
+        Percentage::from_raw(
+            ((self.elapsed_ms as u128) * (FULL_PERCENT as u128) / self.duration_ms as u128) as i64,
+        )
     }
 
-    fn begin(&mut self, kind: RobotMotionKind, speed_percent: f64, duration_ms: u64) {
+    fn begin(&mut self, kind: RobotMotionKind, speed_percent: Percentage, duration_ms: u64) {
         self.kind = kind;
         self.elapsed_ms = 0;
         self.duration_ms = duration_ms;
@@ -359,80 +385,132 @@ impl RobotMotionRuntime {
     }
 }
 
-fn validate_speed(speed_percent: f64) -> Result<(), RobotMotionError> {
-    if speed_percent.is_finite() && speed_percent > 0.0 && speed_percent <= 100.0 {
+fn validate_speed(speed: Percentage) -> Result<(), RobotMotionError> {
+    if speed.raw() > 0 && speed.raw() <= FULL_PERCENT {
         Ok(())
     } else {
         Err(RobotMotionError::InvalidSpeed)
     }
 }
 
-fn duration(distance: f64, maximum_per_second: f64, speed_percent: f64) -> u64 {
-    if distance <= f64::EPSILON {
+fn duration(distance: u64, maximum_per_second: i64, speed: Percentage) -> u64 {
+    if distance == 0 || maximum_per_second <= 0 || speed.raw() <= 0 {
         return 0;
     }
-    let units_per_second = maximum_per_second * speed_percent / 100.0;
-    ((distance / units_per_second * 1_000.0) as u64).max(100)
+    let numerator = (distance as u128) * 1_000 * FULL_PERCENT as u128;
+    let denominator = (maximum_per_second as u128) * speed.raw() as u128;
+    ((numerator / denominator).min(u64::MAX as u128) as u64).max(100)
 }
 
 fn projected_joints(pose: RobotPose, workspace: RobotWorkspace) -> RobotJoints {
-    let values = [pose.y, pose.z, pose.x, pose.w, pose.p, pose.r];
-    let pose_minimum = [
-        workspace.minimum.y,
-        workspace.minimum.z,
-        workspace.minimum.x,
-        workspace.minimum.w,
-        workspace.minimum.p,
-        workspace.minimum.r,
+    let values = [
+        pose.y.raw(),
+        pose.z.raw(),
+        pose.x.raw(),
+        pose.w.raw(),
+        pose.p.raw(),
+        pose.r.raw(),
     ];
-    let pose_maximum = [
-        workspace.maximum.y,
-        workspace.maximum.z,
-        workspace.maximum.x,
-        workspace.maximum.w,
-        workspace.maximum.p,
-        workspace.maximum.r,
+    let minimums = [
+        workspace.minimum.y.raw(),
+        workspace.minimum.z.raw(),
+        workspace.minimum.x.raw(),
+        workspace.minimum.w.raw(),
+        workspace.minimum.p.raw(),
+        workspace.minimum.r.raw(),
     ];
-    let mut axes = [0.0; 6];
+    let maximums = [
+        workspace.maximum.y.raw(),
+        workspace.maximum.z.raw(),
+        workspace.maximum.x.raw(),
+        workspace.maximum.w.raw(),
+        workspace.maximum.p.raw(),
+        workspace.maximum.r.raw(),
+    ];
+    let mut axes = [Angle::ZERO; 6];
     let mut index = 0;
     while index < axes.len() {
-        let ratio = normalized(values[index], pose_minimum[index], pose_maximum[index]);
-        axes[index] = lerp(
-            workspace.joint_minimum.axes[index],
-            workspace.joint_maximum.axes[index],
-            ratio,
-        );
+        axes[index] = Angle::from_raw(lerp_ratio(
+            workspace.joint_minimum.axes[index].raw(),
+            workspace.joint_maximum.axes[index].raw(),
+            normalized(values[index], minimums[index], maximums[index]),
+        ));
         index += 1;
     }
     RobotJoints { axes }
 }
 
 fn projected_pose(joints: RobotJoints, workspace: RobotWorkspace) -> RobotPose {
-    let ratio = |index| {
+    let ratio = |index: usize| {
         normalized(
-            joints.axes[index],
-            workspace.joint_minimum.axes[index],
-            workspace.joint_maximum.axes[index],
+            joints.axes[index].raw(),
+            workspace.joint_minimum.axes[index].raw(),
+            workspace.joint_maximum.axes[index].raw(),
         )
     };
     RobotPose {
-        x: lerp(workspace.minimum.x, workspace.maximum.x, ratio(2)),
-        y: lerp(workspace.minimum.y, workspace.maximum.y, ratio(0)),
-        z: lerp(workspace.minimum.z, workspace.maximum.z, ratio(1)),
-        w: lerp(workspace.minimum.w, workspace.maximum.w, ratio(3)),
-        p: lerp(workspace.minimum.p, workspace.maximum.p, ratio(4)),
-        r: lerp(workspace.minimum.r, workspace.maximum.r, ratio(5)),
+        x: Position::from_raw(lerp_ratio(
+            workspace.minimum.x.raw(),
+            workspace.maximum.x.raw(),
+            ratio(2),
+        )),
+        y: Position::from_raw(lerp_ratio(
+            workspace.minimum.y.raw(),
+            workspace.maximum.y.raw(),
+            ratio(0),
+        )),
+        z: Position::from_raw(lerp_ratio(
+            workspace.minimum.z.raw(),
+            workspace.maximum.z.raw(),
+            ratio(1),
+        )),
+        w: Angle::from_raw(lerp_ratio(
+            workspace.minimum.w.raw(),
+            workspace.maximum.w.raw(),
+            ratio(3),
+        )),
+        p: Angle::from_raw(lerp_ratio(
+            workspace.minimum.p.raw(),
+            workspace.maximum.p.raw(),
+            ratio(4),
+        )),
+        r: Angle::from_raw(lerp_ratio(
+            workspace.minimum.r.raw(),
+            workspace.maximum.r.raw(),
+            ratio(5),
+        )),
     }
 }
 
-fn normalized(value: f64, minimum: f64, maximum: f64) -> f64 {
-    ((value - minimum) / (maximum - minimum)).clamp(0.0, 1.0)
+fn normalized(value: i64, minimum: i64, maximum: i64) -> i64 {
+    let span = maximum.saturating_sub(minimum);
+    if span <= 0 {
+        return 0;
+    }
+    let offset = value.saturating_sub(minimum).clamp(0, span);
+    ((offset as i128) * (FULL_PERCENT as i128) / (span as i128)) as i64
 }
 
-fn in_range(value: f64, minimum: f64, maximum: f64) -> bool {
-    value.is_finite() && value >= minimum && value <= maximum
+fn lerp_ratio(start: i64, target: i64, ratio: i64) -> i64 {
+    let delta = target.saturating_sub(start);
+    let adjustment =
+        (delta as i128) * (ratio.clamp(0, FULL_PERCENT) as i128) / (FULL_PERCENT as i128);
+    start.saturating_add(adjustment as i64)
 }
 
-fn lerp(start: f64, target: f64, progress: f64) -> f64 {
-    start + (target - start) * progress.clamp(0.0, 1.0)
+fn lerp_raw(start: i64, target: i64, elapsed: u64, duration: u64) -> i64 {
+    if duration == 0 {
+        return target;
+    }
+    let delta = target.saturating_sub(start);
+    let adjustment = (delta as i128) * (elapsed.min(duration) as i128) / (duration as i128);
+    start.saturating_add(adjustment as i64)
+}
+
+fn absolute_delta(left: i64, right: i64) -> u64 {
+    left.abs_diff(right)
+}
+
+const fn in_range(value: i64, minimum: i64, maximum: i64) -> bool {
+    value >= minimum && value <= maximum
 }

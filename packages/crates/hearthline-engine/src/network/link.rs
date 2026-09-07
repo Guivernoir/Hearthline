@@ -2,10 +2,9 @@ use heapless::Vec as FixedList;
 
 use hearthline_model::{ComponentId, ComponentKind, PortId};
 
+use crate::capacity::LINK_APPLIANCE_PORT_CAPACITY;
 use crate::runtime::{collect_fixed, runtime_text, single_effect};
 use crate::{DropReason, Effect, EffectList, SimulatedComponent, SimulationEvent};
-
-const PORT_CAPACITY: usize = 32;
 
 #[derive(Clone, Debug)]
 struct LinkPort {
@@ -27,7 +26,7 @@ pub enum LinkMode {
 pub struct LinkAppliance {
     id: ComponentId,
     kind: ComponentKind,
-    ports: FixedList<LinkPort, PORT_CAPACITY>,
+    ports: FixedList<LinkPort, LINK_APPLIANCE_PORT_CAPACITY>,
     mode: LinkMode,
     operational: bool,
     frame_count: u64,
@@ -70,7 +69,7 @@ impl LinkAppliance {
         ports: impl IntoIterator<Item = PortId>,
         mode: LinkMode,
     ) -> Self {
-        let ports: FixedList<LinkPort, PORT_CAPACITY> =
+        let ports: FixedList<LinkPort, LINK_APPLIANCE_PORT_CAPACITY> =
             collect_fixed(ports.into_iter().map(|id| LinkPort {
                 id,
                 forwarding: true,

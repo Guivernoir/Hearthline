@@ -6,6 +6,9 @@ use hearthline_model::{
     NetworkPayload, PortId, Route, ServiceKind, TcpFlags, TcpSegment, Text, Transport,
 };
 
+use crate::capacity::{
+    GATEWAY_HOST_CAPACITY, GATEWAY_METHOD_CAPACITY, GATEWAY_PENDING_CAPACITY, GATEWAY_RULE_CAPACITY,
+};
 use crate::runtime::{collect_fixed, runtime_text, single_effect};
 use crate::{
     DropReason, Effect, EffectList, Ipv4Egress, RoutedInterface, SimulatedComponent,
@@ -14,7 +17,6 @@ use crate::{
 
 use super::stack::{EndpointReceive, EndpointStack, response_frame};
 
-const PENDING_REQUEST_CAPACITY: usize = 8;
 const FIRST_UPSTREAM_PORT: u16 = 49_152;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -67,12 +69,12 @@ struct PendingRequest {
 pub struct ReverseProxyWaf {
     id: ComponentId,
     network: EndpointStack,
-    allowed_hosts: FixedList<Text<128>, 8>,
-    allowed_methods: FixedList<HttpMethod, 8>,
-    inspection_rules: FixedList<HttpInspectionRule, 16>,
+    allowed_hosts: FixedList<Text<128>, GATEWAY_HOST_CAPACITY>,
+    allowed_methods: FixedList<HttpMethod, GATEWAY_METHOD_CAPACITY>,
+    inspection_rules: FixedList<HttpInspectionRule, GATEWAY_RULE_CAPACITY>,
     upstream: ComponentId,
     upstream_address: Ipv4Addr,
-    pending: FixedList<PendingRequest, PENDING_REQUEST_CAPACITY>,
+    pending: FixedList<PendingRequest, GATEWAY_PENDING_CAPACITY>,
     next_upstream_port: u16,
     maximum_body_bytes: usize,
     redirect_http: bool,

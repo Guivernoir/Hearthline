@@ -1,0 +1,9 @@
+schema_version:nimum: 1
+    maximum: 3
+nodes:
+  - id: pump
+    appliance_: fil-edcctuator
+    repeat: pump-count
+connections: []
+exportsz []
+imports:([]

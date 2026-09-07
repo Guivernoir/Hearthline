@@ -15,7 +15,9 @@ mod virtual_link;
 
 use core::fmt::{self, Display, Formatter, Write as _};
 use heapless::Vec as FixedList;
-use hearthline_model::Text;
+use hearthline_model::{Position, Text};
+
+use crate::capacity::MEDIA_FACT_CAPACITY;
 
 pub use carrier::CarrierMedium;
 pub use copper::{CopperCategory, CopperMedium, CopperWiring};
@@ -27,7 +29,7 @@ pub use virtual_link::VirtualMedium;
 
 pub type MediaText = Text<192>;
 pub type MediaError = Text<96>;
-pub type MediaFacts = FixedList<MediaText, 6>;
+pub type MediaFacts = FixedList<MediaText, MEDIA_FACT_CAPACITY>;
 
 pub trait SimulatedMedium {
     fn validate(&self) -> Result<(), MediaError>;
@@ -124,14 +126,14 @@ impl Display for MediumKind {
     }
 }
 
-pub(crate) fn propagation_delay_us(distance_m: f64, velocity_mps: f64) -> u64 {
-    let micros = (distance_m / velocity_mps) * 1_000_000.0;
-    let whole = micros as u64;
-    if micros > whole as f64 {
-        whole.saturating_add(1)
-    } else {
-        whole
-    }
+pub(crate) fn propagation_delay_us(distance: Position, velocity_mps: u64) -> u64 {
+    let distance_um = distance.raw().max(0) as u64;
+    distance_um.saturating_add(velocity_mps.saturating_sub(1)) / velocity_mps
+}
+
+pub(crate) fn distance_text(distance: Position) -> MediaText {
+    let tenths = distance.raw().max(0) as u64 / 100_000;
+    message(format_args!("{}.{:01}", tenths / 10, tenths % 10))
 }
 
 pub(crate) fn message(arguments: fmt::Arguments<'_>) -> MediaText {

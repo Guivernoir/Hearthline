@@ -12,8 +12,8 @@ airflow, combustion interfaces, and unloading.
 
 ## Current Representation
 
-The architecture view renders the representative assets below from bootstrap
-JSON. `AREA-06-HMI-01` is enterable as a Rust-backed operator session assembled
+The architecture view renders the representative assets below from the
+Rust-generated process topology and canonical appliance catalog. `AREA-06-HMI-01` is enterable as a Rust-backed operator session assembled
 from the area appliance YAML. It displays configured temperature and pressure
 samples, evaluates the three modeled burner-management permissives, and exposes
 burner-demand and fan states after an authorized reset. Accepted commands

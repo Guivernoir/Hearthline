@@ -5,6 +5,10 @@ use hearthline_model::{
     TransportProtocol,
 };
 
+use crate::capacity::{
+    FIREWALL_INTERFACE_CAPACITY, FIREWALL_RULE_CAPACITY, FIREWALL_SESSION_CAPACITY,
+    FIREWALL_ZONE_CAPACITY,
+};
 use crate::runtime::{collect_fixed, runtime_text, single_effect};
 use crate::{
     DropReason, Effect, EffectList, NetworkIngress, RoutedInterface, RoutingTable,
@@ -17,7 +21,6 @@ mod ha;
 
 pub use ha::{FirewallHaRuntimeConfig, FirewallHaStatus};
 
-const SESSION_CAPACITY: usize = 128;
 const TCP_SESSION_TIMEOUT_US: u64 = 300_000_000;
 const UDP_SESSION_TIMEOUT_US: u64 = 60_000_000;
 const ICMP_SESSION_TIMEOUT_US: u64 = 30_000_000;
@@ -109,10 +112,10 @@ impl FirewallSession {
 #[derive(Clone, Debug)]
 pub struct StatefulFirewall {
     id: ComponentId,
-    zones: FixedList<(PortId, Text<64>), 16>,
+    zones: FixedList<(PortId, Text<64>), FIREWALL_ZONE_CAPACITY>,
     plane: ForwardingPlane,
-    rules: FixedList<FirewallRule, 16>,
-    sessions: FixedList<FirewallSession, SESSION_CAPACITY>,
+    rules: FixedList<FirewallRule, FIREWALL_RULE_CAPACITY>,
+    sessions: FixedList<FirewallSession, FIREWALL_SESSION_CAPACITY>,
     ha: Option<FirewallHaRuntimeConfig>,
     ha_active: bool,
     ha_next_sequence: u64,
@@ -134,7 +137,8 @@ impl StatefulFirewall {
         rules: impl IntoIterator<Item = FirewallRule>,
     ) -> Self {
         let zones = collect_fixed(zones);
-        let interfaces: FixedList<RoutedInterface, 16> = collect_fixed(interfaces);
+        let interfaces: FixedList<RoutedInterface, FIREWALL_INTERFACE_CAPACITY> =
+            collect_fixed(interfaces);
         assert!(
             zones
                 .iter()

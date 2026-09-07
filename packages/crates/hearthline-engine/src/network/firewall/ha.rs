@@ -3,6 +3,7 @@ use hearthline_model::{
     EthernetFrame, FirewallHaMessage, MacAddress, NetworkPayload, PortId, Text, VlanId,
 };
 
+use crate::capacity::FIREWALL_HA_PORT_CAPACITY;
 use crate::runtime::{collect_fixed, runtime_text, single_effect};
 use crate::{DropReason, Effect, EffectList, FirewallHaControl, NetworkIngress};
 
@@ -17,7 +18,7 @@ pub struct FirewallHaRuntimeConfig {
     pub domain: Text<64>,
     pub sync_port: PortId,
     pub sync_mac: MacAddress,
-    pub monitored_ports: FixedList<PortId, 4>,
+    pub monitored_ports: FixedList<PortId, FIREWALL_HA_PORT_CAPACITY>,
     pub active: bool,
     pub session_sync: bool,
     pub heartbeat_interval_us: u64,

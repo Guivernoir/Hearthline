@@ -9,10 +9,11 @@ mod storage {
     use heapless::Vec as FixedList;
     use hearthline_model::{PortId, Text};
 
+    use crate::capacity::{PROCESS_PORT_CAPACITY, PROCESS_TAG_CAPACITY};
     use crate::runtime::collect_fixed;
 
-    pub(crate) type Ports = FixedList<PortId, 32>;
-    pub(crate) type TaggedValues<T> = FixedList<(Text<64>, T), 64>;
+    pub(crate) type Ports = FixedList<PortId, PROCESS_PORT_CAPACITY>;
+    pub(crate) type TaggedValues<T> = FixedList<(Text<64>, T), PROCESS_TAG_CAPACITY>;
 
     pub(crate) fn collect_ports(values: impl IntoIterator<Item = PortId>) -> Ports {
         collect_fixed(values)
@@ -46,13 +47,15 @@ mod storage {
 use hearthline_model::{ApplicationData, NetworkPayload, ServiceKind};
 
 pub use body_preparation::{
-    BodyPreparationFault, BodyPreparationMeasurements, BodyPreparationOutputs,
-    BodyPreparationPhase, BodyPreparationPipelineMeasurements, BodyPreparationProcess,
-    BodyPreparationSetpoints, BodyPreparationStartError, BodyPreparationTick, BodyPreparationTrip,
-    CeramicSlipBatch, DownstreamMaterialEffects, GlazeBatch, GlazeMeasurements, GlazePhase,
-    GlazeSetpoints, HandoffPipelineMeasurements, PUMP_HEARTBEAT_INTERVAL_MS,
-    PUMP_HEARTBEAT_TIMEOUT_MS, PreparationTrain, PumpMaintenanceState, ReturnWaterMeasurements,
-    ReturnWaterPhase, SIMULATED_MS_PER_PROCESS_MINUTE, SlipMeasurements, SlipPhase, SlipSetpoints,
+    BodyPreparationControlState, BodyPreparationControlledTick, BodyPreparationFault,
+    BodyPreparationMeasurements, BodyPreparationOutputs, BodyPreparationPhase,
+    BodyPreparationPhysicsFeedback, BodyPreparationPhysicsInputs,
+    BodyPreparationPipelineMeasurements, BodyPreparationProcess, BodyPreparationSetpoints,
+    BodyPreparationStartError, BodyPreparationTick, BodyPreparationTrip, CeramicSlipBatch,
+    DownstreamMaterialEffects, GlazeBatch, GlazeMeasurements, GlazePhase, GlazeSetpoints,
+    HandoffPipelineMeasurements, PUMP_HEARTBEAT_INTERVAL_MS, PUMP_HEARTBEAT_TIMEOUT_MS,
+    PreparationTrain, PumpMaintenanceState, ReturnWaterMeasurements, ReturnWaterPhase,
+    SIMULATED_MS_PER_PROCESS_MINUTE, SlipMeasurements, SlipPhase, SlipSetpoints,
     WATER_NETWORK_PUMP_COUNT, WATER_NETWORK_ROUTE_COUNT, WaterMeasurements,
     WaterNetworkMeasurements, WaterPhase, WaterPumpMeasurements, WaterQuality,
     WaterRouteMeasurements, WaterSetpoints,
@@ -60,8 +63,9 @@ pub use body_preparation::{
 pub use control::{Comparison, LogicRule, OperatorInterface, VirtualPlc};
 pub use field::{Actuator, FieldSensor};
 pub use forming::{
-    FormingFault, FormingMeasurements, FormingOutputs, FormingPhase, FormingProcess,
-    FormingSetpoints, FormingStartError, FormingTick, FormingTrip,
+    FormingControlState, FormingFault, FormingMeasurements, FormingOutputs, FormingPhase,
+    FormingPhysicsFeedback, FormingPhysicsInputs, FormingProcess, FormingSetpoints,
+    FormingStartError, FormingTick, FormingTrip,
 };
 pub use io::{IoDirection, RemoteIo};
 pub use safety::SafetyInterface;

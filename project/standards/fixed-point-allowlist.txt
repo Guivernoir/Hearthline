@@ -1,0 +1,3 @@
+# Intentionally empty. Deterministic runtime crates may not contain floating-point
+# state, operations, casts, or literals. Any future exception requires an ADR and
+# an explicit update to the AST policy tests.

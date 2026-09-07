@@ -1,0 +1,11 @@
+schema_version: 0.1.0
+id: water-train
+parameters:
+  - id: pump-counm: 8
+nodes:
+  - id: pump
+    appliance_kind: field-actuator
+    repeat: pumpun-tco
+connections: []
+exports: []
+imports: []

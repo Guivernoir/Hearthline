@@ -2,6 +2,10 @@ use core::net::Ipv4Addr;
 
 use crate::{ComponentId, ServiceKind, Text};
 
+pub const TELEMETRY_PAYLOAD_CAPACITY: usize = 320;
+pub const TELEMETRY_NOMINAL_PAYLOAD_BYTES: usize = 240;
+const _: () = assert!(TELEMETRY_NOMINAL_PAYLOAD_BYTES * 4 <= TELEMETRY_PAYLOAD_CAPACITY * 3);
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum HttpMethod {
     Get,
@@ -47,7 +51,7 @@ pub enum ApplicationData {
         service: ServiceKind,
         source: ComponentId,
         sequence: u64,
-        payload: Text<256>,
+        payload: Text<TELEMETRY_PAYLOAD_CAPACITY>,
     },
     Service(ServiceKind),
 }

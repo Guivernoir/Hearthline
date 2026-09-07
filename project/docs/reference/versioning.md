@@ -2,7 +2,7 @@
 
 Hearthline follows Semantic Versioning using `MAJOR.MINOR.PATCH`.
 
-The current development release is `0.3.1`. The repository-root
+The current development release is `0.3.2`. The repository-root
 [`VERSION`](../../VERSION) file is the human-readable authority for the release
 number. The same value must be synchronized into the Rust workspace and Svelte
 package metadata.
@@ -13,8 +13,10 @@ package metadata.
   contract after Hearthline reaches `1.0.0`.
 - `MINOR` identifies a development milestone or backward-compatible stable
   capability.
-- `PATCH` identifies compatible fixes, documentation corrections, and
-  nonfunctional maintenance.
+- `PATCH` normally identifies compatible fixes, documentation corrections, and
+  nonfunctional maintenance. Before `1.0.0`, an explicitly planned foundation
+  break may use a patch release only when its migrations, affected contracts,
+  and acceptance evidence are recorded in the changelog.
 
 While the project remains below `1.0.0`, a minor release may include breaking
 changes. Every such change must be identified in
@@ -28,18 +30,26 @@ used for local artifacts but does not change compatibility.
 
 | Surface | Current version | Authority |
 | --- | --- | --- |
-| Hearthline application release | `0.3.1` | `project/VERSION` |
-| Rust workspace packages | `0.3.1` | `packages/Cargo.toml` workspace package |
-| Svelte package | `0.3.1` | `packages/web/package.json` |
+| Hearthline application release | `0.3.2` | `project/VERSION` |
+| Rust workspace packages | `0.3.2` | `packages/Cargo.toml` workspace package |
+| Svelte package | `0.3.2` | `packages/web/package.json` |
 | Appliance YAML schema | `0.10.0` | `APPLIANCE_SCHEMA_VERSION` |
 | Connection YAML schema | `0.2.0` | `CONNECTION_SCHEMA_VERSION` |
 | Generated appliance catalog schema | `0.9.0` | `FRONTEND_CATALOG_SCHEMA_VERSION` |
-| Bootstrap process view schema | `0.2.0` | `packages/web/src/generated/process-view.json` |
+| Generated process view schema | `0.3.0` | `PROCESS_VIEW_SCHEMA_VERSION` and `project/config/ot/process/architecture.yaml` |
 | Scenario YAML schema | `0.12.0` | `SCENARIO_SCHEMA_VERSION` |
 | Scenario report schema | `0.15.0` | `SCENARIO_REPORT_SCHEMA_VERSION` |
 | Workstation API schema | `0.10.0` | `WORKSTATION_SCHEMA_VERSION` |
 | HMI API schema | `0.9.0` | `HMI_SCHEMA_VERSION` |
 | Security-console session schema | `0.1.0` | `SECURITY_CONSOLE_SCHEMA_VERSION` |
+| Blueprint definition and instance schema | `0.1.0` | `BLUEPRINT_SCHEMA_VERSION` |
+| Model source catalog schema | `0.1.0` | `MODEL_SOURCE_SCHEMA_VERSION` |
+| Compiled project schema | `0.1.0` | `COMPILED_PROJECT_SCHEMA_VERSION` |
+| Model lock schema | `0.2.0` | `MODEL_LOCK_SCHEMA_VERSION` |
+| Runtime capacity manifest schema | `1.2.0` | `RUNTIME_CAPACITY_SCHEMA_VERSION` |
+| Component and cell snapshot schema | `0.2.0` | `CELL_SNAPSHOT_SCHEMA_VERSION` |
+| Replay and run-manifest schema | `0.3.0` | `REPLAY_SCHEMA_VERSION` |
+| Quantization contract | `0.1.0` | `QUANTIZATION_CONTRACT_VERSION` |
 
 Application and schema versions are independent. A release may change no
 schemas, one schema, or several schemas. Schema changes are validated by their
@@ -51,10 +61,12 @@ Rust parser and must not be inferred from the application release number.
 2. Synchronize the Rust workspace, Cargo lockfile, npm package, and npm
    lockfile.
 3. Run `node project/scripts/check-version.mjs` and resolve every mismatch.
-4. Move completed entries from `Unreleased` into a dated changelog section.
-5. Run repository policy, standalone `no_std` checks, Rust formatting, tests,
-   strict Clippy, configuration validation, deterministic catalog generation,
-   bounded fuzzing, and benchmarks.
+4. Move completed entries into a dated changelog section and document every
+   incompatible development contract plus its migration path.
+5. Run repository policy, dependency/AST checks, generated-contract drift,
+   locked model compilation, standalone `no_std` checks, Rust formatting,
+   tests, strict Clippy, capacity compilation, replay verification, bounded
+   fuzzing, and benchmarks.
 6. Run Svelte diagnostics, the production build, and desktop/mobile route
    checks.
 7. Refresh documentation screenshots for every changed route.

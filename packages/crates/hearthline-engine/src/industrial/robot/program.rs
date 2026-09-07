@@ -1,15 +1,15 @@
 use heapless::Vec as FixedList;
+use hearthline_model::Percentage;
 
 use super::{RobotMotionError, RobotMotionKind, RobotMotionRuntime, RobotPose};
-
-pub const ROBOT_PROGRAM_CAPACITY: usize = 128;
+use crate::capacity::ROBOT_PROGRAM_CAPACITY;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum RobotInstruction {
     Move {
         target: RobotPose,
         kind: RobotMotionKind,
-        speed_percent: f64,
+        speed_percent: Percentage,
     },
     Dwell {
         duration_ms: u64,

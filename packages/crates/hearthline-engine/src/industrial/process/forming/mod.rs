@@ -1,6 +1,10 @@
+use hearthline_model::{FixedValue, fixed};
+
+mod control;
 mod dynamics;
 mod types;
 
+pub use control::{FormingControlState, FormingPhysicsFeedback, FormingPhysicsInputs};
 pub use types::{
     FormingFault, FormingMeasurements, FormingOutputs, FormingPhase, FormingSetpoints,
     FormingStartError, FormingTick, FormingTrip,
@@ -19,7 +23,7 @@ pub struct FormingProcess {
     fault: Option<FormingFault>,
     measurements: FormingMeasurements,
     outputs: FormingOutputs,
-    tank_level_at_cycle_start: f64,
+    tank_level_at_cycle_start: FixedValue,
     setpoints: FormingSetpoints,
     material_effects: DownstreamMaterialEffects,
 }
@@ -41,8 +45,8 @@ impl FormingProcess {
             tank_level_at_cycle_start: measurements.slip_tank_level_percent,
             setpoints: FormingSetpoints::default(),
             material_effects: DownstreamMaterialEffects {
-                filling_flow_factor: 1.0,
-                casting_rate_g_cm2_min: 0.152,
+                filling_flow_factor: fixed!(1.0),
+                casting_rate_g_cm2_min: fixed!(0.152),
                 predicted_green_moisture_percent: measurements.piece_moisture_percent,
                 predicted_drying_shrinkage_percent: measurements.predicted_drying_shrinkage_percent,
                 drying_energy_factor: measurements.drying_energy_factor,
@@ -153,54 +157,48 @@ impl FormingProcess {
         Ok(())
     }
 
-    pub fn synchronize_control_state(
-        &mut self,
-        phase: FormingPhase,
-        running: bool,
-        scan_count: u64,
-        cycle_count: u64,
-    ) {
+    pub fn apply_control_state(&mut self, control: FormingControlState) {
         let starting_cycle = !self.running
-            && running
+            && control.running
             && self.phase == FormingPhase::Idle
-            && phase == FormingPhase::Filling;
-        if self.phase != phase {
-            self.phase = phase;
+            && control.phase == FormingPhase::Filling;
+        if self.phase != control.phase {
+            self.phase = control.phase;
             self.phase_elapsed_ms = 0;
         }
         if starting_cycle {
             self.tank_level_at_cycle_start = self.measurements.slip_tank_level_percent;
             self.measurements.piece_gripped = false;
         }
-        self.running = running;
-        self.scan_count = scan_count;
-        self.cycle_count = cycle_count;
-        if phase == FormingPhase::Idle {
+        self.running = control.running;
+        self.scan_count = control.scan_count;
+        self.cycle_count = control.cycle_count;
+        if control.phase == FormingPhase::Idle {
             self.measurements.piece_gripped = false;
         }
         self.apply_phase_outputs();
         self.apply_measurements();
     }
 
-    pub fn pause_controlled(&mut self, phase: FormingPhase, scan_count: u64, cycle_count: u64) {
-        self.phase = phase;
+    pub fn pause_controlled(&mut self, control: FormingControlState) {
+        self.phase = control.phase;
         self.phase_elapsed_ms = 0;
-        self.scan_count = scan_count;
-        self.cycle_count = cycle_count;
+        self.scan_count = control.scan_count;
+        self.cycle_count = control.cycle_count;
         self.running = false;
         self.outputs = FormingOutputs::safe();
-        self.measurements.slip_feed_flow_l_min = 0.0;
-        self.measurements.water_flow_l_min = 0.0;
-        self.measurements.excess_slip_drain_flow_l_min = 0.0;
-        self.measurements.vacuum_pressure_kpa = 0.0;
+        self.measurements.slip_feed_flow_l_min = fixed!(0.0);
+        self.measurements.water_flow_l_min = fixed!(0.0);
+        self.measurements.excess_slip_drain_flow_l_min = fixed!(0.0);
+        self.measurements.vacuum_pressure_kpa = fixed!(0.0);
     }
 
     pub fn set_fault(&mut self, fault: Option<FormingFault>) {
         self.fault = fault;
         if fault.is_none() && !self.running {
-            self.measurements.slip_feed_pressure_bar = 2.5;
-            self.measurements.compressed_air_pressure_bar = 6.0;
-            self.measurements.vacuum_pressure_kpa = 0.0;
+            self.measurements.slip_feed_pressure_bar = fixed!(2.5);
+            self.measurements.compressed_air_pressure_bar = fixed!(6.0);
+            self.measurements.vacuum_pressure_kpa = fixed!(0.0);
         }
     }
 
@@ -212,10 +210,10 @@ impl FormingProcess {
         self.phase_elapsed_ms = 0;
         self.running = false;
         self.outputs = FormingOutputs::idle();
-        self.measurements.mould_pressure_bar = 0.0;
-        self.measurements.water_flow_l_min = 0.0;
-        self.measurements.excess_slip_drain_flow_l_min = 0.0;
-        self.measurements.vacuum_pressure_kpa = 0.0;
+        self.measurements.mould_pressure_bar = fixed!(0.0);
+        self.measurements.water_flow_l_min = fixed!(0.0);
+        self.measurements.excess_slip_drain_flow_l_min = fixed!(0.0);
+        self.measurements.vacuum_pressure_kpa = fixed!(0.0);
         true
     }
 
@@ -281,6 +279,26 @@ impl FormingProcess {
         FormingTick {
             phase_changed: false,
             trip: None,
+        }
+    }
+
+    pub fn advance_controlled(&mut self, inputs: FormingPhysicsInputs) -> FormingPhysicsFeedback {
+        debug_assert_eq!(self.phase, inputs.control.phase);
+        debug_assert_eq!(self.running, inputs.control.running);
+        let tick = self.tick_controlled(inputs.elapsed_ms);
+        let phase_complete = if tick.trip.is_some() {
+            false
+        } else {
+            match inputs.control.phase {
+                FormingPhase::RobotPickup => inputs.robot_pickup_permitted,
+                FormingPhase::RobotDelivery => inputs.robot_delivery_permitted,
+                FormingPhase::Idle | FormingPhase::Faulted => false,
+                phase => self.phase_elapsed_ms >= self.setpoints.phase_duration_ms(phase),
+            }
+        };
+        FormingPhysicsFeedback {
+            trip: tick.trip,
+            phase_complete,
         }
     }
 }

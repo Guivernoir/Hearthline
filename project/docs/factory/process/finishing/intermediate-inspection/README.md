@@ -14,8 +14,8 @@ second firing.
 
 ## Current Representation
 
-The architecture view renders the representative assets below from bootstrap
-JSON. `AREA-07-HMI-01` is enterable as a Rust-backed operator session assembled
+The architecture view renders the representative assets below from the
+Rust-generated process topology and canonical appliance catalog. `AREA-07-HMI-01` is enterable as a Rust-backed operator session assembled
 from the area appliance YAML. It displays configured vision and presence
 states, requires a healthy interlock reset, and exposes stopped, accept, and
 rework diverter states plus conveyor control. Accepted commands traverse the

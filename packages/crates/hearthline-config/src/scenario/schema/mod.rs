@@ -11,6 +11,7 @@ mod summary;
 pub use expectation::{ScenarioExpectation, ScenarioExpectedOutcome};
 pub use packet::{
     ScenarioApplicationConfig, ScenarioHttpMethod, ScenarioPacketConfig, ScenarioTransportConfig,
+    TelemetryIdentity, retarget_telemetry_packet, telemetry_identity,
 };
 pub use resilience::{
     ScenarioContinuityConfig, ScenarioContinuityFault, ScenarioHaIsolationConfig,
@@ -226,7 +227,8 @@ impl ScenarioConfig {
         }
     }
 
-    pub(super) fn active_expectation(
+    #[doc(hidden)]
+    pub fn active_expectation(
         &self,
         connection_states: &[super::ScenarioConnectionState],
         first_hop_states: &[super::ScenarioFirstHopState],

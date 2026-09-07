@@ -54,7 +54,7 @@ struct PendingState {
     selected: bool,
 }
 
-pub(crate) fn scenario_link_aggregation_states(
+pub fn scenario_link_aggregation_states(
     scenario: &ScenarioConfig,
     appliances: &ConfigRepository,
     connections: &ConnectionRepository,

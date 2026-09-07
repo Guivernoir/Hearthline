@@ -1,10 +1,8 @@
 use std::collections::BTreeSet;
 
-use hearthline_model::{ComponentId, ComponentKind};
+use hearthline_model::ComponentId;
 
 use crate::{BehaviorConfig, ConfigError, ConfigRepository};
-
-use super::HmiSession;
 
 pub(crate) fn validate_behavior(
     behavior: &BehaviorConfig,
@@ -146,7 +144,7 @@ pub(crate) fn validate_behavior(
                 )));
             }
             if let Some(profile) = motion_profile {
-                super::robot::validate_profile(appliance_id, profile)?;
+                super::profile_validation::validate_profile(appliance_id, profile)?;
             }
             if let Some(cabinet) = utility_cabinet {
                 validate_utility_cabinet(appliance_id, cabinet)?;
@@ -358,14 +356,6 @@ pub(crate) fn validate_repository(appliances: &ConfigRepository) -> Result<(), C
             } => validate_supervisory_references(appliances, &loaded.config.id, profile)?,
             _ => {}
         }
-    }
-    for loaded in appliances.appliances().filter(|loaded| {
-        matches!(
-            loaded.config.kind,
-            ComponentKind::Hmi | ComponentKind::ScadaWorkstation
-        ) && loaded.config.tags.iter().any(|tag| tag == "interactive")
-    }) {
-        HmiSession::from_repository(appliances, &loaded.config.id)?;
     }
     Ok(())
 }

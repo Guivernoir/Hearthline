@@ -3,6 +3,7 @@
   import type { Component } from "svelte";
   import {
     ArrowRight,
+    Braces,
     Building2,
     Factory,
     FlaskConical,
@@ -36,6 +37,7 @@
   }
 
   export let onEnter: (place: PlaceId) => void = () => {};
+  export let onOpenModelEditor: () => void = () => {};
   export let onOpenSimulations: () => void = () => {};
   export let viewMode: ViewMode = "logical";
 
@@ -171,7 +173,7 @@
 
   function handlePointerDown(event: PointerEvent) {
     const target = event.target as Element;
-    if (target.closest(".place-marker")) return;
+    if (target.closest(".place-marker, .mobile-region-world")) return;
 
     if (event.button === 0 || event.button === 1) {
       if (event.button === 0 && !target.closest(".map-control")) {
@@ -257,6 +259,9 @@
       <button type="button" aria-label="Open simulations" title="Simulations" onclick={onOpenSimulations}>
         <FlaskConical size={17} strokeWidth={1.9} />
       </button>
+      <button type="button" aria-label="Open model editor" title="Model editor" onclick={onOpenModelEditor}>
+        <Braces size={17} strokeWidth={1.9} />
+      </button>
       <span class="toolbar-divider"></span>
       <div class="view-mode-control" aria-label="Architecture view">
         <button
@@ -279,9 +284,9 @@
         </button>
       </div>
 
-      <span class="toolbar-divider"></span>
+      <span class="toolbar-divider map-scale-tool"></span>
 
-      <div class="zoom-control" aria-label="Zoom controls">
+      <div class="zoom-control map-scale-tool" aria-label="Zoom controls">
         <button
           type="button"
           aria-label="Zoom out"
@@ -311,14 +316,15 @@
         </button>
       </div>
 
-      <button type="button" aria-label="Fit map" title="Fit map" onclick={fitToView}>
+      <button class="map-scale-tool" type="button" aria-label="Fit map" title="Fit map" onclick={fitToView}>
         <Maximize2 size={17} strokeWidth={1.9} />
       </button>
-      <button type="button" aria-label="Reset map" title="Reset map" onclick={resetView}>
+      <button class="map-scale-tool" type="button" aria-label="Reset map" title="Reset map" onclick={resetView}>
         <RotateCcw size={17} strokeWidth={1.9} />
       </button>
       <button
         type="button"
+        class="map-scale-tool"
         class:active={gridVisible}
         aria-pressed={gridVisible}
         aria-label="Toggle reference grid"
@@ -441,6 +447,54 @@
           </div>
         </section>
       </div>
+
+      <section
+        class:physical-view={viewMode === "physical"}
+        class:logical-view={viewMode === "logical"}
+        class="mobile-region-world"
+        aria-label="Regional sites"
+      >
+        <div class="mobile-region-heading">
+          <span>HEARTHLINE / REGION</span>
+          <h1>Operational landscape</h1>
+          <p>{viewMode === "physical" ? "Sites and transport corridor" : "External, enterprise, and industrial trust zones"}</p>
+        </div>
+
+        <div class="mobile-region-route">
+          {#each places as place, index (place.id)}
+            {@const Icon = place.icon}
+            <button
+              type="button"
+              class:selected={selectedId === place.id}
+              class="mobile-place-marker"
+              style={`--place-accent: ${place.accent};`}
+              aria-label={`Select ${place.label}`}
+              onclick={(event) => selectPlace(event, place)}
+            >
+              <span><Icon size={24} strokeWidth={1.8} /></span>
+              <strong>{place.label}</strong>
+              <small>{place.district}</small>
+              <ArrowRight size={17} strokeWidth={1.9} />
+            </button>
+
+            {#if index < places.length - 1}
+              <div class:controlled={index === 1} class="mobile-route-link">
+                <i></i>
+                {#if index === 0 && viewMode === "logical"}
+                  <span class="mobile-internet"><Globe2 size={18} strokeWidth={1.8} />Public Internet</span>
+                {:else}
+                  <span>{index === 0 ? "Public access" : viewMode === "logical" ? "Brokered OT conduit" : "Controlled corridor"}</span>
+                {/if}
+              </div>
+            {/if}
+          {/each}
+        </div>
+
+        <div class="mobile-map-key" aria-label="Map legend">
+          <span><i class="key-line public"></i>{viewMode === "logical" ? "Public route" : "Public access"}</span>
+          <span><i class="key-line controlled"></i>{viewMode === "logical" ? "Controlled conduit" : "Controlled corridor"}</span>
+        </div>
+      </section>
     </div>
 
     {#if selectedPlace}
@@ -489,6 +543,6 @@
   <footer class="statusbar">
     <span class="status-state"><i></i>Architecture model</span>
     <span>3 locations / 1 regional boundary</span>
-    <span>{viewMode === "physical" ? "Physical" : "Logical"} / {Math.round(zoom * 100)}%</span>
+    <span>{viewMode === "physical" ? "Physical" : "Logical"} / {viewportWidth <= 620 ? "Compact" : `${Math.round(zoom * 100)}%`}</span>
   </footer>
 </div>

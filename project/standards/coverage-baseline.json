@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "0.1.0",
+  "deterministic": { "lines": 90.45, "branches": 80.17 },
+  "critical": { "lines": 98.31, "branches": 90.67 },
+  "host": { "lines": 85.02, "branches": 75.08 },
+  "web": { "lines": 89.96, "branches": 71.55 }
+}

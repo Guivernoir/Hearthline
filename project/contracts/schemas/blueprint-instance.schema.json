@@ -1,0 +1,59 @@
+{
+  "$defs": {
+    "BlueprintParameterValue": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "format": "int64",
+          "type": "integer"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "blueprint": {
+      "type": "string"
+    },
+    "environment": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "site": {
+      "type": "string"
+    },
+    "values": {
+      "additionalProperties": {
+        "$ref": "#/$defs/BlueprintParameterValue"
+      },
+      "default": {},
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "blueprint",
+    "site",
+    "environment"
+  ],
+  "title": "BlueprintInstance",
+  "type": "object"
+}

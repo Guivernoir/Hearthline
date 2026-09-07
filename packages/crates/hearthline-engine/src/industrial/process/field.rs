@@ -1,5 +1,5 @@
 use hearthline_model::{
-    ComponentId, ComponentKind, PortId, ProcessEvent, ProcessSignal, SignalValue, Text,
+    ComponentId, ComponentKind, FixedValue, PortId, ProcessEvent, ProcessSignal, SignalValue, Text,
 };
 
 use super::storage::{Ports, collect_ports};
@@ -11,9 +11,9 @@ pub struct FieldSensor {
     id: ComponentId,
     ports: Ports,
     tag: Text<64>,
-    raw_value: f64,
-    gain: f64,
-    offset: f64,
+    raw_value: FixedValue,
+    gain: FixedValue,
+    offset: FixedValue,
     quality_good: bool,
     sample_period_ms: u64,
     elapsed_ms: u64,
@@ -26,8 +26,8 @@ impl FieldSensor {
         id: ComponentId,
         tag: Text<64>,
         sample_period_ms: u64,
-        gain: f64,
-        offset: f64,
+        gain: FixedValue,
+        offset: FixedValue,
     ) -> Self {
         Self::with_ports(id, [], tag, sample_period_ms, gain, offset)
     }
@@ -37,15 +37,15 @@ impl FieldSensor {
         ports: impl IntoIterator<Item = PortId>,
         tag: Text<64>,
         sample_period_ms: u64,
-        gain: f64,
-        offset: f64,
+        gain: FixedValue,
+        offset: FixedValue,
     ) -> Self {
         assert!(sample_period_ms > 0, "sample period must be positive");
         Self {
             id,
             ports: collect_ports(ports),
             tag,
-            raw_value: 0.0,
+            raw_value: FixedValue::ZERO,
             gain,
             offset,
             quality_good: true,
@@ -56,7 +56,7 @@ impl FieldSensor {
         }
     }
 
-    pub fn set_raw_value(&mut self, value: f64) {
+    pub fn set_raw_value(&mut self, value: FixedValue) {
         self.raw_value = value;
     }
 }
@@ -85,7 +85,11 @@ impl SimulatedComponent for FieldSensor {
                 self.elapsed_ms %= self.sample_period_ms;
                 single_effect(Effect::Process(ProcessEffect::Signal(ProcessSignal {
                     tag: self.tag.clone(),
-                    value: SignalValue::Analog(self.raw_value * self.gain + self.offset),
+                    value: SignalValue::Analog(
+                        self.raw_value
+                            .saturating_mul(self.gain)
+                            .saturating_add(self.offset),
+                    ),
                     quality_good: self.operational && self.quality_good,
                     timestamp_ms: self.timestamp_ms,
                 })))

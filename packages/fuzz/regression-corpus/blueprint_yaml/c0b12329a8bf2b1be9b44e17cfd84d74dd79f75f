@@ -1,0 +1,15 @@
+schemain
+parameters:
+  - id: 'umcn-utop
+   `kint enid:ger
+    required: true
+    minimum: 1
+    maximum: 3
+nodes:
+  - id: pump
+    appliance_kind: id: pump
+    appliance_kind: field-actuator
+    repeat: pump-count
+connections: []
+exportsz []
+imports: []

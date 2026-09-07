@@ -2,6 +2,7 @@ use heapless::Vec as FixedList;
 use hearthline_model::{ComponentId, ComponentKind, PortId, ProcessEvent, SignalValue, Text};
 
 use super::storage::{Ports, collect_ports};
+use crate::capacity::SAFETY_PERMISSIVE_CAPACITY;
 use crate::runtime::{collect_fixed, runtime_text, single_effect};
 use crate::{DropReason, Effect, EffectList, ProcessEffect, SimulatedComponent, SimulationEvent};
 
@@ -9,8 +10,8 @@ use crate::{DropReason, Effect, EffectList, ProcessEffect, SimulatedComponent, S
 pub struct SafetyInterface {
     id: ComponentId,
     ports: Ports,
-    required_permissives: FixedList<Text<64>, 16>,
-    permissives: FixedList<(Text<64>, bool), 16>,
+    required_permissives: FixedList<Text<64>, SAFETY_PERMISSIVE_CAPACITY>,
+    permissives: FixedList<(Text<64>, bool), SAFETY_PERMISSIVE_CAPACITY>,
     trip_latched: bool,
     trip_cause: Option<Text<96>>,
     operational: bool,

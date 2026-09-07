@@ -12,8 +12,8 @@ temperature, interlocks, and discharge.
 
 ## Current Representation
 
-The architecture view renders the representative assets below from bootstrap
-JSON. `AREA-04-HMI-01` is enterable as a Rust-backed operator session assembled
+The architecture view renders the representative assets below from the
+Rust-generated process topology and canonical appliance catalog. `AREA-04-HMI-01` is enterable as a Rust-backed operator session assembled
 from the area appliance YAML. It displays configured temperature and airflow
 samples, requires a healthy safety reset, and exposes fan and conveyor state
 commands through the HMI, vPLC, remote I/O, and field-actuator path.

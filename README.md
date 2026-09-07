@@ -1,307 +1,147 @@
 # Hearthline
 
-**Current development release:** `0.3.1`
+**Current development release:** `0.3.2`
 
-See the [changelog](CHANGELOG.md) and
-[versioning policy](project/docs/reference/versioning.md).
+Hearthline is a vendor-neutral industrial architecture and deterministic
+simulation project. It connects a public customer path, enterprise services,
+governed IT/OT exchange, and a segmented ceramics process in one reviewable
+model. The project combines a SvelteKit operator and architecture application,
+typed YAML source documents, IEC 61131-3 control sources, and Rust simulation.
 
-Hearthline is an industrial architecture and simulation project intended to
-connect a public customer journey, enterprise services, governed IT/OT
-exchange, and a segmented ceramics process. Its current implementation is a
-navigable Svelte architecture application plus a deterministic Rust component
-engine. Typed appliance, connection, and scenario YAML pipelines validate the
-rendered inventory and selected executable paths, generate frontend
-configuration data, and support validated local editing. Thirty configured
-scenarios cover independent Customer PC-01 and PC-02 public paths, independent
-Business IT PC-01 through PC-04 internal DNS and HTTPS paths, approved or
-denied factory operations-data flows, and three controlled public-web security
-exercises: path traversal, a disallowed method, and a bounded SQL-injection
-request body.
-The Forming vPLC now emits a typed process sample through its virtual host and
-Level 3 core to a bounded factory-local historian. A second executable path
-replicates accepted records through the southbound OT firewall into the OT DMZ.
-Forming SCADA shows both stores and their route evidence, and its publication
-action sends only the latest replicated record through six modeled links to
-Central Office analytics.
-The first availability scenario applies a request-scoped customer access-link
-outage, verifies the resulting media drop, and defines a separate recovery
-state whose restored run must deliver the original DNS response.
-A second availability scenario combines VRRP gateway transfer with
-Rust-computed Rapid-PVST root, root-port, designated-port, and alternate-port
-states so the unchanged Business IT DNS packet follows Core-01 at baseline and
-Core-02 after the selected primary uplinks fail.
-The northbound firewall pair now also executes a timed continuity scenario:
-the active member serializes one TCP session and heartbeats over its dedicated
-HA medium, the standby promotes after the configured hold timer, advertises
-the shared first-hop identities, and permits the exact reverse ACK from
-synchronized state. This is a deterministic Hearthline protocol abstraction,
-not an implementation of a vendor HA protocol or a seamless-failover claim.
-Two fault variants now distinguish retained state from unavailable state: one
-drops the HA medium after synchronization and preserves the reverse flow,
-while the other clears the standby session table and verifies default-deny
-behavior after promotion.
-A third fault case retains synchronized state through promotion, waits beyond
-the modeled 300-second idle TCP timeout, and proves that FRW-03B expires the
-stale entry before rejecting the delayed reverse ACK.
-An HA-isolation case drops only the synchronization path while FRW-03A remains
-healthy. FRW-03B reaches its hold timer but stays fenced because peer failure
-is unconfirmed, preserving one active owner and the established flow.
-A factory-autonomy case disables both factory-facing inter-site handoffs. The
-operations-data transfer fails on both paths while an independently evaluated
-Body Preparation control chain retains seven operational local links, resets
-its healthy safety circuit, and starts the configured transfer pump through
-HMI, vPLC, remote I/O, and actuator behavior. This is a bounded command-level
-proof for that outage scenario, not proof that plant state advanced during the
-outage. Separately, Body Preparation and Forming now have bounded area-specific
-plant models. Body Preparation presents separate slip, water-utilities, and
-glaze process buildings; the water building separates industrial treatment,
-industrial distribution, return treatment, and return pipelines. Four
-associated process trains execute in Rust; Forming
-executes a validated Structured Text subset while
-Rust advances ceramic-slip pressure casting, robotic demoulding, mould
-cleaning, vacuum drying, process signals, alarms, and injected faults.
-Complete topology execution and general IEC 61131-3 control execution remain
-planned engineering layers.
+Hearthline is being built from code because no evaluated simulator covered the
+required combination of hierarchical physical and logical navigation,
+configuration-owned topology, network and security decisions, virtual control,
+process dynamics, deterministic replay, and generated documentation. This is a
+scope decision, not a claim that Hearthline replaces network emulators,
+controller engineering environments, hardware laboratories, or commissioning.
 
-![Hearthline regional architecture](project/docs/screenshot.png)
+![Hearthline regional physical architecture](project/docs/screenshot.png)
 
 ![Hearthline regional logical architecture](project/docs/logical-screenshot.png)
 
-## Project Goals
+## Release 0.3.2
 
-Hearthline is designed to:
+Release `0.3.2` is a clean foundation break. It introduces an immutable,
+content-addressed project model and separates deterministic execution from
+configuration, project compilation, replay, and operator sessions.
 
-- Progressively model the architecture through corresponding physical and
-  logical views.
-- Keep network inventory, addressing, interfaces, policy, and scenarios in
-  reviewable YAML.
-- Validate topology, routing, NAT, segmentation, and permitted conduits in
-  Rust.
-- Associate controllers with Structured Text or Ladder Diagram programs,
-  tasks, tags, and simulated I/O.
-- Run virtual PLC logic against a Rust process model.
-- Explain successful and denied communication paths in the Svelte interface.
-- Model safe local factory operation without depending on Central Office
-  availability.
+The canonical model currently validates:
 
-## Why a Custom Codebase
+| Evidence | Current result |
+| --- | ---: |
+| Appliance documents | 394 |
+| Connection documents | 450 |
+| Scenarios | 30 |
+| Canonical runtime cells | 29 |
+| Blueprint instances | 2 |
+| Normalized compiled objects | 936 |
+| Capacity assessments | 255 accepted |
+| Minimum reviewed capacity reserve | 25% |
+| Golden replay classes | 6 |
 
-The project began with existing network and industrial simulation tools, but
-the initial evaluation did not identify one simulator that covered the combined
-requirements: hierarchical physical and logical navigation, vendor-neutral
-configuration, explainable network and security decisions, virtual PLC
-execution, IEC 61131-3 source integration, process simulation, fault scenarios,
-and generated documentation.
+The canonical project digest is recorded in
+[`model.lock.json`](project/config/model.lock.json). Compilation is independent
+of source traversal order. The lock records source and object digests,
+compiler/schema versions, partition assignments, generated catalogs, and
+capacity evidence; expanded per-instance YAML is deliberately not committed.
 
-Hearthline is therefore being developed as a purpose-specific codebase instead
-of treating several disconnected tools as one authoritative model. This is a
-scope decision, not a claim that the project already replaces network
-emulators, vendor engineering environments, virtual PLC products, or hardware
-integration laboratories. Those tools remain necessary for implementation and
-acceptance testing.
+## Architecture
 
-Building the missing integration also creates substantial engineering
-obligations. Parser correctness, timing behavior, protocol fidelity, failure
-modes, safety boundaries, and generated results must be tested before they can
-be trusted. Hearthline only claims behavior that has an implemented and
-repeatable validation path.
+Dependencies flow downward through these Rust crates:
 
-## Current State
-
-The following capabilities are implemented in the Svelte application:
-
-- A regional map containing the Customer Network, Central Office, and Factory.
-- Physical and logical representations at every documented level.
-- Drill-down navigation from sites to environments and from the Factory process
-  to ten individual production areas.
-- Selectable architecture nodes, device inspectors, zoom, pan, fit, reset,
-  grid, and minimap controls.
-- Customer LAN, customer edge, public-service, enterprise, DMZ, operations,
-  analytics, and factory security views.
-- A ten-stage ceramics process with individual controllers, HMIs, sensors,
-  distributed I/O, actuators, and safety or permissive interfaces. Body
-  Preparation is a gateway to separate slip, water preparation/distribution,
-  and glaze buildings backed by one detailed 166-component model and seven
-  remote-I/O stations. Forming is an 84-component
-  cell with an embedded
-  machine-PC SCADA,
-  four equal mould stations, four mould-local HMIs, an independent robot
-  pendant, 45 configured process values, four fence-crossing handoff stations,
-  and guarded-cell safety. Its physical view is limited to the 21 machine-floor
-  items visible from above; the logical view retains all 84 components.
-- A bootstrap process view model loaded from
-  [`process-view.json`](packages/web/src/generated/process-view.json), with the
-  detailed Body Preparation and Forming inventories derived from the generated
-  YAML catalog.
-- Rust-generated appliance and connection metadata, full YAML inspection, and
-  validated editing through a localhost-only Rust API.
-- A Rust workspace with shared model contracts, typed YAML configuration,
-  deterministic appliance primitives, process-component primitives, physical
-  media transit, trace output, and command-line validation and generation.
-- An API-backed simulation workspace for packet overrides, deterministic
-  execution, outcome metrics, trace filtering, and desktop or mobile scenario
-  selection.
-- Scenario-owned and request-time connection-state overrides with an editable
-  link-state panel, canonical reset, YAML-declared recovery action, active
-  baseline or recovery expectations, and explicit media-failure traces.
-- YAML-configured VRRP identities with validated active/standby state, an
-  editable first-hop role panel, split-brain rejection, and a Core-02 recovery
-  trace after selected Core-01 uplink failure.
-- Reciprocal firewall-HA configuration with validated heartbeat and hold
-  timers, media-carried bounded session updates, active-member failure,
-  standby promotion, gratuitous first-hop announcements, and reverse-flow
-  continuity evidence in the simulation workspace.
-- YAML-configured Rapid-PVST bridge identities and priorities with
-  Rust-computed per-VLAN root selection, long path costs, port roles,
-  forwarding or discarding state, and scenario-report projection.
-- Enterable Customer PC-01 and PC-02 endpoints with responsive desktops,
-  terminals, browsers, independent YAML-derived network identities, and
-  Rust-backed DNS, repeated ICMP echo, HTTPS, and denied SSH actions. Each API
-  session maintains an isolated 60-second DNS client cache with inspection and
-  flush commands plus a persistent compatible baseline network that retains
-  endpoint ARP, switch CAM, routed-neighbor, customer PAT, and traversed
-  firewall-session state across actions.
-- Enterable Business IT PC-01 through PC-04 endpoints with scenario-derived
-  portal home pages and Rust-backed internal DNS, repeated ICMP echo, and HTTPS
-  actions across trunked VLANs 20, 30, and 80 through routed Core-01 SVIs;
-  browser, `curl`, `ping`, and SSH share that workstation's DNS cache while
-  `nslookup` always queries the configured server. Browser details and
-  terminal `arp -a` expose current session state.
-- A responsive Network State application on each enterable workstation,
-  showing capability-scoped CAM, neighbor, PAT, and firewall-session tables
-  from the active Rust runtime plus a bounded read-only simulator console for
-  `show` commands. This is per-workstation session instrumentation, not a
-  global management plane or vendor CLI implementation.
-- Enterable operator interfaces for all ten process areas, including the
-  Forming machine PC, four mould-local HMIs, and independent robot joystick, with YAML-derived
-  instruments, safety permissives, alarm acknowledgement, operator audit,
-  equipment-specific actuator states, and commands executed through Rust HMI,
-  vPLC, remote-I/O, and field-actuator primitives.
-- One shared Forming cell session across the embedded SCADA and local stations,
-  with four independent mould sequence runtimes, mould-local Start/Stop/End,
-  continuous production, keyed manual/auto/setup selectors, retained manual
-  commands, object-scoped PC views, live equipment displays, and five
-  injectable disturbances.
-- A separate six-axis robot controller, manipulator, pendant, and safety
-  boundary with bounded FIFO arbitration across four taught mould pickup and
-  operator-handoff definitions, frames, tool, payload, and live execution
-  state.
-- Four external mould-control cabinets and four mould-embedded utility
-  sections, seven runtime-bound setpoints per mould, and an object-based
-  supervisory model with quality-aware history, events, roles, revision state,
-  and active/standby deployment nodes.
-- Automatic one-second Forming telemetry collection with bounded local and OT
-  DMZ stores, pending-record and loss accounting, 250-millisecond replication
-  retry, and an authorized replica-backed analytics publication with all three
-  media traces beside the live process.
-- Composite factory-autonomy evidence in the simulation workspace, including
-  redundant conduit loss, local-path health, safety reset, command result,
-  final actuator state, and the six recorded control stages.
-- Controlled customer-workstation path-traversal, disallowed-method, and
-  request-body SQL-injection exercises that are prevented by the DMZ
-  reverse-proxy WAF and projected into an enterable Central SOC session with
-  evidence, filtering, acknowledgement, and bounded event retention.
-
-Current maturity is:
-
-| Layer | Status |
+| Crate | Responsibility |
 | --- | --- |
-| Application release | `0.3.1`, initial development |
-| Svelte architecture application | Implemented and buildable; Body Preparation has a three-building gateway and scoped physical/logical views, while rendered architecture remains provisional |
-| Physical and logical documentation captures | Implemented for every documented route |
-| Process view-model contract | Bootstrap JSON, schema `0.2.0` |
-| Canonical appliance YAML | Provisional baseline; 394 schema `0.10.0` files, one per appliance |
-| Canonical connection YAML | Provisional baseline; 450 schema `0.2.0` files, one per modeled connection |
-| Rust component simulation | Allocator-free appliance runtime with Ethernet, ARP, switching, LACP aggregation, bounded multi-chassis split horizon, routing, NAT, active/standby stateful firewalls, service, media, and process primitives |
-| Rust YAML validation and frontend projection | Implemented for appliance behavior, port hardware and state, VRRP member consistency, Rapid-PVST bridge identities, LACP, multi-chassis and firewall-HA relationships, synchronized firewall policy, connection media, endpoint compatibility, capacity, exclusive point-to-point ports, file identity, and render bindings |
-| Local YAML editing | Implemented with revision checks, whole-project validation, atomic writes, and catalog regeneration |
-| Configured topology and end-to-end scenarios | Initial implementation; 30 versioned scenarios cover independent customer public paths, Business IT PC-01 through PC-04 internal DNS and HTTPS, deterministic Business IT core recovery, converged and protocol-timed northbound-firewall recovery, HA-sync, standby-state, stale-session, and fenced-isolation cases, Forming-to-Level-3 collection, Level-3-to-DMZ replication, a brokered OT-DMZ-to-analytics path with explicit HTTPS delivery and SSH default denial, a composite local-control/inter-site-outage case, three WAF-prevented security exercises, and one customer access-circuit outage with an explicit restoration expectation |
-| Offensive and defensive interaction | First controlled slice implemented through Customer PC-01 method- and body-aware `curl`, configuration-owned DMZ WAF policy, and a filterable session-local Central SOC queue; broader attack techniques, telemetry transport, correlation, and response automation remain planned |
-| HMI and process interaction | Twenty operator sessions are configured across all ten process areas. Body Preparation has six scoped HMIs/controllers over one coupled plant model, including separate industrial-water treatment, industrial-water distribution, return-water treatment, and return-water pipeline interfaces. Its 85 signals, 53 actuators, six safety scopes, eight monitored water routes, 16 heartbeat-supervised pumps, and four material handoffs are Rust-backed. A degraded released-slip batch updates Forming material properties and predicted downstream effects. Forming adds four independent mould runtimes with bound timings and pressure, local production authority, guarded robot and transfer behavior, and a workspace-limited pendant with four authoritative `.g` routines. Object-based supervisory state, historian collection and replication, and operator-triggered publication are also implemented. Finite cross-area inventory, recipe deployment, durable persistence, and broader plant dynamics remain planned. |
-| Control sources and vPLC execution | Forming executes versioned Structured Text through an explicit YAML I/O binding and Rust plant dynamics. Body Preparation has a validated slip Structured Text sequence and binding with matching live step projection while all four process trains remain Rust-owned. Broader language and area coverage remain planned. |
-| Deployment or standards conformance | Not claimed |
+| `hearthline-model` | `no_std` identifiers, events, units, fixed-point quantities, and stable contracts |
+| `hearthline-engine` | allocator-free component, network, process, safety, and cell behavior |
+| `hearthline-config` | versioned YAML contracts, validation, and immediately previous schema migrations |
+| `hearthline-project` | blueprint expansion, graph compilation, capacity planning, model locking, catalogs, and draft transactions |
+| `hearthline-sim` | deterministic site/cell scheduling, snapshots, scenarios, recording, and replay |
+| `hearthline-operator` | typed commands, permissions, projections, model-revision pinning, and operator sessions |
+| `hearthline-cli` | command-line adapter |
+| `hearthline-api` | loopback-first HTTP adapter and generated host contracts |
 
-The generated catalog proves that the current YAML files parse, every
-connection resolves to declared appliance ports, configured spanning-tree
-bridges have valid and unique identities, each port supports its
-connection medium, link capacity does not exceed configured port or medium
-limits, and point-to-point physical ports are not reused. It does not prove
-project-wide address uniqueness, VLAN or route consistency, policy
-correctness, complete HA behavior, or arbitrary end-to-end reachability. The
-30 configured scenarios prove only their selected participant paths and
-expected outcomes. Remaining bootstrap frontend datasets still describe architecture
-and presentation intent rather than simulated behavior.
+`xtask` verifies dependency direction from Cargo metadata and inspects Rust
+syntax trees for runtime policy. Svelte owns presentation and interaction; it
+does not decide identity, routing, policy, control, or process state.
 
-The current YAML values and rendered architecture are intentionally
-provisional placeholders. They provide stable identifiers, parser coverage,
-navigation, and representative engineering structure while development
-focuses on communication, simulation, and control behavior. They are not
-finished device configurations or a final deployment architecture. Addressing,
-policy, equipment selection, topology details, availability design, and
-physical placement will be revised as executable scenarios and engineering
-requirements mature.
+### Deterministic Runtime
 
-## Target Architecture
+Projects grow by composing sites and isolated cells during loading. There is no
+project-wide factory, site, or cell ceiling. Each cell retains reviewed,
+allocator-free engine limits, and an oversized area must be partitioned rather
+than accommodated by enlarging a global constant.
 
-| Layer | Responsibility |
-| --- | --- |
-| YAML | Canonical inventory, port state and settings, connection instances, addressing, routes, services, policies, I/O assignments, and scenarios |
-| IEC 61131-3 | Structured Text and machine-readable Ladder Diagram control sources |
-| Rust | Schema validation, graph construction, connectivity and policy evaluation, process behavior, fault injection, and generated view data |
-| Virtual PLC runtime | PLC scan cycles, task scheduling, timers, function blocks, and execution of the selected control dialect |
-| Svelte | Static architecture presentation, navigation, inspection, filtering, and visualization of validated results |
+Cross-cell and cross-site traffic uses preallocated bounded conduits. The
+single-threaded scheduler orders work by time, site, cell, conduit, and
+sequence. Every bounded resource declares reject, backpressure, coalescing,
+drop, stop, or recovery behavior. Tests reject post-seal allocation and exercise
+all conduit saturation policies.
 
-```text
-YAML configuration --------+
-                           |
-Structured Text -----------+--> Rust models and validation
-                           |          |
-Ladder / PLCopen XML ------+          +--> connectivity and policy results
-                                      +--> control and I/O cross-references
-                                      +--> process and fault scenarios
-                                                |
-                                                v
-                                         Generated JSON
-                                                |
-                                                v
-                                      Svelte application
+State-affecting deterministic values use typed fixed-point quantities for
+pressure, temperature, flow, mass, concentration, position, angle, percentage,
+and time. Quantization occurs before transitions, comparisons, snapshots, and
+hashing. The x86 build disables fused multiply-add as an additional host
+guardrail.
 
-Control sources --> virtual PLC runtime --> simulated I/O --> Rust plant model
-```
+### Blueprints And Capacity
 
-Svelte owns presentation and interaction. It does not make routing, policy,
-identity, control, or process decisions.
+Typed blueprints support bounded repetition, nested instances, namespaced local
+IDs, typed parameters with units and ranges, and exported ports, signals,
+material handoffs, and network conduits. Imports are acyclic and pinned by
+schema version and digest. Blueprints intentionally provide no script or
+arbitrary string-template language.
 
-## Sites
+Direct appliance and connection YAML remains supported for unique assets.
+Repeated cells and process trains can migrate incrementally to blueprints.
+Compiler-generated capacity evidence covers topology demand, workload and
+burst envelopes, object and stack size, queue demand, and aggregate preallocated
+memory. Missing evidence, missing overflow behavior, or less than 25% reviewed
+reserve rejects compilation.
+
+### Recording And Replay
+
+Run manifests bind the model digest, simulation version, scenario, actual
+initial-runtime digest, quantization contract, clock policy, ordered commands
+and faults, limits, and expected outcomes. Replay checkpoints retain full
+normalized component and cell snapshots together with their component and field
+digests. Verification checks that the digest evidence matches the embedded
+state, then reports the first divergent event, component, and field.
+
+Current and immediately previous blueprint, lock, snapshot, and replay schemas
+are readable. Readers migrate in memory; writers emit only the current schema.
+Compact golden artifacts cover network, safety, Forming, Body Preparation,
+overload, and recovery behavior. Full traces are retained as CI artifacts.
+
+### Transactional Editing
+
+The configuration interface edits drafts against an immutable model revision.
+A draft may overlay blueprint, instance, appliance, connection, or scenario
+documents without modifying tracked files. Preview compilation returns
+source-located diagnostics, topology changes, capacity deltas, scenario impact,
+and generated catalog previews.
+
+Commit requires an unchanged base revision and a valid complete overlay. A
+write-ahead journal, temporary files, `fsync`, atomic renames, rollback, and
+startup recovery protect multi-file source, lock, and catalog updates. The host
+rejects path traversal, unknown roots, oversized or deeply nested YAML,
+duplicate IDs, and stale revisions. Write APIs bind to loopback by default and
+refuse non-loopback access unless authentication is configured.
+
+Active simulations remain pinned to the immutable revision on which they were
+started. A committed model affects only new or explicitly restarted sessions;
+older sessions are reported as stale.
+
+## Modeled Environment
+
+The SvelteKit application provides physical and logical views for three sites:
 
 | Site | Scope | Documentation |
 | --- | --- | --- |
-| Customer Network | Residential LAN, customer edge, and end-to-end public web access | [Customer Network](project/docs/customer-network/README.md) |
-| Central Office | Public IT DMZ, Business IT, governance, monitoring, analytics, and approved change workflows | [Central Office](project/docs/central-office/README.md) |
-| Factory | Factory-local OT DMZ, Level 3 handoff, and segmented ceramics process | [Factory](project/docs/factory/README.md) |
+| Customer Network | Residential LAN, customer edge, and public web path | [Customer Network](project/docs/customer-network/README.md) |
+| Central Office | IT DMZ, Business IT, governance, monitoring, analytics, and approved exchange | [Central Office](project/docs/central-office/README.md) |
+| Factory | Factory-local OT DMZ, Level 3 services, vPLC platform, and process cells | [Factory](project/docs/factory/README.md) |
 
-The Central Office is the principal governance and analysis site. The Factory
-retains local execution, enforcement, engineering authority, and safe process
-operation. Central services do not receive direct routes to controllers.
-
-## Target Security Model
-
-Hearthline applies the following architecture rules:
-
-- Default-deny communication between security zones.
-- Explicit conduits defined by source, destination, protocol, direction,
-  purpose, owner, and availability requirement.
-- Separate IT-side and OT-side enforcement at the factory OT DMZ.
-- Controlled administrative access through jump services.
-- Brokered or replicated production data for enterprise analytics.
-- Passive monitoring paths that are not required for process forwarding.
-- Identity, device assurance, session authorization, and least privilege in
-  addition to network segmentation.
-- Independent local process operation when inter-site services are unavailable.
-- Explicit safety and burner-management boundaries that are not replaced by
-  general-purpose control logic.
-
-## Ceramics Process
+The factory process is:
 
 ```text
 Body Preparation
@@ -316,138 +156,115 @@ Body Preparation
   -> Logistics
 ```
 
-Each process area is independently enterable and contains a cell network,
-logical vPLC workload, local operator interface, distributed I/O, sensors,
-actuators, and a safety or permissive interface. Forming currently carries the
-only expanded module-level inventory; the other areas remain representative.
-The target deployment assigns physical vPLC
-execution to a factory-local redundant control-compute cluster. Only the
-bounded Forming Structured Text subset is integrated; this is not a general
-IEC 61131-3 runtime. Detailed process documentation starts at the
-[Ceramics Process](project/docs/factory/process/README.md).
+Body Preparation and Forming are the deepest current process models. Body
+Preparation includes separate slip, industrial-water, return-water, and glaze
+trains with local HMIs, supervised pumps, quality instruments, material
+handoffs, and pipeline-loss effects. Forming includes four equal moulds,
+mould-local HMIs and I/O, guarded robot and handoff behavior, machine-level
+supervision, historian replication, and source-bound controller behavior.
 
-## Repository Structure
+The 30 canonical scenarios preserve the existing customer, enterprise,
+availability, HA, OT exchange, local-autonomy, historian, and controlled web
+security outcomes. This is selected-path evidence, not proof that every possible
+pair of endpoints or every production condition has been modeled.
 
-```text
-.
-|-- .github
-|   `-- workflows
-|-- packages
-|   |-- crates
-|   |   |-- hearthline-model
-|   |   |-- hearthline-engine
-|   |   |-- hearthline-config
-|   |   |-- hearthline-api
-|   |   `-- hearthline-cli
-|   |-- fuzz
-|   |-- web
-|   |-- Cargo.toml
-|   `-- Cargo.lock
-|-- project
-|   |-- control
-|   |-- config
-|   |-- docs
-|   |-- scripts
-|   |-- standards
-|   `-- VERSION
-|-- CHANGELOG.md
-|-- LICENSE
-`-- README.md
-```
+## Current Limits
 
-The documentation tree follows the Svelte navigation tree. Every documentation
-folder contains its own README plus physical and logical screenshots of the
-corresponding current view.
+- Appliance values and architecture definitions are provisional engineering
+  placeholders. They exercise contracts and behavior but are not deployment
+  configurations or final equipment selections.
+- The complete graph compiles and is capacity-checked, but only declared
+  scenarios establish end-to-end communication outcomes.
+- Forming and the Body Preparation slip train execute a bounded Structured Text
+  subset. This is not a general IEC 61131-3 runtime.
+- Process physics are deterministic development models based on public
+  information. They are not controller, robot, supervisory-platform, or
+  production-process equivalence claims.
+- Deployment and standards conformance are not claimed. The project documents
+  alignment decisions and unresolved qualification work separately.
 
-## Next Planned Step
+## Acceptance Evidence
 
-The three Forming fidelity tracks and the Body Preparation slip, water, return,
-and glaze trains are implemented as bounded development models. A released
-slip batch already updates Forming's material properties and predicted
-downstream effects. The next milestone will replace that latest-batch handoff
-with finite inventory, receiving capacity, replenishment requests, interrupted
-transfer, and deterministic recovery tests. It will also add robot recovery,
-recipe-to-setpoint deployment, and reviewed process-condition transitions
-without claiming production controller, robot, supervisory-platform, or
-process-physics equivalence.
+The generated scale project contains a Central Office, customer edge, and three
+ten-area factories with 1,200 or more components, 1,400 or more connections,
+and at least 75 isolated cells. It runs 24 simulated hours plus a deterministic
+concurrent-failure schedule without unreported saturation or post-seal
+allocation. Construction, snapshots, operator projection, and replay are also
+tested on constrained worker stacks to prevent recurrence of stack overflow.
 
-## Roadmap
+Pull requests run architecture, version, schema, lock, generated-output,
+formatting, Clippy, MSRV, stable, `no_std`, sharded tests, capacity, regression
+corpus, fuzz smoke, SvelteKit, Vitest, Chromium, and four-platform golden-replay
+gates. Nightly evidence adds deep fuzzing, branch coverage, mutation testing,
+Miri, dependency and license policy, SBOMs, soak runs, benchmarks, allocation
+and size reports, and Chromium/Firefox/WebKit desktop and mobile workflows.
 
-1. Implement and test finite material balance between Body Preparation and the
-   Forming slip tank, then deepen robot recovery, recipe deployment, and
-   process-condition handling around the completed fidelity tracks.
-2. Extend cross-file validation to addresses, VLANs, routes, NAT, services,
-   policy references, and HA relationships.
-3. Extend configured component construction beyond the currently executable
-   network, service, link, and industrial process families.
-4. Add further positive, negative, outage, and isolation set simulations with
-   deterministic traces and explicit policy expectations.
-5. Add further factory-local outage and recovery scenarios as plant behavior
-   becomes executable.
-6. Move the remaining site and environment presentation data out of Svelte
-   components.
-7. Replace provisional configuration values and architecture placeholders with
-   scenario-derived, cross-validated, and reviewed engineering definitions.
-8. Select formal IEC 61131-3 compatibility targets and a Ladder interchange
-   format before broadening the implemented Forming subset.
-9. Extend program, symbol, task, tag, and I/O cross-references to additional
-   selected constructs and process areas.
-10. Extend source-driven virtual PLC execution beyond Forming.
-11. Extend deterministic process scenarios, accelerated time, cross-area
-    material tracking, and fault injection beyond the first Forming model.
-12. Extend the controlled Phase 3 WAF baseline with additional attack,
-    detection, triage, and response paths backed by deterministic policy
-    behavior.
+See the [CI policy](project/standards/CI_POLICY.md) for thresholds, retention,
+capacity-review rules, replay review, and exception ownership.
 
-## Running the Application
+## Command Line
+
+From the repository root:
 
 ```bash
-cd packages/web
-npm install
-npm run dev
+cargo run --manifest-path packages/Cargo.toml --bin hearthline -- model validate
+cargo run --manifest-path packages/Cargo.toml --bin hearthline -- model compile --locked
+cargo run --manifest-path packages/Cargo.toml --bin hearthline -- model lock --update --reason "review reference"
+cargo run --manifest-path packages/Cargo.toml --bin hearthline -- model expand --output /tmp/hearthline-expanded
+cargo run --manifest-path packages/Cargo.toml --bin hearthline -- capacity report --format text
+cargo run --manifest-path packages/Cargo.toml --bin hearthline -- run foundation-conduit-overload --record /tmp/run.json
+cargo run --manifest-path packages/Cargo.toml --bin hearthline -- replay verify project/replays/conduit-overload.json
 ```
 
-Scenario execution and validated editing require the local Rust API from the
-repository root:
+Run the API and web application in separate terminals:
 
 ```bash
 cargo run --manifest-path packages/Cargo.toml -p hearthline-api
 ```
 
-Quality checks:
-
 ```bash
-node project/scripts/repository-policy.mjs
-node project/scripts/check-version.mjs
 cd packages/web
-npm run check
-npm run build
-cd ../..
-cargo fmt --manifest-path packages/Cargo.toml --all --check
-cargo clippy --manifest-path packages/Cargo.toml --workspace --all-targets --all-features -- -D warnings
-cargo test --manifest-path packages/Cargo.toml --workspace --all-features
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- config-validate
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- config-generate
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- config-demo
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run customer-dns-lookup
-cargo bench --manifest-path packages/Cargo.toml --workspace --all-features
+npm ci
+npm run dev
 ```
 
-CI additionally runs the two bounded `cargo-fuzz` targets with nightly Rust.
-The enforced repository constraints are documented in
-[CI policy](project/standards/CI_POLICY.md).
+Primary local gates:
+
+```bash
+node project/scripts/check-version.mjs
+node project/scripts/repository-policy.mjs
+cd packages && cargo xtask verify && cargo xtask contracts --check
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets --all-features -- -D warnings
+cargo test --workspace --all-features
+cd web && npm run check && npm test && npm run build && npm run test:e2e
+```
+
+## Roadmap
+
+1. Complete migration of repeated process trains and cells to reviewed
+   blueprints while retaining direct YAML for unique assets.
+2. Extend formal communication and fault behavior to additional declared
+   component families and policy paths.
+3. Add finite cross-area inventory, receiving capacity, interrupted material
+   transfer, recipe deployment, and deterministic recovery.
+4. Broaden selected IEC 61131-3 compatibility only after the language,
+   scheduling, and interchange contracts are explicitly versioned.
+5. Replace provisional configuration and architecture values with
+   scenario-derived, cross-validated, reviewed engineering definitions.
+6. Continue controlled security, failover, local-autonomy, and recovery cases
+   without turning simulated evidence into a deployment claim.
 
 ## Documentation
 
 - [Documentation index](project/docs/README.md)
 - [Implementation direction](project/docs/reference/project-direction.md)
-- [Deployment conformance review](project/docs/reference/deployment-conformance.md)
-- [Rust simulation engine](project/docs/reference/simulation-engine.md)
-- [Svelte application](project/docs/reference/svelte-application.md)
+- [Simulation engine](project/docs/reference/simulation-engine.md)
+- [SvelteKit application](project/docs/reference/svelte-application.md)
 - [Configuration model](project/config/README.md)
-- [Continuous integration policy](project/standards/CI_POLICY.md)
+- [Deployment conformance](project/docs/reference/deployment-conformance.md)
+- [Versioning](project/docs/reference/versioning.md)
 - [Changelog](CHANGELOG.md)
-- [Versioning and releases](project/docs/reference/versioning.md)
 
 ## License
 

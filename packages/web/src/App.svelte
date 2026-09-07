@@ -3,6 +3,7 @@
   import CustomerEnvironmentView from "./lib/customer/CustomerEnvironmentView.svelte";
   import CustomerLanView from "./lib/customer/CustomerLanView.svelte";
   import ApplianceConfigView from "./lib/config/ApplianceConfigView.svelte";
+  import BlueprintEditor from "./lib/config/BlueprintEditor.svelte";
   import ConnectionConfigView from "./lib/config/ConnectionConfigView.svelte";
   import OfficeEnvironmentView from "./lib/office/OfficeEnvironmentView.svelte";
   import SecurityConsoleView from "./lib/office/SecurityConsoleView.svelte";
@@ -43,10 +44,10 @@
     | WorkstationRoute
     | HmiRoute
     | SecurityConsoleRoute;
-  type ActiveRoute = ArchitectureRoute | DetailRoute | "simulations" | null;
+  type ActiveRoute = ArchitectureRoute | DetailRoute | "simulations" | "model/editor" | null;
 
   let activeRoute: ActiveRoute = null;
-  let detailHistory: (ArchitectureRoute | DetailRoute | "simulations")[] = [];
+  let detailHistory: Exclude<ActiveRoute, null>[] = [];
   let viewMode: ViewMode = "logical";
 
   function syncRoute() {
@@ -86,8 +87,10 @@
     const isSecurityConsole = securityConsoleId !== "" &&
       isInteractiveSecurityConsole(securityConsoleId);
 
-    activeRoute = route === "simulations"
-      ? "simulations"
+    activeRoute = route === "model/editor"
+      ? "model/editor"
+      : route === "simulations"
+        ? "simulations"
       : route === "customer" ||
       route === "office" ||
       route === "factory" ||
@@ -128,6 +131,11 @@
   function openSimulations() {
     activeRoute = "simulations";
     window.location.hash = "simulations";
+  }
+
+  function openModelEditor() {
+    activeRoute = "model/editor";
+    window.location.hash = "model/editor";
   }
 
   function enterCustomerEnvironment(environmentId: string) {
@@ -287,6 +295,7 @@
   <RegionMap
     bind:viewMode
     onEnter={enterPlace}
+    onOpenModelEditor={openModelEditor}
     onOpenSimulations={openSimulations}
   />
 {:else if activeRoute === "simulations"}
@@ -294,6 +303,8 @@
     onBack={returnToMap}
     onOpenAppliance={openApplianceConfig}
   />
+{:else if activeRoute === "model/editor"}
+  <BlueprintEditor onBack={returnToMap} />
 {:else if activeRoute.startsWith("config/appliances/")}
   <ApplianceConfigView
     applianceId={activeRoute.slice("config/appliances/".length)}

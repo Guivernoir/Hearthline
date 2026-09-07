@@ -45,9 +45,8 @@
     saveError = "";
     try {
       const catalog = await saveConnection(
-        connection.id,
+        connection.sourcePath,
         sourceYaml,
-        connection.revision,
       );
       installCatalog(catalog);
       connection =

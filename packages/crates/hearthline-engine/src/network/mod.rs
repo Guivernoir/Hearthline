@@ -14,7 +14,7 @@ pub use forwarding::{
 };
 pub use host::{
     DnsServer, HttpInspectionRule, HttpInspectionTarget, PassiveSensor, ReverseProxyWaf,
-    ServiceNode,
+    ServiceNode, UnaddressedNode,
 };
 pub(crate) use host::{EndpointReceive, EndpointStack};
 pub use link::{LinkAppliance, LinkMode};

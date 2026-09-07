@@ -1,31 +1,32 @@
-mod report;
 mod repository;
-mod runner;
 mod schema;
 mod security;
 mod state;
 
-pub use report::{
-    SCENARIO_REPORT_SCHEMA_VERSION, ScenarioContinuityReport, ScenarioExpectationMode,
-    ScenarioHaIsolationReport, ScenarioHttpDocument, ScenarioHttpResponse,
-    ScenarioLocalAutonomyReport, ScenarioReport, ScenarioStatistics, ScenarioStatus,
-    ScenarioTraceEntry, ScenarioTraceKind,
-};
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ScenarioExpectationMode {
+    Baseline,
+    Recovery,
+    Continuity,
+    Isolation,
+    Autonomy,
+}
+
 pub use repository::{LoadedScenario, ScenarioRepository};
-pub(crate) use runner::is_interactive_scenario;
-pub use runner::{
-    InteractiveScenarioSession, run_scenario, run_scenario_with_overrides,
-    run_scenario_with_state_overrides,
-};
 pub use schema::{
     SCENARIO_SCHEMA_VERSION, ScenarioApplicationConfig, ScenarioConfig, ScenarioContinuityConfig,
     ScenarioContinuityFault, ScenarioExpectation, ScenarioExpectedOutcome,
     ScenarioHaIsolationConfig, ScenarioHttpMethod, ScenarioLocalAutonomyConfig,
     ScenarioPacketConfig, ScenarioRecoveryConfig, ScenarioSummary, ScenarioTransportConfig,
+    TelemetryIdentity, retarget_telemetry_packet, telemetry_identity,
 };
-pub use security::{
-    SECURITY_EVENT_SCHEMA_VERSION, ScenarioSecurityConfig, ScenarioSecurityEvent,
-    SecurityDisposition, SecuritySeverity,
+pub use security::{ScenarioSecurityConfig, SecuritySeverity};
+#[doc(hidden)]
+pub use state::{
+    LocalControlTopology, local_control_topology, scenario_connection_states,
+    scenario_firewall_ha_states, scenario_first_hop_states, scenario_link_aggregation_states,
+    scenario_spanning_tree_states,
 };
 pub use state::{
     ScenarioConnectionOverride, ScenarioConnectionState, ScenarioFirewallHaOverride,

@@ -5,6 +5,9 @@ use hearthline_model::{
     ArpOperation, ArpPacket, EthernetFrame, MacAddress, NetworkPayload, PortId, Route,
 };
 
+use crate::capacity::{
+    FORWARDING_INTERFACE_CAPACITY, FORWARDING_PENDING_CAPACITY, PROXY_ADDRESS_CAPACITY,
+};
 use crate::runtime::{collect_fixed, runtime_text, single_effect};
 use crate::{DropReason, Effect, EffectList, NetworkIngress};
 
@@ -12,9 +15,6 @@ use super::arp::{invalid_ipv4_source, reply as arp_reply, request as arp_request
 use super::interface::RoutedInterface;
 use super::neighbor::{NeighborCache, NeighborEntry};
 use super::router::RoutingTable;
-
-const PENDING_CAPACITY: usize = 16;
-const PROXY_ADDRESS_CAPACITY: usize = 16;
 
 #[derive(Clone, Debug)]
 struct PendingPacket {
@@ -40,10 +40,10 @@ pub(crate) enum ReceiveOutcome {
 
 #[derive(Clone, Debug)]
 pub(crate) struct ForwardingPlane {
-    interfaces: FixedList<RoutedInterface, 16>,
+    interfaces: FixedList<RoutedInterface, FORWARDING_INTERFACE_CAPACITY>,
     routes: RoutingTable,
     neighbors: NeighborCache,
-    pending: FixedList<PendingPacket, PENDING_CAPACITY>,
+    pending: FixedList<PendingPacket, FORWARDING_PENDING_CAPACITY>,
     proxy_addresses: FixedList<(Ipv4Addr, PortId), PROXY_ADDRESS_CAPACITY>,
 }
 
@@ -261,6 +261,9 @@ impl ForwardingPlane {
                 route.egress.clone(),
             )));
         };
+        if !interface.forwarding {
+            return single_effect(Effect::Drop(DropReason::PortDown(interface.id)));
+        }
         if !interface.accepts_wire_len(frame.wire_len_bytes) {
             return single_effect(Effect::Drop(DropReason::InterfaceMtuExceeded {
                 port: interface.id,

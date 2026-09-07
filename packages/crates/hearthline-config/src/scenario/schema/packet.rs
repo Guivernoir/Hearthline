@@ -1,13 +1,13 @@
 use std::net::Ipv4Addr;
 
 use hearthline_model::{
-    ApplicationData, ComponentId, HttpMethod, IcmpMessage, Ipv4Packet, TcpFlags, TcpSegment, Text,
-    Transport, UdpDatagram,
+    ApplicationData, ComponentId, HttpMethod, IcmpMessage, Ipv4Packet, TELEMETRY_PAYLOAD_CAPACITY,
+    TcpFlags, TcpSegment, Text, Transport, UdpDatagram,
 };
 use serde::{Deserialize, Serialize};
 
 use crate::ConfigError;
-use crate::runtime::parse_service_kind;
+use crate::service::parse_service_kind;
 
 use super::require_value;
 
@@ -70,6 +70,57 @@ impl ScenarioPacketConfig {
             application: self.application.runtime()?,
         })
     }
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct TelemetryIdentity<'a> {
+    pub source: &'a str,
+    pub sequence: u64,
+    pub payload: &'a str,
+}
+
+pub fn telemetry_identity(
+    packet: &ScenarioPacketConfig,
+) -> Result<TelemetryIdentity<'_>, ConfigError> {
+    let ScenarioApplicationConfig::Telemetry {
+        source,
+        sequence,
+        payload,
+        ..
+    } = &packet.application
+    else {
+        return Err(ConfigError::new("scenario packet is not telemetry"));
+    };
+    Ok(TelemetryIdentity {
+        source,
+        sequence: *sequence,
+        payload,
+    })
+}
+
+pub fn retarget_telemetry_packet(
+    source: &ScenarioPacketConfig,
+    mut target: ScenarioPacketConfig,
+) -> Result<ScenarioPacketConfig, ConfigError> {
+    let identity = telemetry_identity(source)?;
+    let service = match &target.application {
+        ScenarioApplicationConfig::Telemetry { service, .. }
+        | ScenarioApplicationConfig::Service { service } => service.clone(),
+        _ => {
+            return Err(ConfigError::new(
+                "historian target scenario does not declare a service",
+            ));
+        }
+    };
+    target.wire_length_bytes = source.wire_length_bytes;
+    target.application = ScenarioApplicationConfig::Telemetry {
+        service,
+        source: identity.source.to_owned(),
+        sequence: identity.sequence,
+        payload: identity.payload.to_owned(),
+    };
+    target.validate()?;
+    Ok(target)
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -204,7 +255,8 @@ impl ScenarioApplicationConfig {
             parse_service_kind(service)?;
             ComponentId::new(source).map_err(|error| ConfigError::new(error.to_string()))?;
             require_value("telemetry payload", payload)?;
-            Text::<256>::try_new(payload).map_err(|error| ConfigError::new(error.to_string()))?;
+            Text::<TELEMETRY_PAYLOAD_CAPACITY>::try_new(payload)
+                .map_err(|error| ConfigError::new(error.to_string()))?;
         }
         if let Self::HttpRequest {
             host,

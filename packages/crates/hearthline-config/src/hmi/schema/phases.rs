@@ -1,6 +1,6 @@
 use super::HmiProcessPhase;
 
-pub(in crate::hmi) const FORMING_PHASES: [HmiProcessPhase; 15] = [
+pub const FORMING_PHASES: [HmiProcessPhase; 15] = [
     HmiProcessPhase {
         key: "idle",
         label: "Ready",
@@ -63,7 +63,7 @@ pub(in crate::hmi) const FORMING_PHASES: [HmiProcessPhase; 15] = [
     },
 ];
 
-pub(in crate::hmi) const SLIP_PREPARATION_PHASES: [HmiProcessPhase; 15] = [
+pub const SLIP_PREPARATION_PHASES: [HmiProcessPhase; 15] = [
     HmiProcessPhase {
         key: "idle",
         label: "Ready",
@@ -126,7 +126,7 @@ pub(in crate::hmi) const SLIP_PREPARATION_PHASES: [HmiProcessPhase; 15] = [
     },
 ];
 
-pub(in crate::hmi) const WATER_PREPARATION_PHASES: [HmiProcessPhase; 10] = [
+pub const WATER_PREPARATION_PHASES: [HmiProcessPhase; 10] = [
     HmiProcessPhase {
         key: "idle",
         label: "Ready",
@@ -169,7 +169,7 @@ pub(in crate::hmi) const WATER_PREPARATION_PHASES: [HmiProcessPhase; 10] = [
     },
 ];
 
-pub(in crate::hmi) const RETURN_WATER_PHASES: [HmiProcessPhase; 9] = [
+pub const RETURN_WATER_PHASES: [HmiProcessPhase; 9] = [
     HmiProcessPhase {
         key: "idle",
         label: "Ready",
@@ -208,7 +208,7 @@ pub(in crate::hmi) const RETURN_WATER_PHASES: [HmiProcessPhase; 9] = [
     },
 ];
 
-pub(in crate::hmi) const GLAZE_PREPARATION_PHASES: [HmiProcessPhase; 12] = [
+pub const GLAZE_PREPARATION_PHASES: [HmiProcessPhase; 12] = [
     HmiProcessPhase {
         key: "idle",
         label: "Ready",

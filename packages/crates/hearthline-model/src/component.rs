@@ -117,6 +117,31 @@ pub enum BehaviorFamily {
     Safety,
 }
 
+impl BehaviorFamily {
+    pub const ALL: [Self; 20] = [
+        Self::Endpoint,
+        Self::ServiceHost,
+        Self::PolicyService,
+        Self::TransparentLink,
+        Self::ImpairedLink,
+        Self::EthernetSwitch,
+        Self::Router,
+        Self::NatRouter,
+        Self::StatefulFirewall,
+        Self::ApplicationGateway,
+        Self::WirelessBridge,
+        Self::PassiveMonitor,
+        Self::Voice,
+        Self::ComputeHost,
+        Self::VirtualController,
+        Self::OperatorInterface,
+        Self::RemoteIo,
+        Self::FieldSensor,
+        Self::FieldActuator,
+        Self::Safety,
+    ];
+}
+
 impl Display for BehaviorFamily {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         let name = match self {

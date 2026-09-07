@@ -8,8 +8,8 @@ use hearthline_model::{
 };
 
 use crate::MediaDropReason;
+use crate::capacity::EFFECT_CAPACITY;
 
-pub const EFFECT_CAPACITY: usize = 32;
 pub type EffectList = FixedList<Effect, EFFECT_CAPACITY>;
 
 #[derive(Clone, Debug, Eq, PartialEq)]

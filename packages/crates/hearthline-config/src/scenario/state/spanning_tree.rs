@@ -41,7 +41,7 @@ struct Edge {
     operational: bool,
 }
 
-pub(crate) fn scenario_spanning_tree_states(
+pub fn scenario_spanning_tree_states(
     scenario: &ScenarioConfig,
     appliances: &ConfigRepository,
     connections: &ConnectionRepository,

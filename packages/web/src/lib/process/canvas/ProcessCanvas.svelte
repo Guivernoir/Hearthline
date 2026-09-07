@@ -255,8 +255,8 @@
   }
 
   function handleKeyDown(event: KeyboardEvent) {
-    const target = event.target as HTMLElement;
-    if (target.matches("input, textarea, select")) return;
+    const target = event.target;
+    if (target instanceof Element && target.matches("input, textarea, select")) return;
 
     if (event.code === "Space") {
       spacePressed = true;

@@ -142,6 +142,212 @@ fn link_aggregation_selects_one_member_and_fails_over_without_relearning() {
     );
 }
 
+#[test]
+fn switch_management_and_fault_paths_are_bounded_and_explicit() {
+    let vlan = VlanId::new(30).unwrap();
+    let other_vlan = VlanId::new(40).unwrap();
+    let access = port("access");
+    let member_a = port("member-a");
+    let member_b = port("member-b");
+    let peer = port("peer");
+    let mut switch = LearningSwitch::new(
+        id("switch-edge-cases"),
+        [
+            SwitchPort::access(access.clone(), vlan),
+            SwitchPort::trunk(member_a.clone(), [vlan]),
+            SwitchPort::trunk(member_b.clone(), [vlan]),
+            SwitchPort::trunk(peer.clone(), [vlan, other_vlan]),
+        ],
+    );
+
+    assert!(!switch.set_port_forwarding(&port("missing"), false));
+    assert!(!switch.set_spanning_tree_forwarding(&port("missing"), vlan, false));
+    assert!(!switch.set_spanning_tree_forwarding(&access, other_vlan, false));
+    assert!(switch.set_spanning_tree_forwarding(&peer, vlan, false));
+    assert!(switch.set_spanning_tree_forwarding(&peer, vlan, false));
+    assert!(switch.set_spanning_tree_forwarding(&peer, vlan, true));
+    assert!(switch.set_spanning_tree_forwarding(&peer, vlan, true));
+
+    assert!(
+        !switch.add_link_aggregation_group(SwitchAggregationGroup::new(
+            id("empty"),
+            id("empty-logical"),
+            [],
+            false,
+        ))
+    );
+    assert!(
+        !switch.add_link_aggregation_group(SwitchAggregationGroup::new(
+            id("missing-member"),
+            id("missing-logical"),
+            [port("missing")],
+            false,
+        ))
+    );
+    let aggregate = SwitchAggregationGroup::new(
+        id("po-uplink"),
+        id("logical-uplink"),
+        [member_a.clone(), member_b.clone()],
+        false,
+    );
+    assert!(switch.add_link_aggregation_group(aggregate.clone()));
+    assert!(!switch.add_link_aggregation_group(aggregate));
+    assert!(
+        !switch.add_link_aggregation_group(SwitchAggregationGroup::new(
+            id("po-second"),
+            id("logical-uplink"),
+            [peer.clone()],
+            false,
+        ))
+    );
+    assert!(
+        !switch.add_link_aggregation_group(SwitchAggregationGroup::new(
+            id("po-overlap"),
+            id("other-logical"),
+            [member_a.clone()],
+            false,
+        ))
+    );
+    assert!(!switch.set_multi_chassis_peer_link(port("missing")));
+    assert!(!switch.set_multi_chassis_peer_link(member_a.clone()));
+    assert!(switch.set_multi_chassis_peer_link(peer.clone()));
+    assert!(!switch.set_link_aggregation_forwarding(&peer, false));
+    assert!(!switch.set_multi_chassis_peer_forwarding(&id("logical-uplink"), true));
+    assert!(!switch.set_multi_chassis_peer_forwarding(&id("missing-logical"), true));
+
+    let source = MacAddress::new([0x02, 0, 0, 0, 0, 1]);
+    let destination = MacAddress::new([0x02, 0, 0, 0, 0, 2]);
+    let ingress = |port_id: PortId, frame: EthernetFrame, received_at_us| {
+        SimulationEvent::Network(NetworkIngress {
+            port: port_id,
+            frame,
+            received_at_us,
+        })
+    };
+    assert!(matches!(
+        switch.handle(ingress(
+            port("missing"),
+            switch_frame(source, destination, vlan),
+            0
+        ))[0],
+        Effect::Drop(DropReason::InvalidIngress(_))
+    ));
+    assert!(switch.set_port_forwarding(&access, false));
+    assert!(matches!(
+        switch.handle(ingress(
+            access.clone(),
+            switch_frame(source, destination, vlan),
+            0
+        ))[0],
+        Effect::Drop(DropReason::PortDown(_))
+    ));
+    assert!(switch.set_port_forwarding(&access, true));
+    assert!(matches!(
+        switch.handle(ingress(
+            access.clone(),
+            switch_frame(source, destination, other_vlan),
+            0
+        ))[0],
+        Effect::Drop(DropReason::VlanNotAllowed(40))
+    ));
+    let mut short = switch_frame(source, destination, vlan);
+    short.wire_len_bytes = 63;
+    assert_eq!(
+        switch.handle(ingress(access.clone(), short, 0)).as_slice(),
+        &[Effect::Drop(DropReason::InvalidEthernetFrame)]
+    );
+
+    let learned = switch.handle(ingress(
+        access.clone(),
+        switch_frame(source, destination, vlan),
+        1,
+    ));
+    assert!(!learned.is_empty());
+    let same_port = switch.handle(ingress(
+        access.clone(),
+        switch_frame(destination, source, vlan),
+        2,
+    ));
+    assert!(matches!(same_port.as_slice(), [Effect::Observe { .. }]));
+    assert!(switch.set_port_forwarding(&member_a, false));
+    assert!(switch.set_port_forwarding(&member_b, false));
+    assert!(switch.set_port_forwarding(&peer, false));
+    assert!(
+        switch
+            .handle(ingress(
+                access.clone(),
+                switch_frame(source, MacAddress::new([0x02, 0, 0, 0, 0, 99]), vlan,),
+                3,
+            ))
+            .is_empty()
+    );
+
+    assert!(matches!(
+        switch.handle(SimulationEvent::Ipv4Egress(hearthline_engine::Ipv4Egress {
+            packet: Ipv4Packet {
+                source: Ipv4Addr::new(10, 10, 30, 1),
+                destination: Ipv4Addr::new(10, 10, 30, 2),
+                ttl: 64,
+                transport: Transport::Icmp(hearthline_model::IcmpMessage::EchoRequest {
+                    identifier: 1,
+                    sequence: 1,
+                }),
+                application: ApplicationData::None,
+            },
+            wire_len_bytes: 64,
+            sent_at_us: 0,
+        }))[0],
+        Effect::Drop(DropReason::UnsupportedProtocol)
+    ));
+    assert!(matches!(
+        switch.handle(SimulationEvent::SetOperational(false))[0],
+        Effect::Observe { .. }
+    ));
+    assert!(matches!(
+        switch.handle(ingress(access, switch_frame(source, destination, vlan), 4))[0],
+        Effect::Drop(DropReason::ComponentDown)
+    ));
+}
+
+#[test]
+fn multi_chassis_aggregation_filters_peer_reflection() {
+    let vlan = VlanId::new(30).unwrap();
+    let access = port("access");
+    let local_member = port("local-member");
+    let peer = port("peer");
+    let mut switch = LearningSwitch::new(
+        id("mc-switch"),
+        [
+            SwitchPort::access(access.clone(), vlan),
+            SwitchPort::trunk(local_member.clone(), [vlan]),
+            SwitchPort::trunk(peer.clone(), [vlan]),
+        ],
+    );
+    let logical_id = id("mc-lag");
+    assert!(
+        switch.add_link_aggregation_group(SwitchAggregationGroup::new(
+            id("po-mc"),
+            logical_id.clone(),
+            [local_member],
+            true,
+        ))
+    );
+    assert!(switch.set_multi_chassis_peer_link(peer.clone()));
+    assert!(switch.set_multi_chassis_peer_forwarding(&logical_id, true));
+
+    let effects = switch.handle(SimulationEvent::Network(NetworkIngress {
+        port: peer,
+        frame: switch_frame(
+            MacAddress::new([0x02, 0, 0, 0, 0, 10]),
+            MacAddress::BROADCAST,
+            vlan,
+        ),
+        received_at_us: 1,
+    }));
+    assert!(matches!(effects.as_slice(), [Effect::Transmit { egress, .. }] if egress == &access));
+    assert!(switch.set_multi_chassis_peer_forwarding(&logical_id, false));
+}
+
 fn request_frame(method: HttpMethod, destination: MacAddress, body: Option<&str>) -> EthernetFrame {
     EthernetFrame {
         source: MacAddress::new([0, 1, 2, 3, 4, 5]),

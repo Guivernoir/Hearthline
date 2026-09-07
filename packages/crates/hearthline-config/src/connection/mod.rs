@@ -12,7 +12,5 @@ pub use schema::{
     ConnectionEndpoints, ConnectionProperties, TransportKind,
 };
 
-use connector::{
-    build_media_link, endpoint_port, negotiated_duplex, validate_endpoint, validate_endpoint_port,
-};
+use connector::{endpoint_port, negotiated_duplex, validate_endpoint, validate_endpoint_port};
 use support::{collect_yaml_paths, default_capacity, default_true};

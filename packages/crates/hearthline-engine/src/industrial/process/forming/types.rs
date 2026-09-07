@@ -1,3 +1,5 @@
+use hearthline_model::{FixedValue, fixed};
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum FormingPhase {
     Idle,
@@ -80,7 +82,7 @@ impl FormingPhase {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct FormingSetpoints {
     pub fill_ms: u64,
-    pub pressure_bar: f64,
+    pub pressure_bar: FixedValue,
     pub dwell_ms: u64,
     pub drain_ms: u64,
     pub pickup_delay_ms: u64,
@@ -92,7 +94,7 @@ impl Default for FormingSetpoints {
     fn default() -> Self {
         Self {
             fill_ms: 1_500,
-            pressure_bar: 6.0,
+            pressure_bar: fixed!(6.0),
             dwell_ms: 2_500,
             drain_ms: 1_000,
             pickup_delay_ms: 400,
@@ -187,28 +189,28 @@ pub enum FormingStartError {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct FormingMeasurements {
-    pub slip_tank_level_percent: f64,
-    pub slip_density_g_cm3: f64,
-    pub slip_viscosity_mpa_s: f64,
-    pub slip_temperature_c: f64,
-    pub slip_feed_flow_l_min: f64,
-    pub slip_feed_pressure_bar: f64,
-    pub mould_pressure_bar: f64,
-    pub mould_temperature_c: f64,
-    pub fill_head_position_mm: f64,
-    pub mould_position_mm: f64,
-    pub water_flow_l_min: f64,
-    pub excess_slip_drain_flow_l_min: f64,
-    pub mould_moisture_percent: f64,
-    pub compressed_air_pressure_bar: f64,
-    pub vacuum_pressure_kpa: f64,
-    pub robot_position_mm: f64,
+    pub slip_tank_level_percent: FixedValue,
+    pub slip_density_g_cm3: FixedValue,
+    pub slip_viscosity_mpa_s: FixedValue,
+    pub slip_temperature_c: FixedValue,
+    pub slip_feed_flow_l_min: FixedValue,
+    pub slip_feed_pressure_bar: FixedValue,
+    pub mould_pressure_bar: FixedValue,
+    pub mould_temperature_c: FixedValue,
+    pub fill_head_position_mm: FixedValue,
+    pub mould_position_mm: FixedValue,
+    pub water_flow_l_min: FixedValue,
+    pub excess_slip_drain_flow_l_min: FixedValue,
+    pub mould_moisture_percent: FixedValue,
+    pub compressed_air_pressure_bar: FixedValue,
+    pub vacuum_pressure_kpa: FixedValue,
+    pub robot_position_mm: FixedValue,
     pub piece_gripped: bool,
-    pub piece_moisture_percent: f64,
-    pub predicted_drying_shrinkage_percent: f64,
-    pub drying_energy_factor: f64,
-    pub green_strength_index: f64,
-    pub fired_defect_risk_percent: f64,
+    pub piece_moisture_percent: FixedValue,
+    pub predicted_drying_shrinkage_percent: FixedValue,
+    pub drying_energy_factor: FixedValue,
+    pub green_strength_index: FixedValue,
+    pub fired_defect_risk_percent: FixedValue,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

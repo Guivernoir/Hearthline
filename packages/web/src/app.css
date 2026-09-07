@@ -16,6 +16,7 @@
 @import "./styles/environments/customer-lan.css";
 @import "./styles/config/configuration.css";
 @import "./styles/config/responsive.css";
+@import "./styles/config/model-editor.css";
 @import "./styles/simulation/workspace.css";
 @import "./styles/simulation/trace.css";
 @import "./styles/simulation/faults.css";

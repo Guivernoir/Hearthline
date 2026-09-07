@@ -5,6 +5,127 @@ All notable changes to Hearthline are recorded here. Releases follow
 development, so minor releases may include documented configuration or API
 migrations.
 
+## 0.3.2 - 2026-09-07
+
+### Added
+
+- Split foundation responsibilities across `hearthline-model`,
+  `hearthline-engine`, `hearthline-config`, `hearthline-project`,
+  `hearthline-sim`, `hearthline-operator`, CLI, API, and `xtask` packages, with
+  Cargo-metadata and Rust-AST dependency/runtime policy checks.
+- Added typed fixed-point pressure, temperature, flow, mass, concentration,
+  position, angle, percentage, and time contracts for deterministic state.
+- Added dynamically composed site and cell runtimes, preallocated directional
+  conduits, deterministic `(time, site, cell, conduit, sequence)` scheduling,
+  and explicit reject, backpressure, coalesce, drop, stop, and recovery
+  saturation behavior.
+- Added typed YAML blueprint definitions and instances with bounded repetition,
+  nested imports, namespaced IDs, typed parameters and units, exported ports,
+  signals, material handoffs, and network conduits.
+- Added immutable `CompiledProject` generation and `model.lock.json` with source,
+  object, compiler, schema, partition, capacity, and generated-catalog digests.
+  Compilation now normalizes source ordering and rejects stale locked output.
+- Added compiler-generated capacity assessments for topology demand, workload
+  envelopes, queue bursts, object/stack sizes, aggregate preallocation, overflow
+  policies, and the required 25% reviewed reserve.
+- Added versioned run manifests, project/cell/component snapshots, replay
+  checkpoints, component and field digests, first-divergence diagnostics, and
+  six compact golden replay artifacts for network, safety, Forming, Body
+  Preparation, overload, and recovery behavior. Recorded scenarios retain
+  ordered packet, fault, topology, safety, and operator inputs plus full
+  normalized initial and final cell state.
+- Added revision-pinned operator sessions that submit typed, authorized commands
+  and consume projections without cloning or owning the authoritative plant
+  runtime.
+- Replaced direct configuration saves with revisioned draft overlays,
+  full-project preview compilation, topology/capacity/scenario deltas, stale
+  revision rejection, and atomic multi-file commit.
+- Added a write-ahead transaction journal, `fsync`, temporary install files,
+  rollback, and startup recovery for source, lock, and generated-catalog
+  updates.
+- Added schema-driven structured and raw-YAML editor surfaces for blueprints,
+  instances, appliances, connections, and scenarios, backed by the same draft
+  transaction.
+- Added generated OpenAPI 3.1, JSON Schema, and TypeScript host contracts with
+  drift detection through `xtask`.
+- Added a generated acceptance project with a customer edge, Central Office,
+  and three ten-area factories. It exceeds 1,200 components, 1,400 connections,
+  and 75 isolated cells and executes 24 simulated hours plus concurrent faults.
+- Added regression corpora and fuzz targets for identifiers, appliance and
+  connection YAML, blueprints, model compilation, partition scheduling,
+  snapshots/replay, and control-program parsing.
+- Added pull-request gates for version, architecture, schemas, lockfiles,
+  generated contracts, formatting, Clippy, Rust 1.92 MSRV, pinned stable Rust,
+  embedded `no_std`, constrained-stack test shards, capacity, fuzz smoke,
+  SvelteKit/Vitest/Chromium, and four-platform golden replay.
+- Added nightly branch coverage, mutation testing, Miri, dependency/license
+  policy, npm audit, CycloneDX SBOMs, soak and failure schedules, Criterion and
+  size trends, allocation counters, and three-browser desktop/mobile workflows.
+
+### Changed
+
+- Replaced the global fixed partition coordinator with host-composed sites and
+  cells while retaining allocator-free fixed limits inside each engine cell.
+- Replaced manually maintained capacity observations with typed compiler
+  measurements and ADR-governed structural-limit changes.
+- Moved canonical runtime construction to a dedicated bounded loader stack and
+  interned scheduler diagnostic identities before sealing so error reporting
+  does not allocate during execution.
+- Preserved all 30 canonical scenario outcomes, existing HMI/control behavior,
+  and physical/logical topology semantics under the immutable model revision.
+- Updated the public CLI to `model validate`, `model compile --locked`,
+  `model lock --update`, `model expand`, `capacity report`, `run --record`, and
+  `replay verify` workflows.
+- Pinned Rust, Node, npm dependencies, cargo tools, and GitHub Actions; CI cache
+  ownership now includes toolchain, target, and lockfile context.
+- Updated the frontend toolchain pin to Node `26.8.1` with npm `12.0.2` and
+  migrated the plain Vite entrypoint to SvelteKit `2.70.3` with a static SPA
+  adapter. Updated stable Rust to `1.98.1` across local and CI pins; web CI
+  installs the declared npm version explicitly. MSRV and nightly test lanes
+  remain independently pinned.
+- Raised checked coverage baselines only after measured branch coverage passed:
+  deterministic crates `90.45/80.17`, host crates `85.02/75.08`, critical
+  modules `98.31/90.67`, and web `89.96/71.55` percent lines/branches.
+
+### Fixed
+
+- Included complete canonical conduit-message payloads and unambiguous route
+  fields in project snapshot digests, preventing replay-equivalent hashes for
+  different queued state.
+- Preserved active plant, workstation, historian, and security state when a
+  newly committed immutable model marks existing simulation sessions stale.
+- Replaced the synthetic scale counters with an integrated compiled-project
+  session that executes and snapshots generated component runtimes through the
+  24-hour nominal and concurrent-failure acceptance schedule.
+- Produced resolvable OpenAPI component schemas, declared every templated path
+  parameter, and generated a callable TypeScript model API client used by the
+  configuration editor.
+- Prevented recurrence of the Body Preparation HMI stack overflow by moving
+  large construction work off constrained caller stacks and adding explicit
+  construction, snapshot, projection, and replay stack tests.
+- Removed post-seal allocations from scheduler failure paths while retaining
+  complete site, cell, and conduit diagnostics.
+- Corrected PR fuzz execution to a parallel target matrix so every regression
+  corpus and randomized smoke campaign remains inside the intended wall-time
+  budget.
+- Corrected malformed GitHub Actions YAML caused by unquoted expressions in
+  flow mappings and added workflow parsing to `cargo xtask verify` so invalid
+  workflow syntax fails locally and in CI.
+- Corrected nightly mutation file scopes that previously selected no mutants,
+  disabled target-tree copies that could exhaust runner storage, and aligned
+  mutation report collection with the workspace output directory.
+- Corrected the pinned CycloneDX command and artifact globs, and limited
+  Criterion execution to the intended engine-runtime and scheduler targets.
+- Fixed the model editor's review rail on narrow viewports by making it an
+  explicit open/close overlay while retaining the persistent desktop review
+  surface, and replaced the unreadable scaled-down regional map with a compact
+  mobile site-and-conduit topology.
+- Stabilized the security-console component test around its asynchronous
+  refresh boundary so it waits for the command control to become available.
+- Enforced loopback-only write APIs unless authentication is explicitly
+  configured and rejected traversal, unknown roots, oversized/deep YAML,
+  duplicate IDs, stale drafts, and invalid transaction journals.
+
 ## 0.3.1 - 2026-08-17
 
 ### Added

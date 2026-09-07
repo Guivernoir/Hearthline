@@ -5,13 +5,16 @@ mod robot;
 
 pub use historian::HistorianBuffer;
 pub use process::{
-    Actuator, BodyPreparationFault, BodyPreparationMeasurements, BodyPreparationOutputs,
-    BodyPreparationPhase, BodyPreparationPipelineMeasurements, BodyPreparationProcess,
-    BodyPreparationSetpoints, BodyPreparationStartError, BodyPreparationTick, BodyPreparationTrip,
-    CeramicSlipBatch, Comparison, DownstreamMaterialEffects, FieldSensor, FormingFault,
-    FormingMeasurements, FormingOutputs, FormingPhase, FormingProcess, FormingSetpoints,
-    FormingStartError, FormingTick, FormingTrip, GlazeBatch, GlazeMeasurements, GlazePhase,
-    GlazeSetpoints, HandoffPipelineMeasurements, IoDirection, LogicRule, OperatorInterface,
+    Actuator, BodyPreparationControlState, BodyPreparationControlledTick, BodyPreparationFault,
+    BodyPreparationMeasurements, BodyPreparationOutputs, BodyPreparationPhase,
+    BodyPreparationPhysicsFeedback, BodyPreparationPhysicsInputs,
+    BodyPreparationPipelineMeasurements, BodyPreparationProcess, BodyPreparationSetpoints,
+    BodyPreparationStartError, BodyPreparationTick, BodyPreparationTrip, CeramicSlipBatch,
+    Comparison, DownstreamMaterialEffects, FieldSensor, FormingControlState, FormingFault,
+    FormingMeasurements, FormingOutputs, FormingPhase, FormingPhysicsFeedback,
+    FormingPhysicsInputs, FormingProcess, FormingSetpoints, FormingStartError, FormingTick,
+    FormingTrip, GlazeBatch, GlazeMeasurements, GlazePhase, GlazeSetpoints,
+    HandoffPipelineMeasurements, IoDirection, LogicRule, OperatorInterface,
     PUMP_HEARTBEAT_INTERVAL_MS, PUMP_HEARTBEAT_TIMEOUT_MS, PreparationTrain, PumpMaintenanceState,
     RemoteIo, ReturnWaterMeasurements, ReturnWaterPhase, SIMULATED_MS_PER_PROCESS_MINUTE,
     SafetyInterface, SlipMeasurements, SlipPhase, SlipSetpoints, VirtualPlc,
@@ -20,13 +23,12 @@ pub use process::{
     WaterRouteMeasurements, WaterSetpoints,
 };
 pub use program::{
-    SEQUENCE_OUTPUT_CAPACITY, SEQUENCE_STEP_CAPACITY, SequenceAssignment, SequenceCondition,
-    SequenceInputs, SequenceProgram, SequenceRuntime, SequenceScan, SequenceStep,
-    SequenceTransition,
+    SequenceAssignment, SequenceCondition, SequenceInputs, SequenceProgram, SequenceRuntime,
+    SequenceScan, SequenceStep, SequenceTransition,
 };
 pub use robot::{
-    ROBOT_CELL_QUEUE_CAPACITY, ROBOT_PROGRAM_CAPACITY, RobotCartesianAxis, RobotCellArbiter,
-    RobotCellRequestStatus, RobotCellStage, RobotInstruction, RobotJoints, RobotMotionError,
-    RobotMotionKind, RobotMotionRuntime, RobotPose, RobotProgram, RobotProgramLine,
-    RobotProgramRuntime, RobotWorkspace,
+    RobotCartesianAxis, RobotCartesianIncrement, RobotCellArbiter, RobotCellRequestStatus,
+    RobotCellStage, RobotInstruction, RobotJoints, RobotMotionError, RobotMotionKind,
+    RobotMotionRuntime, RobotPose, RobotProgram, RobotProgramLine, RobotProgramRuntime,
+    RobotWorkspace,
 };

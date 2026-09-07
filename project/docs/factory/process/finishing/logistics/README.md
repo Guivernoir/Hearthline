@@ -12,8 +12,8 @@ production reporting.
 
 ## Current Representation
 
-The architecture view renders the representative assets below from bootstrap
-JSON. `AREA-10-HMI-01` is enterable as a Rust-backed operator session assembled
+The architecture view renders the representative assets below from the
+Rust-generated process topology and canonical appliance catalog. `AREA-10-HMI-01` is enterable as a Rust-backed operator session assembled
 from the area appliance YAML. It displays configured scanner and pallet
 presence states, requires a healthy safety reset, and exposes packing-machine
 and palletizer cycle commands through the HMI, vPLC, remote I/O, and field

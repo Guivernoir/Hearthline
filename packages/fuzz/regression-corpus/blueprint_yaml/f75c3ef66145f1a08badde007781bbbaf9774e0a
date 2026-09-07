@@ -1,0 +1,16 @@
+sche}a_version: 0.1.0
+id: water-train
+parameters:
+  - id: pump-count
+    kind: integer
+    required: true
+    minimum: 1
+    maximum:ers:
+  - id: pump-count
+    kind: integer
+    required: true
+    minimum: 1
+    maximum: 8
+nodes:
+  - id: pump
+  rts: []

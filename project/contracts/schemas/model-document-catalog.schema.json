@@ -1,0 +1,47 @@
+{
+  "$defs": {
+    "ModelDocument": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "path",
+        "revision",
+        "source"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "documents": {
+      "items": {
+        "$ref": "#/$defs/ModelDocument"
+      },
+      "type": "array"
+    },
+    "modelRevision": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "modelRevision",
+    "documents"
+  ],
+  "title": "ModelDocumentCatalog",
+  "type": "object"
+}

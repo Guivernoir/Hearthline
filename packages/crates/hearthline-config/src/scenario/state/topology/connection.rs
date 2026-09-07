@@ -45,7 +45,7 @@ pub(crate) fn validate_connection_override_syntax(
     Ok(())
 }
 
-pub(crate) fn scenario_connection_states(
+pub fn scenario_connection_states(
     scenario: &ScenarioConfig,
     connections: &ConnectionRepository,
     request_overrides: Option<&[ScenarioConnectionOverride]>,

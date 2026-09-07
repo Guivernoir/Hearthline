@@ -1,3 +1,5 @@
+use hearthline_model::{FixedValue, fixed};
+
 use super::return_water::ReturnWaterRuntime;
 use super::{
     BodyPreparationFault, BodyPreparationOutputs, BodyPreparationStartError, BodyPreparationTrip,
@@ -99,27 +101,27 @@ impl ReturnWaterPhase {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct WaterSetpoints {
-    pub treatment_batch_l: f64,
-    pub ro_recovery_percent: f64,
-    pub target_conductivity_us_cm: f64,
-    pub target_hardness_mg_l: f64,
-    pub target_turbidity_ntu: f64,
-    pub maximum_body_reuse_percent: f64,
-    pub maximum_glaze_reuse_percent: f64,
-    pub return_batch_l: f64,
+    pub treatment_batch_l: FixedValue,
+    pub ro_recovery_percent: FixedValue,
+    pub target_conductivity_us_cm: FixedValue,
+    pub target_hardness_mg_l: FixedValue,
+    pub target_turbidity_ntu: FixedValue,
+    pub maximum_body_reuse_percent: FixedValue,
+    pub maximum_glaze_reuse_percent: FixedValue,
+    pub return_batch_l: FixedValue,
 }
 
 impl Default for WaterSetpoints {
     fn default() -> Self {
         Self {
-            treatment_batch_l: 2_000.0,
-            ro_recovery_percent: 75.0,
-            target_conductivity_us_cm: 80.0,
-            target_hardness_mg_l: 8.0,
-            target_turbidity_ntu: 0.25,
-            maximum_body_reuse_percent: 35.0,
-            maximum_glaze_reuse_percent: 40.0,
-            return_batch_l: 600.0,
+            treatment_batch_l: fixed!(2_000.0),
+            ro_recovery_percent: fixed!(75.0),
+            target_conductivity_us_cm: fixed!(80.0),
+            target_hardness_mg_l: fixed!(8.0),
+            target_turbidity_ntu: fixed!(0.25),
+            maximum_body_reuse_percent: fixed!(35.0),
+            maximum_glaze_reuse_percent: fixed!(40.0),
+            return_batch_l: fixed!(600.0),
         }
     }
 }
@@ -130,18 +132,18 @@ impl WaterSetpoints {
         phase: WaterPhase,
     ) -> u64 {
         let minutes = match phase {
-            WaterPhase::Idle | WaterPhase::Faulted => 0.0,
-            WaterPhase::RawWaterIntake => 20.0,
-            WaterPhase::Equalization => 30.0,
-            WaterPhase::MediaFiltration => 35.0,
-            WaterPhase::ActivatedCarbon => 25.0,
-            WaterPhase::Softening => 30.0,
-            WaterPhase::ReverseOsmosis => 80.0,
-            WaterPhase::QualityRelease => 10.0,
-            WaterPhase::ProductTransfer => 20.0,
-            WaterPhase::Complete => 5.0,
+            WaterPhase::Idle | WaterPhase::Faulted => fixed!(0.0),
+            WaterPhase::RawWaterIntake => fixed!(20.0),
+            WaterPhase::Equalization => fixed!(30.0),
+            WaterPhase::MediaFiltration => fixed!(35.0),
+            WaterPhase::ActivatedCarbon => fixed!(25.0),
+            WaterPhase::Softening => fixed!(30.0),
+            WaterPhase::ReverseOsmosis => fixed!(80.0),
+            WaterPhase::QualityRelease => fixed!(10.0),
+            WaterPhase::ProductTransfer => fixed!(20.0),
+            WaterPhase::Complete => fixed!(5.0),
         };
-        (minutes * SIMULATED_MS_PER_PROCESS_MINUTE as f64 + 0.5) as u64
+        (minutes * FixedValue::from_integer(SIMULATED_MS_PER_PROCESS_MINUTE as i64)).round_to_u64()
     }
 
     pub(in crate::industrial::process::body_preparation) fn return_phase_duration_ms(
@@ -149,29 +151,29 @@ impl WaterSetpoints {
         phase: ReturnWaterPhase,
     ) -> u64 {
         let minutes = match phase {
-            ReturnWaterPhase::Idle | ReturnWaterPhase::Faulted => 0.0,
-            ReturnWaterPhase::SegregatedCollection => 20.0,
-            ReturnWaterPhase::Equalization => 45.0,
-            ReturnWaterPhase::CoagulationFlocculation => 30.0,
-            ReturnWaterPhase::LamellaClarification => 60.0,
-            ReturnWaterPhase::FilterPress => 90.0,
-            ReturnWaterPhase::PolishingFiltration => 30.0,
-            ReturnWaterPhase::QualityRouting => 15.0,
-            ReturnWaterPhase::Complete => 5.0,
+            ReturnWaterPhase::Idle | ReturnWaterPhase::Faulted => fixed!(0.0),
+            ReturnWaterPhase::SegregatedCollection => fixed!(20.0),
+            ReturnWaterPhase::Equalization => fixed!(45.0),
+            ReturnWaterPhase::CoagulationFlocculation => fixed!(30.0),
+            ReturnWaterPhase::LamellaClarification => fixed!(60.0),
+            ReturnWaterPhase::FilterPress => fixed!(90.0),
+            ReturnWaterPhase::PolishingFiltration => fixed!(30.0),
+            ReturnWaterPhase::QualityRouting => fixed!(15.0),
+            ReturnWaterPhase::Complete => fixed!(5.0),
         };
-        (minutes * SIMULATED_MS_PER_PROCESS_MINUTE as f64 + 0.5) as u64
+        (minutes * FixedValue::from_integer(SIMULATED_MS_PER_PROCESS_MINUTE as i64)).round_to_u64()
     }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct WaterMeasurements {
-    pub raw_tank_l: f64,
-    pub treated_tank_l: f64,
-    pub feed_flow_l_min: f64,
-    pub permeate_flow_l_min: f64,
-    pub reject_flow_l_min: f64,
-    pub media_filter_dp_bar: f64,
-    pub ro_recovery_percent: f64,
+    pub raw_tank_l: FixedValue,
+    pub treated_tank_l: FixedValue,
+    pub feed_flow_l_min: FixedValue,
+    pub permeate_flow_l_min: FixedValue,
+    pub reject_flow_l_min: FixedValue,
+    pub media_filter_dp_bar: FixedValue,
+    pub ro_recovery_percent: FixedValue,
     pub raw: WaterQuality,
     pub product: WaterQuality,
 }
@@ -179,15 +181,15 @@ pub struct WaterMeasurements {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ReturnWaterMeasurements {
     pub active_stream: &'static str,
-    pub body_equalization_l: f64,
-    pub glaze_equalization_l: f64,
-    pub body_reuse_tank_l: f64,
-    pub glaze_reuse_tank_l: f64,
-    pub feed_flow_l_min: f64,
-    pub clarified_flow_l_min: f64,
-    pub sludge_cake_kg: f64,
-    pub influent_turbidity_ntu: f64,
-    pub effluent_turbidity_ntu: f64,
+    pub body_equalization_l: FixedValue,
+    pub glaze_equalization_l: FixedValue,
+    pub body_reuse_tank_l: FixedValue,
+    pub glaze_reuse_tank_l: FixedValue,
+    pub feed_flow_l_min: FixedValue,
+    pub clarified_flow_l_min: FixedValue,
+    pub sludge_cake_kg: FixedValue,
+    pub influent_turbidity_ntu: FixedValue,
+    pub effluent_turbidity_ntu: FixedValue,
     pub body_reuse_quality: WaterQuality,
     pub glaze_reuse_quality: WaterQuality,
 }
@@ -213,13 +215,13 @@ impl WaterRuntime {
             running: false,
             held: false,
             measurements: WaterMeasurements {
-                raw_tank_l: 4_500.0,
-                treated_tank_l: 2_500.0,
-                feed_flow_l_min: 0.0,
-                permeate_flow_l_min: 0.0,
-                reject_flow_l_min: 0.0,
-                media_filter_dp_bar: 0.12,
-                ro_recovery_percent: 0.0,
+                raw_tank_l: fixed!(4_500.0),
+                treated_tank_l: fixed!(2_500.0),
+                feed_flow_l_min: fixed!(0.0),
+                permeate_flow_l_min: fixed!(0.0),
+                reject_flow_l_min: fixed!(0.0),
+                media_filter_dp_bar: fixed!(0.12),
+                ro_recovery_percent: fixed!(0.0),
                 raw: WaterQuality::raw_default(),
                 product: WaterQuality::treated_default(),
             },
@@ -237,9 +239,9 @@ impl WaterRuntime {
             self.held = false;
             return Ok(());
         }
-        let product_l = setpoints.treatment_batch_l * setpoints.ro_recovery_percent / 100.0;
+        let product_l = setpoints.treatment_batch_l * setpoints.ro_recovery_percent / fixed!(100.0);
         if self.measurements.raw_tank_l < setpoints.treatment_batch_l
-            || self.measurements.treated_tank_l + product_l > 8_000.0
+            || self.measurements.treated_tank_l + product_l > fixed!(8_000.0)
         {
             return Err(BodyPreparationStartError::WaterUnavailable);
         }
@@ -309,15 +311,15 @@ impl WaterRuntime {
                 return (true, Some(BodyPreparationTrip::WaterQualityRejected));
             }
             if self.phase == WaterPhase::Complete && !self.product_pending {
-                let product = sp.treatment_batch_l * sp.ro_recovery_percent / 100.0;
+                let product = sp.treatment_batch_l * sp.ro_recovery_percent / fixed!(100.0);
                 let stored = self.measurements.treated_tank_l;
                 let total = stored + product;
                 self.tank_quality = self
                     .tank_quality
-                    .blend(self.measurements.product, product / total.max(1.0));
-                self.measurements.treated_tank_l = total.min(8_000.0);
+                    .blend(self.measurements.product, product / total.max(fixed!(1.0)));
+                self.measurements.treated_tank_l = total.min(fixed!(8_000.0));
                 self.measurements.raw_tank_l =
-                    (self.measurements.raw_tank_l - sp.treatment_batch_l).max(0.0);
+                    (self.measurements.raw_tank_l - sp.treatment_batch_l).max(fixed!(0.0));
                 self.product_pending = true;
             }
             if self.phase == WaterPhase::Idle {
@@ -344,83 +346,86 @@ impl WaterRuntime {
 
     pub fn reserve_slip_water(
         &mut self,
-        amount_kg: f64,
-        reuse_limit: f64,
+        amount_kg: FixedValue,
+        reuse_limit: FixedValue,
         returns: &mut ReturnWaterRuntime,
     ) -> Option<WaterQuality> {
-        let reuse = (amount_kg * reuse_limit / 100.0).min(returns.measurements.body_reuse_tank_l);
+        let reuse =
+            (amount_kg * reuse_limit / fixed!(100.0)).min(returns.measurements.body_reuse_tank_l);
         let fresh = amount_kg - reuse;
         if fresh > self.measurements.treated_tank_l {
             return None;
         }
         let reuse_quality = returns.measurements.body_reuse_quality;
-        if reuse > 0.0 && !reuse_quality.acceptable_for_slip() {
+        if reuse > fixed!(0.0) && !reuse_quality.acceptable_for_slip() {
             return None;
         }
         self.measurements.treated_tank_l -= fresh;
         returns.measurements.body_reuse_tank_l -= reuse;
         Some(
             self.tank_quality
-                .blend(reuse_quality, reuse / amount_kg.max(1.0)),
+                .blend(reuse_quality, reuse / amount_kg.max(fixed!(1.0))),
         )
     }
 
     pub fn reserve_glaze_water(
         &mut self,
-        amount_kg: f64,
-        reuse_limit: f64,
+        amount_kg: FixedValue,
+        reuse_limit: FixedValue,
         returns: &mut ReturnWaterRuntime,
     ) -> Option<WaterQuality> {
-        let reuse = (amount_kg * reuse_limit / 100.0).min(returns.measurements.glaze_reuse_tank_l);
+        let reuse =
+            (amount_kg * reuse_limit / fixed!(100.0)).min(returns.measurements.glaze_reuse_tank_l);
         let fresh = amount_kg - reuse;
         if fresh > self.measurements.treated_tank_l {
             return None;
         }
         let reuse_quality = returns.measurements.glaze_reuse_quality;
-        if reuse > 0.0 && !reuse_quality.acceptable_for_glaze() {
+        if reuse > fixed!(0.0) && !reuse_quality.acceptable_for_glaze() {
             return None;
         }
         self.measurements.treated_tank_l -= fresh;
         returns.measurements.glaze_reuse_tank_l -= reuse;
         Some(
             self.tank_quality
-                .blend(reuse_quality, reuse / amount_kg.max(1.0)),
+                .blend(reuse_quality, reuse / amount_kg.max(fixed!(1.0))),
         )
     }
 
     fn update_measurements(&mut self, sp: &WaterSetpoints) {
         let p = progress(self.phase_elapsed_ms, sp.phase_duration_ms(self.phase));
         let raw = self.measurements.raw;
-        self.measurements.feed_flow_l_min = 0.0;
-        self.measurements.permeate_flow_l_min = 0.0;
-        self.measurements.reject_flow_l_min = 0.0;
+        self.measurements.feed_flow_l_min = fixed!(0.0);
+        self.measurements.permeate_flow_l_min = fixed!(0.0);
+        self.measurements.reject_flow_l_min = fixed!(0.0);
         self.measurements.product = match self.phase {
             WaterPhase::Idle => self.tank_quality,
             WaterPhase::RawWaterIntake | WaterPhase::Equalization => raw,
             WaterPhase::MediaFiltration => WaterQuality {
-                turbidity_ntu: raw.turbidity_ntu - 6.8 * p,
-                suspended_solids_mg_l: raw.suspended_solids_mg_l - 15.0 * p,
+                turbidity_ntu: raw.turbidity_ntu - fixed!(6.8) * p,
+                suspended_solids_mg_l: raw.suspended_solids_mg_l - fixed!(15.0) * p,
                 ..raw
             },
             WaterPhase::ActivatedCarbon => WaterQuality {
-                turbidity_ntu: 1.2 - 0.35 * p,
-                suspended_solids_mg_l: 3.0 - 1.0 * p,
+                turbidity_ntu: fixed!(1.2) - fixed!(0.35) * p,
+                suspended_solids_mg_l: fixed!(3.0) - fixed!(1.0) * p,
                 ..raw
             },
             WaterPhase::Softening => WaterQuality {
-                turbidity_ntu: 0.85,
-                suspended_solids_mg_l: 2.0,
-                hardness_mg_l_caco3: raw.hardness_mg_l_caco3 - (raw.hardness_mg_l_caco3 - 18.0) * p,
+                turbidity_ntu: fixed!(0.85),
+                suspended_solids_mg_l: fixed!(2.0),
+                hardness_mg_l_caco3: raw.hardness_mg_l_caco3
+                    - (raw.hardness_mg_l_caco3 - fixed!(18.0)) * p,
                 ..raw
             },
             WaterPhase::ReverseOsmosis => WaterQuality {
-                turbidity_ntu: 0.85 - (0.85 - sp.target_turbidity_ntu) * p,
-                suspended_solids_mg_l: 2.0 - 1.5 * p,
-                hardness_mg_l_caco3: 18.0 - (18.0 - sp.target_hardness_mg_l) * p,
+                turbidity_ntu: fixed!(0.85) - (fixed!(0.85) - sp.target_turbidity_ntu) * p,
+                suspended_solids_mg_l: fixed!(2.0) - fixed!(1.5) * p,
+                hardness_mg_l_caco3: fixed!(18.0) - (fixed!(18.0) - sp.target_hardness_mg_l) * p,
                 conductivity_us_cm: raw.conductivity_us_cm
                     - (raw.conductivity_us_cm - sp.target_conductivity_us_cm) * p,
-                ph: 7.0,
-                temperature_c: 25.0,
+                ph: fixed!(7.0),
+                temperature_c: fixed!(25.0),
                 ..raw
             },
             WaterPhase::QualityRelease | WaterPhase::ProductTransfer | WaterPhase::Complete => {
@@ -429,14 +434,16 @@ impl WaterRuntime {
             WaterPhase::Faulted => self.tank_quality,
         };
         if self.phase == WaterPhase::MediaFiltration {
-            self.measurements.feed_flow_l_min = 42.0;
-            self.measurements.media_filter_dp_bar = 0.12 + 0.25 * p;
+            self.measurements.feed_flow_l_min = fixed!(42.0);
+            self.measurements.media_filter_dp_bar = fixed!(0.12) + fixed!(0.25) * p;
         }
         if self.phase == WaterPhase::ReverseOsmosis {
-            self.measurements.feed_flow_l_min = 32.0;
+            self.measurements.feed_flow_l_min = fixed!(32.0);
             self.measurements.ro_recovery_percent = sp.ro_recovery_percent * p;
-            self.measurements.permeate_flow_l_min = 32.0 * sp.ro_recovery_percent / 100.0;
-            self.measurements.reject_flow_l_min = 32.0 - self.measurements.permeate_flow_l_min;
+            self.measurements.permeate_flow_l_min =
+                fixed!(32.0) * sp.ro_recovery_percent / fixed!(100.0);
+            self.measurements.reject_flow_l_min =
+                fixed!(32.0) - self.measurements.permeate_flow_l_min;
         }
     }
 
@@ -445,9 +452,9 @@ impl WaterRuntime {
         self.held = false;
         self.phase = WaterPhase::Faulted;
         self.phase_elapsed_ms = 0;
-        self.measurements.feed_flow_l_min = 0.0;
-        self.measurements.permeate_flow_l_min = 0.0;
-        self.measurements.reject_flow_l_min = 0.0;
+        self.measurements.feed_flow_l_min = fixed!(0.0);
+        self.measurements.permeate_flow_l_min = fixed!(0.0);
+        self.measurements.reject_flow_l_min = fixed!(0.0);
     }
 }
 
@@ -460,10 +467,10 @@ fn released_product(sp: &WaterSetpoints) -> WaterQuality {
     }
 }
 
-fn progress(elapsed_ms: u64, duration_ms: u64) -> f64 {
+fn progress(elapsed_ms: u64, duration_ms: u64) -> FixedValue {
     if duration_ms == 0 {
-        0.0
+        fixed!(0.0)
     } else {
-        (elapsed_ms as f64 / duration_ms as f64).clamp(0.0, 1.0)
+        FixedValue::from_u64_ratio(elapsed_ms, duration_ms).clamp(fixed!(0.0), fixed!(1.0))
     }
 }

@@ -7,6 +7,7 @@ use hearthline_model::{
     PortId, Route, Transport,
 };
 
+use crate::capacity::ROUTER_ROUTE_CAPACITY;
 use crate::runtime::{collect_fixed, runtime_text, single_effect};
 use crate::{DropReason, Effect, EffectList, NetworkIngress, SimulatedComponent, SimulationEvent};
 
@@ -14,7 +15,7 @@ use super::{ForwardingPlane, NeighborEntry, ReceiveOutcome, RoutedInterface};
 
 #[derive(Clone, Debug, Default)]
 pub struct RoutingTable {
-    routes: FixedList<Route, 16>,
+    routes: FixedList<Route, ROUTER_ROUTE_CAPACITY>,
 }
 
 impl RoutingTable {

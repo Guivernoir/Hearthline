@@ -1,15 +1,15 @@
 use std::fmt::{self, Display, Formatter};
 
-use hearthline_model::ComponentId;
+use hearthline_model::{ComponentId, FixedValue, Position, Text};
 use serde::{Deserialize, Deserializer};
 
-use crate::appliance::{ConfigError, ConfigRepository, Lifecycle};
+use crate::appliance::{ConfigError, Lifecycle};
 use hearthline_engine::{
-    CarrierMedium, ConnectionMedium, CopperMedium, FiberMedium, FieldWiringMedium, MediaLink,
-    MediumKind, RadioMedium, TelephoneMedium, VirtualMedium,
+    CarrierMedium, ConnectionMedium, CopperMedium, FiberMedium, FieldWiringMedium, MediumKind,
+    RadioMedium, TelephoneMedium, VirtualMedium,
 };
 
-use super::{build_media_link, default_capacity, default_true};
+use super::{default_capacity, default_true};
 
 pub const CONNECTION_SCHEMA_VERSION: &str = "0.2.0";
 
@@ -98,10 +98,6 @@ impl ConnectionConfig {
             )));
         }
         Ok(())
-    }
-
-    pub fn media_link(&self, appliances: &ConfigRepository) -> Result<MediaLink, ConfigError> {
-        build_media_link(self, appliances)
     }
 }
 
@@ -221,16 +217,20 @@ impl Display for ConnectionDirection {
 #[serde(tag = "type", rename_all = "kebab-case", deny_unknown_fields)]
 enum ParsedConnectionMedium {
     Copper {
-        #[serde(flatten)]
-        config: CopperMedium,
+        wiring: hearthline_engine::CopperWiring,
+        category: hearthline_engine::CopperCategory,
+        length_m: f64,
     },
     Fiber {
-        #[serde(flatten)]
-        config: FiberMedium,
+        mode: hearthline_engine::FiberMode,
+        connector: Text<32>,
+        length_m: f64,
     },
     Radio {
-        #[serde(flatten)]
-        config: RadioMedium,
+        standard: Text<32>,
+        ssid: Text<64>,
+        security: Text<64>,
+        distance_m: f64,
     },
     Carrier {
         #[serde(flatten)]
@@ -241,12 +241,13 @@ enum ParsedConnectionMedium {
         config: VirtualMedium,
     },
     FieldWiring {
-        #[serde(flatten)]
-        config: FieldWiringMedium,
+        signal: Text<64>,
+        length_m: f64,
     },
     Telephone {
-        #[serde(flatten)]
-        config: TelephoneMedium,
+        connector: Text<32>,
+        pairs: u8,
+        length_m: f64,
     },
 }
 
@@ -255,12 +256,66 @@ where
     D: Deserializer<'de>,
 {
     Ok(match ParsedConnectionMedium::deserialize(deserializer)? {
-        ParsedConnectionMedium::Copper { config } => ConnectionMedium::Copper { config },
-        ParsedConnectionMedium::Fiber { config } => ConnectionMedium::Fiber { config },
-        ParsedConnectionMedium::Radio { config } => ConnectionMedium::Radio { config },
+        ParsedConnectionMedium::Copper {
+            wiring,
+            category,
+            length_m,
+        } => ConnectionMedium::Copper {
+            config: CopperMedium {
+                wiring,
+                category,
+                length: quantize_distance(length_m)?,
+            },
+        },
+        ParsedConnectionMedium::Fiber {
+            mode,
+            connector,
+            length_m,
+        } => ConnectionMedium::Fiber {
+            config: FiberMedium {
+                mode,
+                connector,
+                length: quantize_distance(length_m)?,
+            },
+        },
+        ParsedConnectionMedium::Radio {
+            standard,
+            ssid,
+            security,
+            distance_m,
+        } => ConnectionMedium::Radio {
+            config: RadioMedium {
+                standard,
+                ssid,
+                security,
+                distance: quantize_distance(distance_m)?,
+            },
+        },
         ParsedConnectionMedium::Carrier { config } => ConnectionMedium::Carrier { config },
         ParsedConnectionMedium::Virtual { config } => ConnectionMedium::Virtual { config },
-        ParsedConnectionMedium::FieldWiring { config } => ConnectionMedium::FieldWiring { config },
-        ParsedConnectionMedium::Telephone { config } => ConnectionMedium::Telephone { config },
+        ParsedConnectionMedium::FieldWiring { signal, length_m } => ConnectionMedium::FieldWiring {
+            config: FieldWiringMedium {
+                signal,
+                length: quantize_distance(length_m)?,
+            },
+        },
+        ParsedConnectionMedium::Telephone {
+            connector,
+            pairs,
+            length_m,
+        } => ConnectionMedium::Telephone {
+            config: TelephoneMedium {
+                connector,
+                pairs,
+                length: quantize_distance(length_m)?,
+            },
+        },
     })
+}
+
+fn quantize_distance<E: serde::de::Error>(value: f64) -> Result<Position, E> {
+    let fixed = format!("{value:.6}")
+        .parse::<FixedValue>()
+        .map_err(E::custom)?;
+    Ok(Position::from_raw(fixed.raw()))
 }

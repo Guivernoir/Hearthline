@@ -9,9 +9,20 @@ use super::{
     FrontendAppliance, FrontendApplianceCatalog, collect_yaml_paths, source_revision,
 };
 
+mod process_view;
+mod runtime_plan;
 mod source;
 mod validation;
 
+pub use process_view::{
+    FrontendProcessArea, FrontendProcessEquipment, FrontendProcessView,
+    PROCESS_VIEW_SCHEMA_VERSION, ProcessEdge, ProcessPosition, ProcessSupportNode,
+    ProcessViewConfig,
+};
+pub use runtime_plan::{
+    RUNTIME_CAPACITY_SCHEMA_VERSION, RuntimeCapacityManifest, RuntimePartitionRule,
+    RuntimePartitioningConfig, RuntimeWorkloadEnvelope,
+};
 use validation::validate_spanning_tree_bridges;
 
 #[derive(Clone, Debug)]

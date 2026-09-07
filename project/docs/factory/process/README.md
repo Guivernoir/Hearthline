@@ -12,8 +12,9 @@ permissive role.
 
 ## Implementation Status
 
-The ordered process canvas and ten process-area views are implemented. Eight
-areas still use bootstrap JSON for representative presentation relationships.
+The ordered process canvas and ten process-area views are implemented. Rust
+validates their topology YAML and generates the process nodes, network edges,
+material flow, and representative equipment relationships consumed by Svelte.
 Body Preparation and Forming are detailed executable areas. Body Preparation
 provides a three-building gateway and scoped walkdown/logical views for Slip
 Preparation, Water Preparation and Distribution, and Glaze Preparation. Its
@@ -90,12 +91,13 @@ Body Preparation
 
 ## Model Boundary
 
-The Svelte views currently consume
+The Svelte views consume
 [`process-view.json`](../../../../packages/web/src/generated/process-view.json), a versioned
-bootstrap view model for the process sequence and eight representative area
-views. Body Preparation and Forming derive their component inventories and
-descriptions from the generated canonical configuration catalog; Svelte
-retains only their presentation grouping, building scope, and coordinates.
+Rust derivative of
+[`architecture.yaml`](../../../config/ot/process/architecture.yaml) and the
+canonical appliance catalog. Body Preparation and Forming derive their
+component inventories and descriptions from the same generated catalog;
+Svelte retains only presentation grouping, building scope, and coordinates.
 Forming HMI state,
 four independent
 accelerated mould cycles, station selector state, mutable development parameters and recipes,
@@ -107,12 +109,13 @@ mould-local HMI owns production enable, Stop, and End for
 its own sequence; the machine PC supervises without production-start or robot
 authority. The dedicated robot controller provides bounded FIFO arbitration,
 exclusive robot ownership, and mould-specific pickup and handoff completion
-gates. Broader connectivity results, remaining area control sources, and
-generated process-area topology will replace the remaining bootstrap records.
+gates. Broader connectivity results and remaining area control sources are
+still planned.
 
 Svelte owns layout and interaction. Rust owns process state, material movement,
 faults, accelerated time, network decisions, and generated results. The virtual
-PLC runtime owns controller execution semantics.
+PLC runtime owns controller execution semantics. Svelte rejects non-generated
+process data and derives semantic connection paths from generated edge lists.
 
 ## vPLC Deployment Model
 

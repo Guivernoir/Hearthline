@@ -53,7 +53,7 @@ pub(crate) fn validate_first_hop_override_syntax(
     Ok(())
 }
 
-pub(crate) fn scenario_first_hop_states(
+pub fn scenario_first_hop_states(
     scenario: &ScenarioConfig,
     appliances: &ConfigRepository,
     request_overrides: Option<&[ScenarioFirstHopOverride]>,

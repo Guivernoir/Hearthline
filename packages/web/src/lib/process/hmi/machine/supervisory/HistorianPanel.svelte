@@ -73,7 +73,11 @@
   </header>
 
   {#if !status}
-    <div class="hmi-empty"><LoaderCircle class="spin" size={22} /><span>Reading historian state</span></div>
+    {#if error}
+      <div class="historian-alert"><TriangleAlert size={15} /><span>{error}</span></div>
+    {:else}
+      <div class="hmi-empty"><LoaderCircle class="spin" size={22} /><span>Reading historian state</span></div>
+    {/if}
   {:else}
     <div class="historian-flow">
       <div>

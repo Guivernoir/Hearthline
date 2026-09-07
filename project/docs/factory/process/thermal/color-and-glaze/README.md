@@ -12,8 +12,8 @@ and controlled cleaning cycles.
 
 ## Current Representation
 
-The architecture view renders the representative assets below from bootstrap
-JSON. `AREA-05-HMI-01` is enterable as a Rust-backed operator session assembled
+The architecture view renders the representative assets below from the
+Rust-generated process topology and canonical appliance catalog. `AREA-05-HMI-01` is enterable as a Rust-backed operator session assembled
 from the area appliance YAML. It displays configured tank-level and flow
 samples, requires a healthy interlock reset, and exposes pump and spray-gun
 states through the HMI, vPLC, remote I/O, and field-actuator path.

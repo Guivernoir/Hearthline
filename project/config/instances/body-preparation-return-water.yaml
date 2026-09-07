@@ -1,0 +1,9 @@
+schema_version: 0.1.0
+id: body-preparation-return-water
+blueprint: water-distribution-train
+site: factory
+environment: body-preparation
+values:
+  pump-count: 4
+  sensor-count: 10
+  nominal-pressure: "3.800 bar"

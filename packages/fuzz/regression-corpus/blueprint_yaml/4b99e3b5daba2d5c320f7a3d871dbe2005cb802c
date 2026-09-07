@@ -1,0 +1,14 @@
+schema_version: 0.1.0
+id: water-train
+parameters:
+  - id: 'umcn-utop
+    kint enid:ger
+    required: true
+    minimum: 1
+    maximum: 3inimum: 1
+    maximum: 3
+nodes:
+  - id: pump
+    appliance_kind: id: pump
+    appliance_kind: field-acz []
+imports: []

@@ -3,9 +3,9 @@ use axum::extract::{Path as RoutePath, State};
 use axum::http::StatusCode;
 use hearthline_config::{
     SCENARIO_SCHEMA_VERSION, ScenarioConnectionOverride, ScenarioFirewallHaOverride,
-    ScenarioFirstHopOverride, ScenarioPacketConfig, ScenarioReport, ScenarioSummary,
-    run_scenario_with_state_overrides,
+    ScenarioFirstHopOverride, ScenarioPacketConfig, ScenarioSummary,
 };
+use hearthline_sim::{ScenarioReport, run_scenario_with_state_overrides};
 use serde::{Deserialize, Serialize};
 
 use crate::{ApiError, AppState};

@@ -221,7 +221,8 @@ impl BehaviorConfig {
         }
     }
 
-    pub(crate) const fn responds_to_icmp(&self) -> bool {
+    #[doc(hidden)]
+    pub const fn responds_to_icmp(&self) -> bool {
         match self {
             Self::Endpoint {
                 respond_to_icmp, ..

@@ -50,9 +50,8 @@
     saveError = "";
     try {
       const catalog = await saveAppliance(
-        appliance.id,
+        appliance.sourcePath,
         sourceYaml,
-        appliance.revision,
       );
       installCatalog(catalog);
       appliance =

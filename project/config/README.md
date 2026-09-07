@@ -1,8 +1,10 @@
 # Hearthline Configuration Source
 
-This directory contains Hearthline's canonical YAML desired state. Rust parses
-one document per appliance, one per modeled connection, and one per configured
-scenario before configuration or simulation results reach Svelte.
+This directory contains Hearthline's canonical YAML desired state. Unique
+assets retain one document per appliance and connection. Repeated structures
+may use typed blueprint definitions and instances. Rust compiles those sources,
+scenarios, process topology, and runtime policy into one immutable project
+before configuration or simulation results reach Svelte.
 
 ## Current Status
 
@@ -26,6 +28,13 @@ session-state loss, idle-session expiry, and fenced sync-path isolation.
 A composite scenario combines both failed factory-facing conduit
 handoffs with an independently validated Body Preparation control path and a
 configured HMI safety-reset plus actuator command.
+`runtime/capacity.yaml` records canonical graph partitioning rules, exact
+measured demand for configuration-derived bounded resources, and the required
+reserve percentage. It is reviewed evidence, not a tunable runtime override.
+`blueprints/` and `instances/` hold reusable definitions and their parameterized
+placements. `model.lock.json` is generated and records source/object digests,
+schema/compiler versions, partition assignments, capacity evidence, and
+generated-catalog digests. Expanded instance YAML is not committed.
 
 These files are the canonical inputs to the current parser, but their
 engineering content is not finished. Most addresses, policies, services,
@@ -93,6 +102,9 @@ Rust currently validates:
   participation.
 - Security-exercise tactic, technique, severity, control, detector
   participation, and operations-console defender references.
+- Runtime partition assignment for every appliance, internal and boundary link
+  accounting, exact capacity-observation drift, reviewed nominal load, and
+  reserve policy.
 
 Connection files are authoritative for attachment relationships. Appliance
 ports do not duplicate peer references. Radio and virtual media may
@@ -103,8 +115,12 @@ medium.
 
 Validation does not yet prove project-wide address uniqueness, VLAN and route
 consistency, general NAT or policy correctness, vendor HA behavior, or every possible
-scenario outcome. Selected appliance and connection subgraphs are executable;
-the complete 394-appliance graph is not assembled as one running topology.
+scenario outcome. Selected appliance and connection subgraphs are executable.
+The complete 394-appliance, 450-connection graph compiles as 29 bounded
+cell/zone runtimes with classified boundary links; it is deliberately not
+assembled as one plant-sized engine object. The host composes cells and
+preallocated conduits dynamically; construction does not prove arbitrary
+reachability.
 
 The customer scenarios carry a DNS request and response through the customer
 edge and provider network, then exercise the selected public-service path.
@@ -262,6 +278,8 @@ project/config
 |   |-- central-office
 |   |-- factory
 |   `-- shared
+|-- blueprints
+|-- instances
 |-- scenarios
 |   |-- business-it
 |   |   |-- dns
@@ -294,6 +312,9 @@ project/config
 |       |-- customer-public-web-method-denied.yaml
 |       |-- customer-public-web-path-traversal-detected.yaml
 |       `-- customer-public-web-sql-injection-detected.yaml
+|-- runtime
+|   `-- capacity.yaml
+|-- model.lock.json
 `-- ot
     `-- process
         `-- README.md
@@ -306,47 +327,34 @@ may depend on it.
 ## Commands
 
 ```bash
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- config-validate
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- config-generate
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run customer-dns-lookup
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run customer-public-web-request
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run customer-public-web-management-denied
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run customer-public-web-path-traversal-detected
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run customer-public-web-method-denied
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run customer-public-web-sql-injection-detected
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run customer-wan-access-outage
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run business-it-user-pc-01-dns
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run business-it-user-pc-01-portal
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run factory-operations-data
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run factory-operations-data-denied
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run factory-forming-historian-collection
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run factory-historian-dmz-replication
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run factory-local-autonomy-conduit-outage
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run business-northbound-firewall-session-continuity
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run business-northbound-firewall-ha-sync-loss
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run business-northbound-firewall-session-state-loss
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run business-northbound-firewall-stale-session-expiry
-cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- scenario-run business-northbound-firewall-isolation-fenced
+cargo run --manifest-path packages/Cargo.toml --bin hearthline -- model validate
+cargo run --manifest-path packages/Cargo.toml --bin hearthline -- model compile --locked
+cargo run --manifest-path packages/Cargo.toml --bin hearthline -- model lock --update --reason "review reference"
+cargo run --manifest-path packages/Cargo.toml --bin hearthline -- model expand --output /tmp/hearthline-expanded
+cargo run --manifest-path packages/Cargo.toml --bin hearthline -- capacity report --format json
+cargo run --manifest-path packages/Cargo.toml --bin hearthline -- run conduit-overload --record /tmp/hearthline-run.json
+cargo run --manifest-path packages/Cargo.toml --bin hearthline -- replay verify project/replays/conduit-overload.json
 ```
 
-`config-generate` first validates both canonical directories and then
-atomically replaces
-[`packages/web/src/generated/appliance-configs.json`](../../packages/web/src/generated/appliance-configs.json).
-The generated catalog includes normalized appliance and connection summaries,
-node and appliance-to-connection indexes, source revisions, and the original
-YAML used by the configuration routes.
+`model compile --locked` validates the complete source set, compiles the
+immutable graph, verifies lock and capacity evidence, and regenerates catalogs
+only when they match the lock. `model lock --update` is the explicit review
+operation for accepted source/model changes and requires a reason. `model
+expand` emits review-only expanded documents outside the canonical source tree.
 
-The localhost API exposes revision-checked appliance and connection updates,
-scenario catalog and execution endpoints, workstation profile and action
-routes, and a session-local security-console event queue:
+The localhost API exposes model-revisioned draft transactions, scenario
+execution, workstation and operator projections, and a session-local security
+console:
 
 ```bash
 cargo run --manifest-path packages/Cargo.toml -p hearthline-api
 ```
 
-An update is parsed in memory and validated against the full project before the
-source and generated catalog are replaced. The API binds to `127.0.0.1` by
-default and is not a remote administration service. Scenario execution accepts
+Draft changes are parsed in memory and compiled as one overlay before any
+tracked file changes. Commit requires the original base revision, uses a
+write-ahead journal and atomic multi-file install, and updates source, lock, and
+catalogs together. The API binds to `127.0.0.1` by default and refuses
+non-loopback write access unless authentication is configured. Scenario execution accepts
 optional packet and selected-connection state overrides without modifying
 canonical YAML. When effective connection state matches a scenario's declared
 recovery state, Rust evaluates the recovery expectation instead of the

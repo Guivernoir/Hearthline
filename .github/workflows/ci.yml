@@ -1,83 +1,221 @@
-name: CI
+name: Hearthline PR
 
 on:
-  push:
   pull_request:
+  push:
+    branches: [main]
 
 permissions:
   contents: read
 
+concurrency:
+  group: pr-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  RUST_BACKTRACE: "1"
 
 jobs:
   policy:
-    name: Repository policy
-    runs-on: ubuntu-latest
+    name: Policy and generated contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: { persist-credentials: false, fetch-depth: 0 }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: 22
-      - run: node project/scripts/repository-policy.mjs
-      - run: node project/scripts/check-version.mjs
-
-  rust:
-    name: Rust
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy,rustfmt
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: packages
-      - run: cargo check --manifest-path packages/Cargo.toml -p hearthline-model
-      - run: cargo check --manifest-path packages/Cargo.toml -p hearthline-engine
-      - run: cargo fmt --manifest-path packages/Cargo.toml --all --check
-      - run: cargo fmt --manifest-path packages/fuzz/Cargo.toml --all --check
-      - run: cargo clippy --manifest-path packages/Cargo.toml --workspace --all-targets --all-features -- -D warnings
-      - run: cargo clippy --manifest-path packages/fuzz/Cargo.toml --all-targets -- -D warnings
-      - run: cargo test --manifest-path packages/Cargo.toml --workspace --all-features
-      - run: cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- config-validate
-      - run: cargo run --manifest-path packages/Cargo.toml -p hearthline-cli -- config-generate
-      - run: git diff --exit-code -- packages/web/src/generated/appliance-configs.json
-
-  web:
-    name: Web
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: packages/web
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: packages/web/package-lock.json
-      - run: npm ci
-      - run: npm run check
-      - run: npm run build
+      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c
+        with: { toolchain: 1.98.1 }
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with: { workspaces: packages, shared-key: policy-Cargo.lock }
+      - run: node project/scripts/check-version.mjs
+      - run: node project/scripts/check-coverage-baseline.mjs "${{ github.event.pull_request.base.sha || github.event.before }}"
+      - run: node project/scripts/check-capacity-change.mjs "${{ github.event.pull_request.base.sha || github.event.before }}"
+      - run: cargo xtask verify
+        working-directory: packages
+      - run: cargo xtask contracts --check
+        working-directory: packages
+      - run: node project/scripts/repository-policy.mjs
+      - run: cargo run --manifest-path packages/Cargo.toml --bin hearthline -- model compile --locked
+      - run: git diff --exit-code -- project/contracts packages/web/src/generated project/config/model.lock.json
 
-  fuzz:
-    name: Fuzz
-    runs-on: ubuntu-latest
+  rust-quality:
+    name: Rust quality (${{ matrix.toolchain }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain: [1.92.0, 1.98.1]
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
-      - run: cargo install cargo-fuzz --locked
-      - run: cargo +nightly fuzz run identifiers --fuzz-dir packages/fuzz -- -runs=2000
-      - run: cargo +nightly fuzz run appliance_yaml --fuzz-dir packages/fuzz -- -runs=2000
-
-  benchmark:
-    name: Benchmark
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: { persist-credentials: false }
+      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          components: clippy,rustfmt
+          targets: thumbv7em-none-eabihf
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           workspaces: packages
-      - run: cargo bench --manifest-path packages/Cargo.toml --workspace --all-features
+          shared-key: "quality-${{ matrix.toolchain }}-Cargo.lock"
+      - run: cargo fmt --manifest-path packages/Cargo.toml --all --check
+      - run: cargo fmt --manifest-path packages/fuzz/Cargo.toml --all --check
+      - run: cargo check --manifest-path packages/fuzz/Cargo.toml --all-targets
+      - run: cargo clippy --manifest-path packages/Cargo.toml --workspace --all-targets --all-features -- -D warnings
+      - run: cargo check --manifest-path packages/Cargo.toml -p hearthline-model -p hearthline-engine --target thumbv7em-none-eabihf
+
+  rust-tests:
+    name: Rust tests (${{ matrix.shard }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: deterministic-core
+            packages: -p hearthline-model -p hearthline-engine
+          - shard: configuration-project
+            packages: -p hearthline-config -p hearthline-project
+          - shard: simulation-operator
+            packages: -p hearthline-sim -p hearthline-operator
+          - shard: adapters
+            packages: -p hearthline-cli -p hearthline-api -p xtask
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: { persist-credentials: false }
+      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c
+        with: { toolchain: 1.98.1 }
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with:
+          workspaces: packages
+          shared-key: "tests-${{ matrix.shard }}-Cargo.lock"
+      - name: Compile test shard and locate test executables
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo test --manifest-path packages/Cargo.toml ${{ matrix.packages }} --all-features \
+            --no-run --message-format=json > test-artifacts.json
+          jq -r 'select(.profile.test == true and .executable != null) | .executable' \
+            test-artifacts.json | sort -u > test-executables.txt
+          test -s test-executables.txt
+      - name: Run test shard with constrained workers
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r executable; do
+            RUST_MIN_STACK=1310720 "$executable" --test-threads=2
+          done < test-executables.txt
+
+  model-gates:
+    name: Capacity and deterministic budgets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: { persist-credentials: false }
+      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c
+        with: { toolchain: 1.98.1 }
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with: { workspaces: packages, shared-key: model-Cargo.lock }
+      - run: cargo run --manifest-path packages/Cargo.toml --bin hearthline -- model validate
+      - run: cargo run --manifest-path packages/Cargo.toml --bin hearthline -- model compile --locked
+      - run: cargo run --manifest-path packages/Cargo.toml --bin hearthline -- capacity report --format json > capacity-report.json
+      - run: cargo test --manifest-path packages/Cargo.toml -p hearthline-sim --test scheduler --test acceptance --release
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with: { name: capacity-evidence, path: capacity-report.json, retention-days: 30 }
+
+  fuzz-smoke:
+    name: Fuzz smoke (${{ matrix.target }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: identifiers, smoke-runs: 1000 }
+          - { target: appliance_yaml, smoke-runs: 500 }
+          - { target: connection_yaml, smoke-runs: 100 }
+          - { target: blueprint_yaml, smoke-runs: 100 }
+          - { target: model_compile, smoke-runs: 100 }
+          - { target: partition_runtime, smoke-runs: 1000 }
+          - { target: snapshot_replay, smoke-runs: 100 }
+          - { target: control_program, smoke-runs: 100 }
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: { persist-credentials: false }
+      - uses: dtolnay/rust-toolchain@7c8d7d138f5c09cef361f8214cf96882cd029cdb
+        with: { toolchain: nightly-2026-08-20 }
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with:
+          workspaces: packages/fuzz
+          shared-key: "fuzz-${{ matrix.target }}-Cargo.lock"
+      - run: cargo install cargo-fuzz --version 0.13.2 --locked
+      - name: Run checked-in regression corpus
+        run: cargo +nightly-2026-08-20 fuzz run ${{ matrix.target }} --fuzz-dir packages/fuzz --codegen-units 16 packages/fuzz/regression-corpus/${{ matrix.target }} -- -runs=100
+      - name: Run short randomized campaign
+        run: cargo +nightly-2026-08-20 fuzz run ${{ matrix.target }} --fuzz-dir packages/fuzz --codegen-units 16 -- -runs=${{ matrix.smoke-runs }}
+
+  web:
+    name: Svelte and Chromium workflows
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    defaults: { run: { working-directory: packages/web } }
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: packages/web/package-lock.json
+      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c
+        with: { toolchain: 1.98.1 }
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with: { workspaces: packages, shared-key: web-api-Cargo.lock }
+      - name: Install pinned npm
+        run: npm install --global "$(node -p 'require("./package.json").packageManager')"
+      - run: npm ci
+      - run: npm audit --audit-level=high
+      - run: npm run check
+      - run: npm run test:unit
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: ${{ !cancelled() }}
+        with: { name: playwright-pr, path: packages/web/artifacts/playwright, retention-days: 14 }
+
+  golden-replay:
+    name: Golden replay (${{ matrix.platform }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { platform: linux-x64, runner: ubuntu-24.04 }
+          - { platform: linux-arm64, runner: ubuntu-24.04-arm }
+          - { platform: windows-x64, runner: windows-2025 }
+          - { platform: macos-arm64, runner: macos-14 }
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: { persist-credentials: false }
+      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c
+        with: { toolchain: 1.98.1 }
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with:
+          workspaces: packages
+          shared-key: "replay-${{ matrix.platform }}-Cargo.lock"
+      - run: cargo run --manifest-path packages/Cargo.toml --bin hearthline -- replay verify project/replays/network-customer-dns.json
+      - run: cargo run --manifest-path packages/Cargo.toml --bin hearthline -- replay verify project/replays/safety-firewall-isolation.json
+      - run: cargo run --manifest-path packages/Cargo.toml --bin hearthline -- replay verify project/replays/forming-historian.json
+      - run: cargo run --manifest-path packages/Cargo.toml --bin hearthline -- replay verify project/replays/body-preparation-local-autonomy.json
+      - run: cargo run --manifest-path packages/Cargo.toml --bin hearthline -- replay verify project/replays/conduit-overload.json
+      - run: cargo run --manifest-path packages/Cargo.toml --bin hearthline -- replay verify project/replays/recovery-firewall-session.json

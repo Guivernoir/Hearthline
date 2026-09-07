@@ -8,12 +8,12 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
-hearthline-model = { path = "../hearthline-model" }
+hearthline-model = { path = "../hearthline-model", version = "=0.3.2" }
 heapless.workspace = true
 serde.workspace = true
 
 [dev-dependencies]
-criterion = "0.5"
+criterion = "=0.5.1"
 
 [[bench]]
 name = "runtime"

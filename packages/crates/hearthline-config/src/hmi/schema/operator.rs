@@ -9,7 +9,8 @@ pub enum HmiControlMode {
 }
 
 impl HmiControlMode {
-    pub(crate) const fn as_str(self) -> &'static str {
+    #[doc(hidden)]
+    pub const fn as_str(self) -> &'static str {
         match self {
             Self::Manual => "manual",
             Self::Auto => "auto",

@@ -1,8 +1,8 @@
 # Deployment Conformance Review
 
 **Review date:** 2026-07-30
-**Scope:** Current Svelte architecture, documentation, bootstrap process model,
-typed appliance and connection YAML, and initial Rust component engine
+**Scope:** Current Svelte architecture, documentation, typed process-topology,
+appliance, and connection YAML, generated frontend contracts, and Rust component engine
 
 ## Conclusion
 

@@ -1,7 +1,7 @@
 use heapless::Deque;
 use hearthline_model::Text;
 
-pub const ROBOT_CELL_QUEUE_CAPACITY: usize = 8;
+use crate::capacity::ROBOT_CELL_QUEUE_CAPACITY;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RobotCellStage {

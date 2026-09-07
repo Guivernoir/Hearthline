@@ -9,11 +9,19 @@ repository.workspace = true
 
 [dependencies]
 axum.workspace = true
-hearthline-config = { path = "../hearthline-config" }
-hearthline-engine = { path = "../hearthline-engine" }
+hearthline-config = { path = "../hearthline-config", version = "=0.3.2" }
+hearthline-engine = { path = "../hearthline-engine", version = "=0.3.2" }
+hearthline-operator = { path = "../hearthline-operator", version = "=0.3.2" }
+hearthline-project = { path = "../hearthline-project", version = "=0.3.2" }
+hearthline-sim = { path = "../hearthline-sim", version = "=0.3.2" }
+schemars.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tokio.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+tower = { version = "=0.5.3", features = ["util"] }
 
 [lints]
 workspace = true

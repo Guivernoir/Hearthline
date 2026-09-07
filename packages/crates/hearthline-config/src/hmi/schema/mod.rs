@@ -160,7 +160,7 @@ pub struct HmiProcessPhase {
     pub label: &'static str,
 }
 
-pub(super) use phases::{
+pub use phases::{
     FORMING_PHASES, GLAZE_PREPARATION_PHASES, RETURN_WATER_PHASES, SLIP_PREPARATION_PHASES,
     WATER_PREPARATION_PHASES,
 };

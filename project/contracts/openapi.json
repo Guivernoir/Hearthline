@@ -1,0 +1,1278 @@
+{
+  "components": {
+    "schemas": {
+      "BlueprintConnection": {
+        "additionalProperties": false,
+        "properties": {
+          "from_node": {
+            "type": "string"
+          },
+          "from_port": {
+            "type": "string"
+          },
+          "local_id": {
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/BlueprintConnectionMode"
+          },
+          "to_node": {
+            "type": "string"
+          },
+          "to_port": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "local_id",
+          "from_node",
+          "from_port",
+          "to_node",
+          "to_port",
+          "mode"
+        ],
+        "type": "object"
+      },
+      "BlueprintConnectionMode": {
+        "enum": [
+          "single",
+          "pairwise",
+          "fan-out"
+        ],
+        "type": "string"
+      },
+      "BlueprintDefinition": {
+        "additionalProperties": false,
+        "properties": {
+          "connections": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/BlueprintConnection"
+            },
+            "type": "array"
+          },
+          "exports": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/BlueprintExport"
+            },
+            "type": "array"
+          },
+          "id": {
+            "type": "string"
+          },
+          "imports": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/BlueprintImport"
+            },
+            "type": "array"
+          },
+          "nested": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/BlueprintNestedInstance"
+            },
+            "type": "array"
+          },
+          "nodes": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/BlueprintNode"
+            },
+            "type": "array"
+          },
+          "parameters": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/BlueprintParameter"
+            },
+            "type": "array"
+          },
+          "schema_version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "id"
+        ],
+        "type": "object"
+      },
+      "BlueprintExport": {
+        "additionalProperties": false,
+        "properties": {
+          "contract": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/BlueprintExportKind"
+          },
+          "node": {
+            "type": "string"
+          },
+          "port": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "node",
+          "port",
+          "contract"
+        ],
+        "type": "object"
+      },
+      "BlueprintExportKind": {
+        "enum": [
+          "port",
+          "signal",
+          "material-handoff",
+          "network-conduit"
+        ],
+        "type": "string"
+      },
+      "BlueprintImport": {
+        "additionalProperties": false,
+        "properties": {
+          "blueprint": {
+            "type": "string"
+          },
+          "schema_version": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "blueprint",
+          "schema_version",
+          "sha256"
+        ],
+        "type": "object"
+      },
+      "BlueprintInstance": {
+        "additionalProperties": false,
+        "properties": {
+          "blueprint": {
+            "type": "string"
+          },
+          "environment": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "schema_version": {
+            "type": "string"
+          },
+          "site": {
+            "type": "string"
+          },
+          "values": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/BlueprintParameterValue"
+            },
+            "default": {},
+            "type": "object"
+          }
+        },
+        "required": [
+          "schema_version",
+          "id",
+          "blueprint",
+          "site",
+          "environment"
+        ],
+        "type": "object"
+      },
+      "BlueprintNestedInstance": {
+        "additionalProperties": false,
+        "properties": {
+          "blueprint": {
+            "type": "string"
+          },
+          "local_id": {
+            "type": "string"
+          },
+          "repeat_parameter": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "values": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/BlueprintParameterValue"
+            },
+            "default": {},
+            "type": "object"
+          }
+        },
+        "required": [
+          "local_id",
+          "blueprint"
+        ],
+        "type": "object"
+      },
+      "BlueprintNode": {
+        "additionalProperties": false,
+        "properties": {
+          "family": {
+            "type": "string"
+          },
+          "local_id": {
+            "type": "string"
+          },
+          "ports": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "repeat_parameter": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "local_id",
+          "family"
+        ],
+        "type": "object"
+      },
+      "BlueprintParameter": {
+        "additionalProperties": false,
+        "properties": {
+          "default": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BlueprintParameterValue"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/BlueprintParameterKind"
+          },
+          "required": {
+            "default": false,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "kind"
+        ],
+        "type": "object"
+      },
+      "BlueprintParameterKind": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "boolean",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "maximum": {
+                "format": "int64",
+                "type": "integer"
+              },
+              "minimum": {
+                "format": "int64",
+                "type": "integer"
+              },
+              "type": {
+                "const": "integer",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "minimum",
+              "maximum"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "maximum_raw": {
+                "format": "int64",
+                "type": "integer"
+              },
+              "minimum_raw": {
+                "format": "int64",
+                "type": "integer"
+              },
+              "scale": {
+                "format": "int64",
+                "type": "integer"
+              },
+              "type": {
+                "const": "quantity",
+                "type": "string"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "unit",
+              "scale",
+              "minimum_raw",
+              "maximum_raw"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "identifier",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "choice",
+                "type": "string"
+              },
+              "values": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "type",
+              "values"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "maximum": {
+                "format": "uint",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "minimum": {
+                "format": "uint",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "type": {
+                "const": "identifier-list",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "minimum",
+              "maximum"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "BlueprintParameterValue": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "format": "int64",
+            "type": "integer"
+          },
+          {
+            "type": "string"
+          },
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        ]
+      },
+      "CapacityAssessment": {
+        "additionalProperties": false,
+        "properties": {
+          "demand": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/CapacityEvidenceRecord"
+          },
+          "overflow": {
+            "type": "string"
+          },
+          "reservePercent": {
+            "format": "uint8",
+            "maximum": 255,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "resource": {
+            "$ref": "#/components/schemas/CapacityResource"
+          },
+          "reviewedLimit": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CapacityStatus"
+          },
+          "structuralLimit": {
+            "format": "uint",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "resource",
+          "scope",
+          "demand",
+          "reviewedLimit",
+          "reservePercent",
+          "overflow",
+          "status",
+          "evidence"
+        ],
+        "type": "object"
+      },
+      "CapacityDelta": {
+        "additionalProperties": false,
+        "properties": {
+          "candidateDemand": {
+            "format": "uint",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "candidateStatus": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CapacityStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "previousDemand": {
+            "format": "uint",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "resource": {
+            "$ref": "#/components/schemas/CapacityResource"
+          },
+          "scope": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "resource",
+          "scope"
+        ],
+        "type": "object"
+      },
+      "CapacityEvidenceRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "detail"
+        ],
+        "type": "object"
+      },
+      "CapacityPlan": {
+        "additionalProperties": false,
+        "properties": {
+          "assessments": {
+            "items": {
+              "$ref": "#/components/schemas/CapacityAssessment"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "assessments"
+        ],
+        "type": "object"
+      },
+      "CapacityResource": {
+        "enum": [
+          "process-ports",
+          "process-tags",
+          "hmi-command-tags",
+          "appliance-ports",
+          "switch-ports",
+          "layer3-switch-ports",
+          "unaddressed-ports",
+          "cell-components",
+          "cell-links",
+          "site-cells",
+          "inter-cell-conduits",
+          "conduit-queue",
+          "scheduled-events",
+          "runtime-object-bytes",
+          "runtime-memory-bytes",
+          "runtime-stack-bytes"
+        ],
+        "type": "string"
+      },
+      "CapacityStatus": {
+        "enum": [
+          "accepted",
+          "review-required",
+          "rejected"
+        ],
+        "type": "string"
+      },
+      "DraftChange": {
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "DraftCommitRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expectedRevision": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "expectedRevision",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "DraftCommitResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "changedPaths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "draft": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "previousRevision": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "string"
+          },
+          "staleSessionCount": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "draft",
+          "previousRevision",
+          "revision",
+          "changedPaths",
+          "staleSessionCount"
+        ],
+        "type": "object"
+      },
+      "DraftCreated": {
+        "additionalProperties": false,
+        "properties": {
+          "baseRevision": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "baseRevision"
+        ],
+        "type": "object"
+      },
+      "DraftDiagnostic": {
+        "additionalProperties": false,
+        "properties": {
+          "line": {
+            "format": "uint",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "severity": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "severity",
+          "message"
+        ],
+        "type": "object"
+      },
+      "DraftPreview": {
+        "additionalProperties": false,
+        "properties": {
+          "addedObjects": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "affectedScenarios": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "baseRevision": {
+            "type": "string"
+          },
+          "candidateRevision": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "capacity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CapacityPlan"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "capacityDeltas": {
+            "items": {
+              "$ref": "#/components/schemas/CapacityDelta"
+            },
+            "type": "array"
+          },
+          "diagnostics": {
+            "items": {
+              "$ref": "#/components/schemas/DraftDiagnostic"
+            },
+            "type": "array"
+          },
+          "draft": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "modifiedObjects": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "previewCatalogs": {
+            "items": {
+              "$ref": "#/components/schemas/SourceDigest"
+            },
+            "type": "array"
+          },
+          "removedObjects": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "draft",
+          "baseRevision",
+          "diagnostics",
+          "addedObjects",
+          "removedObjects",
+          "modifiedObjects",
+          "capacityDeltas",
+          "affectedScenarios",
+          "previewCatalogs"
+        ],
+        "type": "object"
+      },
+      "DraftUpdateResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "accepted": {
+            "type": "boolean"
+          },
+          "draft": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "draft",
+          "accepted"
+        ],
+        "type": "object"
+      },
+      "HealthResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "modelRevision": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "writeAccess": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "status",
+          "version",
+          "writeAccess",
+          "modelRevision"
+        ],
+        "type": "object"
+      },
+      "ModelDocument": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "path",
+          "revision",
+          "source"
+        ],
+        "type": "object"
+      },
+      "ModelDocumentCatalog": {
+        "additionalProperties": false,
+        "properties": {
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/ModelDocument"
+            },
+            "type": "array"
+          },
+          "modelRevision": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "modelRevision",
+          "documents"
+        ],
+        "type": "object"
+      },
+      "ModelSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "applianceCount": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "blueprintInstanceCount": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "cellCount": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "compilerVersion": {
+            "type": "string"
+          },
+          "connectionCount": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "revision": {
+            "type": "string"
+          },
+          "scenarioCount": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "schemaVersion": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "revision",
+          "compilerVersion",
+          "applianceCount",
+          "connectionCount",
+          "scenarioCount",
+          "cellCount",
+          "blueprintInstanceCount"
+        ],
+        "type": "object"
+      },
+      "SimulationSessionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "cellCount": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "conduitCount": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "id": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "modelRevision": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "modelRevision",
+          "status",
+          "cellCount",
+          "conduitCount"
+        ],
+        "type": "object"
+      },
+      "SourceDigest": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "kind",
+          "sha256"
+        ],
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Hearthline local model API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/health": {
+      "get": {
+        "operationId": "readHealth",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "Read API and model health"
+      }
+    },
+    "/api/model": {
+      "get": {
+        "operationId": "readModel",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelSummary"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "Read immutable model revision"
+      }
+    },
+    "/api/model/documents": {
+      "get": {
+        "operationId": "readModelDocuments",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelDocumentCatalog"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "Read locked editable model documents"
+      }
+    },
+    "/api/model/drafts": {
+      "post": {
+        "operationId": "createModelDraft",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftCreated"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "Create revisioned model draft"
+      }
+    },
+    "/api/model/drafts/{id}": {
+      "delete": {
+        "operationId": "discardModelDraft",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful operation"
+          }
+        },
+        "summary": "Discard a model draft"
+      }
+    },
+    "/api/model/drafts/{id}/commit": {
+      "post": {
+        "operationId": "commitModelDraft",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftCommitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftCommitResponse"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "Atomically commit validated draft"
+      }
+    },
+    "/api/model/drafts/{id}/documents": {
+      "put": {
+        "operationId": "updateModelDraft",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftChange"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftUpdateResponse"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "Apply document to draft overlay"
+      }
+    },
+    "/api/model/drafts/{id}/preview": {
+      "post": {
+        "operationId": "previewModelDraft",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftPreview"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "Compile complete draft overlay"
+      }
+    },
+    "/api/model/sessions": {
+      "post": {
+        "operationId": "createSimulationSession",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulationSessionResponse"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "Create model-pinned simulation session"
+      }
+    },
+    "/api/model/sessions/{id}": {
+      "get": {
+        "operationId": "readSimulationSession",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulationSessionResponse"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "Read current or stale session status"
+      }
+    },
+    "/api/model/sessions/{id}/restart": {
+      "post": {
+        "operationId": "restartSimulationSession",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulationSessionResponse"
+                }
+              }
+            },
+            "description": "Successful operation"
+          }
+        },
+        "summary": "Restart a session on the current model"
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:3001"
+    }
+  ]
+}

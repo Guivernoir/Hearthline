@@ -1,33 +1,35 @@
 use core::fmt::{self, Display, Formatter};
 
-use hearthline_model::Text;
+use hearthline_model::{Position, Text};
 use serde::Deserialize;
 
 use super::{
-    MediaError, MediaFacts, MediaText, SimulatedMedium, error, facts, message, propagation_delay_us,
+    MediaError, MediaFacts, MediaText, SimulatedMedium, distance_text, error, facts, message,
+    propagation_delay_us,
 };
 
-#[derive(Clone, Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone, Debug)]
 pub struct FiberMedium {
     pub mode: FiberMode,
     pub connector: Text<32>,
-    pub length_m: f64,
+    pub length: Position,
 }
 
 impl SimulatedMedium for FiberMedium {
     fn validate(&self) -> Result<(), MediaError> {
-        if self.length_m <= 0.0 {
+        if self.length <= Position::ZERO {
             return Err("fiber length must be greater than zero".into());
         }
         let limit = match self.mode {
-            FiberMode::SingleMode => 100_000.0,
-            FiberMode::MultiMode => 550.0,
+            FiberMode::SingleMode => Position::from_raw(100_000_000_000),
+            FiberMode::MultiMode => Position::from_raw(550_000_000),
         };
-        if self.length_m > limit {
+        if self.length > limit {
             return Err(error(format_args!(
-                "{} fiber length {:.1} m exceeds {:.1} m",
-                self.mode, self.length_m, limit
+                "{} fiber length {} m exceeds {} m",
+                self.mode,
+                distance_text(self.length),
+                distance_text(limit)
             )));
         }
         if self.connector.trim().is_empty() {
@@ -38,8 +40,10 @@ impl SimulatedMedium for FiberMedium {
 
     fn detail(&self) -> MediaText {
         message(format_args!(
-            "{} / {} / {:.1} m",
-            self.mode, self.connector, self.length_m
+            "{} / {} / {} m",
+            self.mode,
+            self.connector,
+            distance_text(self.length)
         ))
     }
 
@@ -47,12 +51,15 @@ impl SimulatedMedium for FiberMedium {
         facts([
             message(format_args!("{} optical fiber", self.mode)),
             message(format_args!("{} connector", self.connector)),
-            message(format_args!("{:.1} m physical segment", self.length_m)),
+            message(format_args!(
+                "{} m physical segment",
+                distance_text(self.length)
+            )),
         ])
     }
 
     fn propagation_delay_us(&self) -> u64 {
-        propagation_delay_us(self.length_m, 204_000_000.0)
+        propagation_delay_us(self.length, 204_000_000)
     }
 
     fn max_capacity_mbps(&self) -> Option<u64> {

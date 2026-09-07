@@ -1,28 +1,30 @@
 use core::fmt::{self, Display, Formatter};
 
+use hearthline_model::Position;
 use serde::Deserialize;
 
 use super::{
-    MediaError, MediaFacts, MediaText, SimulatedMedium, error, facts, message, propagation_delay_us,
+    MediaError, MediaFacts, MediaText, SimulatedMedium, distance_text, error, facts, message,
+    propagation_delay_us,
 };
 
-#[derive(Clone, Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone, Debug)]
 pub struct CopperMedium {
     pub wiring: CopperWiring,
     pub category: CopperCategory,
-    pub length_m: f64,
+    pub length: Position,
 }
 
 impl SimulatedMedium for CopperMedium {
     fn validate(&self) -> Result<(), MediaError> {
-        if self.length_m <= 0.0 {
+        if self.length <= Position::ZERO {
             return Err("copper length must be greater than zero".into());
         }
-        if self.length_m > 100.0 {
+        if self.length > Position::from_raw(100_000_000) {
             return Err(error(format_args!(
                 "{} copper length {:.1} m exceeds 100 m",
-                self.category, self.length_m
+                self.category,
+                distance_text(self.length)
             )));
         }
         Ok(())
@@ -30,8 +32,10 @@ impl SimulatedMedium for CopperMedium {
 
     fn detail(&self) -> MediaText {
         message(format_args!(
-            "{} {} / {:.1} m",
-            self.category, self.wiring, self.length_m
+            "{} {} / {} m",
+            self.category,
+            self.wiring,
+            distance_text(self.length)
         ))
     }
 
@@ -39,13 +43,16 @@ impl SimulatedMedium for CopperMedium {
         facts([
             message(format_args!("Balanced copper {}", self.category)),
             message(format_args!("{} pinout", self.wiring)),
-            message(format_args!("{:.1} m physical segment", self.length_m)),
+            message(format_args!(
+                "{} m physical segment",
+                distance_text(self.length)
+            )),
             "100 m modeled segment limit".into(),
         ])
     }
 
     fn propagation_delay_us(&self) -> u64 {
-        propagation_delay_us(self.length_m, 200_000_000.0)
+        propagation_delay_us(self.length, 200_000_000)
     }
 
     fn max_capacity_mbps(&self) -> Option<u64> {

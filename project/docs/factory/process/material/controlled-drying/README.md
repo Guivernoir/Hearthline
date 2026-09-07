@@ -12,8 +12,8 @@ industrial dryer.
 
 ## Current Representation
 
-The architecture view renders the representative assets below from bootstrap
-JSON. `AREA-03-HMI-01` is enterable as a Rust-backed operator session assembled
+The architecture view renders the representative assets below from the
+Rust-generated process topology and canonical appliance catalog. `AREA-03-HMI-01` is enterable as a Rust-backed operator session assembled
 from the area appliance YAML. It displays configured temperature and humidity
 samples, requires a healthy interlock reset, and exposes fan and damper state
 commands through the HMI, vPLC, remote I/O, and field-actuator path.

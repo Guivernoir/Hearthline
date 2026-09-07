@@ -1,14 +1,20 @@
 # Hearthline Architecture Application
 
-This directory contains the static Svelte architecture application for
+This directory contains the static SvelteKit architecture application for
 Hearthline. The current implementation establishes map-first navigation,
 location and environment drill-downs, the factory process canvas,
-Rust-generated inspection, validated local editing of canonical appliance and
-connection YAML, and the configured simulation workspace.
+Rust-generated inspection, revisioned draft editing across model source types,
+and the configured simulation workspace.
 
-The current development release is `0.3.1`. Project release compatibility is
+The current development release is `0.3.2`. Project release compatibility is
 defined in the [versioning policy](versioning.md), while frontend data
 schemas retain their own independent versions.
+
+The frontend toolchain is pinned to Node `26.8.1`, npm `12.0.2`, and
+SvelteKit `2.70.3`. SvelteKit owns application startup and the root route;
+`@sveltejs/adapter-static` emits the deployable SPA while the existing hash
+routes preserve direct navigation to architecture, simulation, workstation,
+HMI, and model-editor surfaces.
 
 ## Current Status
 
@@ -16,8 +22,8 @@ The application is an interactive architecture viewer with 30 executable
 configured scenarios, not yet a general-purpose network or plant simulator.
 Navigation, physical and logical canvases, inspection, responsive controls,
 packet composition, scenario execution, and trace inspection are implemented.
-Most topology records remain frontend bootstrap data. Rust supplies validated
-appliance and connection data and executes Customer DNS, permitted public
+Regional and several environment layouts remain provisional presentation data.
+Rust supplies validated appliance, connection, and process-topology data and executes Customer DNS, permitted public
 HTTPS, denied public management, and approved or denied factory
 operations-data scenarios. Firewall-rule, translation, application-forward,
 HTTP-response, and default-deny results are available for those selected paths.
@@ -134,8 +140,10 @@ and scenarios are implemented.
 - Connection inspection of endpoint port state plus Rust-derived effective
   MTU, negotiated duplex, propagation delay, and medium-specific physical
   facts.
-- Local YAML editing through a Rust API with revision checks, whole-project
-  validation, and atomic catalog regeneration.
+- Structured and raw-YAML draft editing through a Rust API for blueprints,
+  instances, appliances, connections, and scenarios. Preview compilation
+  reports source diagnostics, topology and capacity deltas, scenario impact,
+  and generated catalogs before atomic commit.
 - A simulation route with a Rust-supplied scenario catalog, editable packet
   fields and selected-link state, run and canonical reset controls, result
   metrics, trace filtering, and microsecond per-hop effects.
@@ -205,28 +213,37 @@ and scenarios are implemented.
 - Responsive map, toolbar, inspector, location, and detailed network layouts.
 - Distinct trust-path, control-network, and material-flow representations.
 
-Regional, location, Customer Network, Central Office, and most Factory data is
-still temporary view data declared in `src/lib/*.svelte`. Eight OT area
-inventories are read from `src/generated/process-view.json`, a versioned
-bootstrap derivative. Body Preparation and Forming derive their 166 and 84
-components from `src/generated/appliance-configs.json`, while Svelte retains
-presentation-only grouping and coordinates. Rust generates that catalog from
-394 appliance and 450 connection YAML files. The remaining process model will later be replaced
-with JSON generated from validated area topology and additional control-source
-cross-references.
+Regional, location, Customer Network, Central Office, and several Factory
+layouts still use provisional presentation data declared in `src/lib/*.svelte`.
+All ten process areas, their network edges, and their material-flow edges are
+read from `src/generated/process-view.json`, which Rust generates from the
+validated process-topology YAML and appliance repository. Body Preparation and
+Forming derive their 166 and 84 components from
+`src/generated/appliance-configs.json`, while Svelte retains presentation-only
+grouping and coordinates. Rust generates both catalogs from 394 appliance and
+450 connection YAML files, blueprint instances, and the process-topology
+source. Their digests are bound to the immutable model lock. Additional
+control-source cross-references and arbitrary-path executable communication
+remain planned.
 
 ## Commands
 
+Run these from `packages/web` with the Node version declared in `.nvmrc`.
+Install the declared npm version separately because Node bundles an older npm.
+
 ```bash
-npm install
+npm install --global "$(node -p 'require("./package.json").packageManager')"
+npm ci
 npm run dev
 npm run check
+npm test
 npm run build
+npm run test:e2e
 npm run preview
 npm run version:check
 ```
 
-The development server listens on all interfaces and normally starts at
+The SvelteKit development server listens on all interfaces and normally starts at
 `http://localhost:5173`.
 
 Architecture viewing remains usable without the API. Scenario execution and
@@ -236,7 +253,7 @@ validated editing require this repository-root command:
 cargo run --manifest-path packages/Cargo.toml -p hearthline-api
 ```
 
-Vite proxies `/api` to `127.0.0.1:3001`. The editor disables write controls
+SvelteKit's Vite server proxies `/api` to `127.0.0.1:3001`. The editor disables write controls
 and simulation execution reports an unavailable service when that API is not
 running.
 
@@ -271,17 +288,20 @@ JSON contracts. Remaining place, environment, and node arrays will follow as
 their canonical schemas mature. Svelte may retain presentation coordinates
 and interaction state, but it does not parse YAML, Structured Text, or robot
 `.g` source,
-evaluate connectivity, or simulate the process. YAML updates are submitted to
-Rust as opaque text and only accepted after server-side parsing and validation.
+evaluate connectivity, or simulate the process. Raw YAML and structured edits
+update the same server-side draft. Rust accepts a commit only after complete
+overlay compilation, capacity review, stale-revision checking, and atomic
+source/lock/catalog installation.
 
 ## Planned Integration
 
-1. Add changing sensor, alarm, permissive, and actuator effects behind the
-   ten-area HMI baseline as the plant model becomes executable.
+1. Migrate repeated presentation and process structures to reviewed blueprint
+   instances while preserving unique direct YAML assets.
 2. Extend the bounded autonomy proof with further deterministic outage and
    local-control cases where they add distinct evidence.
 3. Replace remaining Svelte topology arrays with generated view models.
-4. Consume Rust validation diagnostics and explained connectivity results.
+4. Extend source-located Rust diagnostics and explained connectivity results
+   to additional model and policy surfaces.
 5. Display process state, alarms, and fault outcomes without
    calculating them in Svelte.
 6. Replace provisional architecture and configuration placeholders with

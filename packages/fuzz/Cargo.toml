@@ -8,9 +8,13 @@ edition = "2024"
 cargo-fuzz = true
 
 [dependencies]
-hearthline-config = { path = "../crates/hearthline-config" }
-hearthline-model = { path = "../crates/hearthline-model" }
-libfuzzer-sys = "0.4"
+hearthline-config = { path = "../crates/hearthline-config", version = "=0.3.2" }
+hearthline-engine = { path = "../crates/hearthline-engine", version = "=0.3.2" }
+hearthline-model = { path = "../crates/hearthline-model", version = "=0.3.2" }
+hearthline-project = { path = "../crates/hearthline-project", version = "=0.3.2" }
+hearthline-sim = { path = "../crates/hearthline-sim", version = "=0.3.2" }
+libfuzzer-sys = "=0.4.13"
+serde_json = "=1.0.151"
 
 [[bin]]
 name = "identifiers"
@@ -22,6 +26,48 @@ bench = false
 [[bin]]
 name = "appliance_yaml"
 path = "fuzz_targets/appliance_yaml.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "partition_runtime"
+path = "fuzz_targets/partition_runtime.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "connection_yaml"
+path = "fuzz_targets/connection_yaml.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "blueprint_yaml"
+path = "fuzz_targets/blueprint_yaml.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "model_compile"
+path = "fuzz_targets/model_compile.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "snapshot_replay"
+path = "fuzz_targets/snapshot_replay.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "control_program"
+path = "fuzz_targets/control_program.rs"
 test = false
 doc = false
 bench = false

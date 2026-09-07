@@ -76,6 +76,10 @@
     flex-basis: 32px;
   }
 
+  .toolbar .map-scale-tool {
+    display: none;
+  }
+
   .segmented-control,
   .zoom-control,
   .view-mode-control {
@@ -120,18 +124,151 @@
     bottom: 12px;
   }
 
-  .region-world .map-heading,
-  .region-world .district-label {
+  .map-viewport > .canvas-size {
     display: none;
   }
 
-  .region-world .place-marker {
-    transform: scale(1.3);
-    transform-origin: left center;
+  .mobile-region-world {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    overflow-y: auto;
+    padding: 28px 20px 22px;
+    align-items: center;
+    flex-direction: column;
+    background: #e8ece7;
   }
 
-  .region-world .internet-hub {
-    transform: scale(1.2);
+  .mobile-region-heading,
+  .mobile-region-route,
+  .mobile-map-key {
+    width: min(100%, 350px);
+  }
+
+  .mobile-region-heading > span {
+    color: #286d64;
+    font-size: 9px;
+    font-weight: 800;
+  }
+
+  .mobile-region-heading h1 {
+    margin: 5px 0 3px;
+    color: #252b27;
+    font-size: 20px;
+    line-height: 1.2;
+  }
+
+  .mobile-region-heading p {
+    margin: 0;
+    color: #69736d;
+    font-size: 11px;
+  }
+
+  .mobile-region-route {
+    display: flex;
+    margin-top: 24px;
+    flex-direction: column;
+  }
+
+  .mobile-place-marker {
+    display: grid;
+    width: 100%;
+    min-height: 68px;
+    padding: 10px 12px;
+    grid-template-columns: 42px minmax(0, 1fr) 20px;
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: 11px;
+    border: 1px solid #c8d0ca;
+    border-left: 4px solid var(--place-accent);
+    border-radius: 6px;
+    color: #252b27;
+    background: #fbfcfa;
+    text-align: left;
+  }
+
+  .mobile-place-marker > span {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    grid-row: 1 / 3;
+    place-items: center;
+    border-radius: 50%;
+    color: #fff;
+    background: var(--place-accent);
+  }
+
+  .mobile-place-marker strong {
+    align-self: end;
+    font-size: 14px;
+    line-height: 1.25;
+  }
+
+  .mobile-place-marker small {
+    align-self: start;
+    margin-top: 2px;
+    color: #68726b;
+    font-size: 10px;
+  }
+
+  .mobile-place-marker > svg {
+    grid-column: 3;
+    grid-row: 1 / 3;
+    color: #6b756e;
+  }
+
+  .mobile-place-marker.selected {
+    border-color: var(--place-accent);
+    background: #f6f9f6;
+  }
+
+  .mobile-route-link {
+    position: relative;
+    display: flex;
+    height: 58px;
+    padding-left: 58px;
+    align-items: center;
+    color: #52675e;
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  .mobile-route-link > i {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 30px;
+    border-left: 2px dashed #416e91;
+  }
+
+  .mobile-route-link.controlled > i {
+    border-color: #b65034;
+    border-left-style: solid;
+  }
+
+  .mobile-internet {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #356787;
+  }
+
+  .mobile-map-key {
+    display: flex;
+    margin-top: 22px;
+    padding-top: 14px;
+    justify-content: space-between;
+    gap: 12px;
+    border-top: 1px solid #cbd2cc;
+    color: #5b655e;
+    font-size: 9px;
+    font-weight: 650;
+  }
+
+  .mobile-map-key span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
 
   .overview-workspace {

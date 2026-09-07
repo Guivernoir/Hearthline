@@ -7,6 +7,9 @@ use hearthline_model::{
     TransportProtocol,
 };
 
+use crate::capacity::{
+    NAT_INSIDE_PORT_CAPACITY, NAT_INTERFACE_CAPACITY, NAT_PAT_CAPACITY, NAT_STATIC_CAPACITY,
+};
 use crate::runtime::{collect_fixed, runtime_text, single_effect};
 use crate::{
     DropReason, Effect, EffectList, RoutedInterface, RoutingTable, SimulatedComponent,
@@ -15,7 +18,6 @@ use crate::{
 
 use super::forwarding::{ForwardingPlane, ReceiveOutcome, local_response};
 
-const PAT_CAPACITY: usize = 64;
 const TCP_PAT_TIMEOUT_US: u64 = 300_000_000;
 const UDP_PAT_TIMEOUT_US: u64 = 60_000_000;
 const ICMP_PAT_TIMEOUT_US: u64 = 30_000_000;
@@ -87,11 +89,11 @@ pub struct PatTranslation {
 pub struct NatRouter {
     id: ComponentId,
     plane: ForwardingPlane,
-    inside_ports: FixedList<PortId, 16>,
+    inside_ports: FixedList<PortId, NAT_INSIDE_PORT_CAPACITY>,
     outside_port: PortId,
     outside_address: Ipv4Addr,
-    static_nat: FixedList<StaticNat, 16>,
-    pat: FixedList<PatSession, PAT_CAPACITY>,
+    static_nat: FixedList<StaticNat, NAT_STATIC_CAPACITY>,
+    pat: FixedList<PatSession, NAT_PAT_CAPACITY>,
     next_pat_token: u16,
     operational: bool,
 }
@@ -104,7 +106,8 @@ impl NatRouter {
         outside_address: Ipv4Addr,
         routes: RoutingTable,
     ) -> Self {
-        let interfaces: FixedList<RoutedInterface, 16> = collect_fixed(interfaces);
+        let interfaces: FixedList<RoutedInterface, NAT_INTERFACE_CAPACITY> =
+            collect_fixed(interfaces);
         let inside_ports = collect_fixed(inside_ports);
         assert!(
             inside_ports

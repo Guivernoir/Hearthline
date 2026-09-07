@@ -54,7 +54,7 @@ pub(crate) fn validate_firewall_ha_override_syntax(
     Ok(())
 }
 
-pub(crate) fn scenario_firewall_ha_states(
+pub fn scenario_firewall_ha_states(
     scenario: &ScenarioConfig,
     appliances: &ConfigRepository,
     connections: &ConnectionRepository,

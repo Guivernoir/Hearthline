@@ -1,0 +1,53 @@
+schema_version: 0.1.0
+id: water-distribution-train
+parameters:
+  - id: pump-count
+    kind: { type: integer, minimum: 1, maximum: 8 }
+    required: true
+  - id: sensor-count
+    kind: { type: integer, minimum: 2, maximum: 24 }
+    required: true
+  - id: nominal-pressure
+    kind:
+      type: quantity
+      unit: bar
+      scale: 1000
+      minimum_raw: 1000
+      maximum_raw: 10000
+    default: "4.000 bar"
+nodes:
+  - local_id: controller
+    family: virtual-controller
+    ports: [control, supervisory]
+  - local_id: pump
+    family: field-actuator
+    repeat_parameter: pump-count
+    ports: [control, heartbeat]
+  - local_id: sensor
+    family: field-sensor
+    repeat_parameter: sensor-count
+    ports: [measurement]
+connections:
+  - local_id: controller-pump
+    from_node: controller
+    from_port: control
+    to_node: pump
+    to_port: control
+    mode: fan-out
+  - local_id: controller-sensor
+    from_node: controller
+    from_port: supervisory
+    to_node: sensor
+    to_port: measurement
+    mode: fan-out
+exports:
+  - id: supervisory
+    kind: signal
+    node: controller
+    port: supervisory
+    contract: process-telemetry
+  - id: water-outlet
+    kind: material-handoff
+    node: pump
+    port: heartbeat
+    contract: distributed-water

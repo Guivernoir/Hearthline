@@ -8,7 +8,8 @@ that is still required.
 
 ## Implemented Baseline
 
-Each area currently has nine parsed appliance files:
+The eight baseline areas outside Body Preparation and Forming each have nine
+parsed appliance files:
 
 - One industrial access switch.
 - One logical area vPLC.
@@ -23,7 +24,7 @@ The separate physical `OT-vPLC-HOST-01/02` records are stored under
 Physical-mode render bindings associate both hosts with each grouped vPLC host
 marker, while logical mode resolves the area-specific controller file.
 
-Every process appliance uses schema `0.3.0` and is validated by Rust. Port
+Every process appliance uses schema `0.10.0` and is validated by Rust. Port
 hardware, state, speed, duplex, and MTU are appliance configuration; individual
 Ethernet, virtual-runtime, and field-wiring attachments remain separate
 connection documents. The
@@ -40,7 +41,6 @@ exercise them.
 
 The process model still needs canonical records for:
 
-- Area sequence and material-flow relationships.
 - Cell-network and interface peer relationships.
 - Controller tasks and program assignments.
 - Symbolic tags and distributed-I/O channels.
@@ -54,17 +54,17 @@ vendor-neutral candidate. Control logic is not embedded into appliance YAML.
 
 ## Generation Boundary
 
-[`process-view.json`](../../../../packages/web/src/generated/process-view.json) remains a
-bootstrap presentation model. Rust currently generates only
-[`appliance-configs.json`](../../../../packages/web/src/generated/appliance-configs.json)
-from validated appliance YAML. A future process generator must add area
-topology, control-source and I/O cross-references, simulation state, scenario
-results, and source-located diagnostics before the bootstrap model can be
-retired.
+[`architecture.yaml`](architecture.yaml) owns the process areas, support nodes,
+network relationships, and ordered material flow. Rust validates those records
+against the appliance repository and generates both
+[`process-view.json`](../../../../packages/web/src/generated/process-view.json)
+and
+[`appliance-configs.json`](../../../../packages/web/src/generated/appliance-configs.json).
+The generated process catalog is presentation metadata, not process state.
 
 Generated files are replaced atomically. Svelte rejects incompatible schema
 versions and does not supply missing control, network, or process defaults.
 
-Before process-area control execution is integrated, the Rust engine will
-establish the formal communication contract used to carry network and field
-messages through these configured ports and media.
+Broader process-area control execution will continue to use the formal Rust
+communication contracts for network and field messages through configured
+ports and media.

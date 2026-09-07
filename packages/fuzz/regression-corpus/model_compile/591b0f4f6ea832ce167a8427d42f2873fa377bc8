@@ -1,0 +1,23 @@
+schema_version: 0.1.0
+id: water-train
+parameters:
+  - id: pump-count
+    kind: integer
+    required: true
+    minimum: 1
+    maximum: 8
+nodes:
+  - id: pump
+    appliance_kind: field-actuator
+    repeat: pump-count
+connections: []
+exports: []
+imports: []
+---INSTANCE---
+schema_version: 0.1.0
+id: water-train-a
+blueprint: water-train
+site: factory
+environment: water-preparatin
+values:
+  pump-count: 4

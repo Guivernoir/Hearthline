@@ -2,12 +2,13 @@ use core::net::Ipv4Addr;
 
 use heapless::Vec as FixedList;
 use hearthline_model::{
-    ComponentId, ComponentKind, NetworkPayload, PortId, ProcessEvent, ProcessSignal, ServiceKind,
-    SignalValue, Text,
+    ComponentId, ComponentKind, FixedValue, NetworkPayload, PortId, ProcessEvent, ProcessSignal,
+    ServiceKind, SignalValue, Text,
 };
 
 use super::is_industrial_communication;
 use super::storage::{Ports, TaggedValues, collect_ports, get, upsert};
+use crate::capacity::{HMI_COMMAND_CAPACITY, PLC_RULE_CAPACITY};
 use crate::network::{EndpointReceive, EndpointStack};
 use crate::runtime::{collect_fixed, runtime_text, single_effect};
 use crate::{
@@ -18,8 +19,8 @@ use crate::{
 #[derive(Clone, Debug, PartialEq)]
 pub enum Comparison {
     BoolEquals(bool),
-    AnalogGreaterThan(f64),
-    AnalogLessThan(f64),
+    AnalogGreaterThan(FixedValue),
+    AnalogLessThan(FixedValue),
     IntegerGreaterThan(i64),
     IntegerLessThan(i64),
 }
@@ -54,7 +55,7 @@ pub struct VirtualPlc {
     elapsed_ms: u64,
     inputs: TaggedValues<ProcessSignal>,
     outputs: TaggedValues<SignalValue>,
-    rules: FixedList<LogicRule, 16>,
+    rules: FixedList<LogicRule, PLC_RULE_CAPACITY>,
     network: Option<EndpointStack>,
     operational: bool,
 }
@@ -249,7 +250,7 @@ pub struct OperatorInterface {
     id: ComponentId,
     kind: ComponentKind,
     ports: Ports,
-    allowed_command_tags: FixedList<Text<64>, 64>,
+    allowed_command_tags: FixedList<Text<64>, HMI_COMMAND_CAPACITY>,
     operational: bool,
 }
 

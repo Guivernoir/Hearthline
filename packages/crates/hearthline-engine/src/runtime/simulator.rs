@@ -4,16 +4,13 @@ use core::fmt::{self, Display, Formatter, Write as _};
 use heapless::{Deque, Vec as FixedList};
 use hearthline_model::{ComponentId, EthernetFrame, Ipv4Packet, PortId, Text};
 
+use crate::capacity::{
+    SIMULATOR_COMPONENT_CAPACITY, SIMULATOR_DELAYED_CAPACITY, SIMULATOR_IMMEDIATE_CAPACITY,
+    SIMULATOR_LINK_CAPACITY, SIMULATOR_SHARED_MEDIA_CAPACITY, SIMULATOR_TRACE_CAPACITY,
+};
 use crate::{
     DropReason, Effect, Ipv4Egress, MediaLink, NetworkIngress, SimulatedComponent, SimulationEvent,
 };
-
-const COMPONENT_CAPACITY: usize = 192;
-const LINK_CAPACITY: usize = 256;
-const IMMEDIATE_CAPACITY: usize = 64;
-const DELAYED_CAPACITY: usize = 64;
-const TRACE_CAPACITY: usize = 224;
-const SHARED_MEDIA_CAPACITY: usize = 32;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct TraceEntry {
@@ -82,13 +79,13 @@ struct DelayedEvent {
 }
 
 pub struct Simulator<'components> {
-    components: FixedList<&'components mut dyn SimulatedComponent, COMPONENT_CAPACITY>,
-    links: FixedList<&'components mut MediaLink, LINK_CAPACITY>,
-    immediate: Deque<QueuedEvent, IMMEDIATE_CAPACITY>,
-    delayed: FixedList<DelayedEvent, DELAYED_CAPACITY>,
+    components: FixedList<&'components mut dyn SimulatedComponent, SIMULATOR_COMPONENT_CAPACITY>,
+    links: FixedList<&'components mut MediaLink, SIMULATOR_LINK_CAPACITY>,
+    immediate: Deque<QueuedEvent, SIMULATOR_IMMEDIATE_CAPACITY>,
+    delayed: FixedList<DelayedEvent, SIMULATOR_DELAYED_CAPACITY>,
     next_sequence: u64,
     time_us: u64,
-    trace: FixedList<TraceEntry, TRACE_CAPACITY>,
+    trace: FixedList<TraceEntry, SIMULATOR_TRACE_CAPACITY>,
 }
 
 impl Default for Simulator<'_> {
@@ -126,7 +123,7 @@ impl<'components> Simulator<'components> {
             .push(component)
             .map_err(|_| SimulationError::CapacityExceeded {
                 resource: "components",
-                limit: COMPONENT_CAPACITY,
+                limit: SIMULATOR_COMPONENT_CAPACITY,
             })
     }
 
@@ -155,7 +152,7 @@ impl<'components> Simulator<'components> {
             .push(link)
             .map_err(|_| SimulationError::CapacityExceeded {
                 resource: "links",
-                limit: LINK_CAPACITY,
+                limit: SIMULATOR_LINK_CAPACITY,
             })
     }
 
@@ -266,7 +263,7 @@ impl<'components> Simulator<'components> {
         else {
             return Ok(());
         };
-        let mut link_indices: FixedList<usize, SHARED_MEDIA_CAPACITY> = FixedList::new();
+        let mut link_indices: FixedList<usize, SIMULATOR_SHARED_MEDIA_CAPACITY> = FixedList::new();
         for (index, _) in self
             .links
             .iter()
@@ -277,7 +274,7 @@ impl<'components> Simulator<'components> {
                 .push(index)
                 .map_err(|_| SimulationError::CapacityExceeded {
                     resource: "shared media fan-out",
-                    limit: SHARED_MEDIA_CAPACITY,
+                    limit: SIMULATOR_SHARED_MEDIA_CAPACITY,
                 })?;
         }
         if link_indices.is_empty() {
@@ -400,7 +397,7 @@ impl<'components> Simulator<'components> {
             .push_back(event)
             .map_err(|_| SimulationError::CapacityExceeded {
                 resource: "immediate event queue",
-                limit: IMMEDIATE_CAPACITY,
+                limit: SIMULATOR_IMMEDIATE_CAPACITY,
             })
     }
 
@@ -425,7 +422,7 @@ impl<'components> Simulator<'components> {
             .insert(position, delayed)
             .map_err(|_| SimulationError::CapacityExceeded {
                 resource: "delayed event queue",
-                limit: DELAYED_CAPACITY,
+                limit: SIMULATOR_DELAYED_CAPACITY,
             })
     }
 
@@ -446,7 +443,7 @@ impl<'components> Simulator<'components> {
             .push(entry)
             .map_err(|_| SimulationError::CapacityExceeded {
                 resource: "simulation trace",
-                limit: TRACE_CAPACITY,
+                limit: SIMULATOR_TRACE_CAPACITY,
             })
     }
 }

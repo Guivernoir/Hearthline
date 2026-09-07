@@ -38,12 +38,13 @@ path. Forming now executes independent instances of one validated, bounded
 Structured Text sequence through an explicit YAML I/O map; Rust remains
 responsible for plant dynamics and scoped trips. Body Preparation is presented
 as a gateway to separate slip, water preparation/distribution, and glaze
-buildings. Six scoped HMI/vPLC pairs run four Rust-owned process trains and two
-water-pipeline control scopes, with mass and water inventories,
+buildings. Six scoped HMI/vPLC pairs run one source-driven slip train, three
+Rust-sequenced process trains, and two water-pipeline control scopes, with mass and water inventories,
 public-reference recipes, quality release, seven remote-I/O stations, eight
 water routes, 16 heartbeat-supervised pumps, four material handoffs, and
-deterministic disturbances. Its validated
-Structured Text sequence and explicit I/O map currently cover the slip train.
+deterministic disturbances. Its validated Structured Text sequence and
+explicit I/O map own the slip controller phase and batch state while Rust owns
+the material and equipment physics.
 Released slip updates the live Forming material state; finite cross-area
 inventory remains unimplemented. The other eight areas do not yet execute
 control sources.

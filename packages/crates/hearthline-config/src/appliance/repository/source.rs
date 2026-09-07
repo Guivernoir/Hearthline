@@ -5,10 +5,8 @@ use super::ConfigRepository;
 use crate::ConfigError;
 
 impl ConfigRepository {
-    pub(crate) fn read_project_source(
-        &self,
-        reference: &str,
-    ) -> Result<(PathBuf, String), ConfigError> {
+    #[doc(hidden)]
+    pub fn read_project_source(&self, reference: &str) -> Result<(PathBuf, String), ConfigError> {
         let relative = Path::new(reference);
         if relative.is_absolute()
             || relative

@@ -7,6 +7,7 @@ use hearthline_model::{
     NetworkPayload, PortId, ServiceKind, Text, Transport,
 };
 
+use crate::capacity::{DNS_RECORD_CAPACITY, HOST_SERVICE_CAPACITY};
 use crate::runtime::{collect_fixed, runtime_text, single_effect};
 use crate::{DropReason, Effect, EffectList, NeighborEntry, SimulatedComponent, SimulationEvent};
 
@@ -90,7 +91,7 @@ pub struct ServiceNode {
     id: ComponentId,
     kind: ComponentKind,
     network: EndpointStack,
-    services: FixedList<ServiceKind, 16>,
+    services: FixedList<ServiceKind, HOST_SERVICE_CAPACITY>,
     http_site: Option<(Text<128>, HttpDocument)>,
     respond_to_icmp: bool,
     operational: bool,
@@ -293,7 +294,7 @@ impl SimulatedComponent for ServiceNode {
 pub struct DnsServer {
     id: ComponentId,
     network: EndpointStack,
-    records: FixedList<(Text<128>, Ipv4Addr), 8>,
+    records: FixedList<(Text<128>, Ipv4Addr), DNS_RECORD_CAPACITY>,
     respond_to_icmp: bool,
     operational: bool,
 }

@@ -3,9 +3,8 @@ use core::net::Ipv4Addr;
 use heapless::Vec as FixedList;
 use hearthline_model::{Ipv4InterfaceAddress, MacAddress, PortId, VlanId};
 
+use crate::capacity::{FIRST_HOP_CAPACITY, INTERFACE_ADDRESS_CAPACITY};
 use crate::runtime::collect_fixed;
-
-const FIRST_HOP_CAPACITY: usize = 4;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct FirstHopAddress {
@@ -35,7 +34,7 @@ impl FirstHopAddress {
 pub struct RoutedInterface {
     pub id: PortId,
     pub mac: MacAddress,
-    pub addresses: FixedList<Ipv4InterfaceAddress, 4>,
+    pub addresses: FixedList<Ipv4InterfaceAddress, INTERFACE_ADDRESS_CAPACITY>,
     pub vlan: VlanId,
     pub mtu: u16,
     pub forwarding: bool,

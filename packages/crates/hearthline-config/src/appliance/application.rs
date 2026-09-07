@@ -28,7 +28,8 @@ pub enum HttpMethodConfig {
 }
 
 impl HttpMethodConfig {
-    pub(crate) const fn runtime(self) -> HttpMethod {
+    #[doc(hidden)]
+    pub const fn runtime(self) -> HttpMethod {
         match self {
             Self::Get => HttpMethod::Get,
             Self::Head => HttpMethod::Head,
@@ -63,7 +64,8 @@ pub enum HttpInspectionTargetConfig {
 }
 
 impl HttpInspectionTargetConfig {
-    pub(crate) const fn runtime(self) -> HttpInspectionTarget {
+    #[doc(hidden)]
+    pub const fn runtime(self) -> HttpInspectionTarget {
         match self {
             Self::Path => HttpInspectionTarget::Path,
             Self::Body => HttpInspectionTarget::Body,

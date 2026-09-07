@@ -2,25 +2,25 @@ mod aggregation;
 mod layer3;
 mod state;
 
-pub use aggregation::SwitchAggregationGroup;
-pub use layer3::Layer3Switch;
-
-use heapless::Vec as FixedList;
-
-use hearthline_model::{ComponentId, ComponentKind, MacAddress, PortId, VlanId};
-
+use crate::capacity::{
+    SWITCH_AGGREGATION_CAPACITY, SWITCH_EGRESS_CAPACITY, SWITCH_FORWARDING_CAPACITY,
+    SWITCH_PORT_CAPACITY, SWITCH_VLAN_CAPACITY, WIRELESS_CLIENT_CAPACITY,
+};
 use crate::runtime::{collect_fixed, runtime_text, single_effect};
 use crate::{DropReason, Effect, EffectList, SimulatedComponent, SimulationEvent};
+pub use aggregation::SwitchAggregationGroup;
+use heapless::Vec as FixedList;
+use hearthline_model::{ComponentId, ComponentKind, MacAddress, PortId, VlanId};
+pub use layer3::Layer3Switch;
 
-const FORWARDING_CAPACITY: usize = 64;
 const DEFAULT_AGING_TIME_US: u64 = 300_000_000;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SwitchPort {
     pub id: PortId,
-    pub allowed_vlans: FixedList<VlanId, 32>,
+    pub allowed_vlans: FixedList<VlanId, SWITCH_VLAN_CAPACITY>,
     pub forwarding: bool,
-    blocked_vlans: FixedList<VlanId, 32>,
+    blocked_vlans: FixedList<VlanId, SWITCH_VLAN_CAPACITY>,
 }
 
 impl SwitchPort {
@@ -51,9 +51,9 @@ impl SwitchPort {
 pub struct LearningSwitch {
     id: ComponentId,
     kind: ComponentKind,
-    ports: FixedList<SwitchPort, 16>,
-    forwarding_table: FixedList<MacTableEntry, FORWARDING_CAPACITY>,
-    aggregations: FixedList<SwitchAggregationGroup, 16>,
+    ports: FixedList<SwitchPort, SWITCH_PORT_CAPACITY>,
+    forwarding_table: FixedList<MacTableEntry, SWITCH_FORWARDING_CAPACITY>,
+    aggregations: FixedList<SwitchAggregationGroup, SWITCH_AGGREGATION_CAPACITY>,
     multi_chassis_peer_link: Option<PortId>,
     aging_time_us: u64,
     operational: bool,
@@ -301,7 +301,7 @@ impl LearningSwitch {
 pub struct WirelessAccessPoint {
     bridge: LearningSwitch,
     wireless_port: PortId,
-    associated_clients: FixedList<MacAddress, 16>,
+    associated_clients: FixedList<MacAddress, WIRELESS_CLIENT_CAPACITY>,
 }
 
 impl WirelessAccessPoint {
@@ -339,6 +339,10 @@ impl WirelessAccessPoint {
         {
             self.associated_clients.swap_remove(index);
         }
+    }
+
+    pub fn set_port_forwarding(&mut self, port: &PortId, forwarding: bool) -> bool {
+        self.bridge.set_port_forwarding(port, forwarding)
     }
 }
 
@@ -446,7 +450,9 @@ impl SimulatedComponent for LearningSwitch {
                 })
                 .flatten();
 
-                let egress_ports: FixedList<PortId, 16> = if let Some(egress) = learned_egress {
+                let egress_ports: FixedList<PortId, SWITCH_EGRESS_CAPACITY> = if let Some(egress) =
+                    learned_egress
+                {
                     if *egress == ingress.port {
                         return single_effect(Effect::Observe {
                             detail: "filtered destination learned on ingress port".into(),

@@ -3,7 +3,7 @@ use core::net::Ipv4Addr;
 use heapless::Vec as FixedList;
 use hearthline_model::{MacAddress, PortId};
 
-const NEIGHBOR_CAPACITY: usize = 32;
+use crate::capacity::NEIGHBOR_CAPACITY;
 const REACHABLE_TIME_US: u64 = 1_200_000_000;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
