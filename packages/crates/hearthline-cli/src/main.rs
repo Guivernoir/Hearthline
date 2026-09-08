@@ -537,7 +537,7 @@ fn project_config_root() -> Result<PathBuf, Box<dyn Error>> {
 
 #[cfg(test)]
 mod tests {
-    use super::repository_root_for_config;
+    use super::{ReplayCommand, replay, repository_root_for_config};
     use std::path::Path;
 
     #[test]
@@ -546,5 +546,31 @@ mod tests {
             repository_root_for_config(Path::new("/workspace/project/config")),
             Some(Path::new("/workspace"))
         );
+    }
+
+    #[test]
+    fn golden_replays_fit_one_mib_worker_stack() {
+        std::thread::Builder::new()
+            .name("golden-replay-stack-probe".into())
+            .stack_size(1024 * 1024)
+            .spawn(|| {
+                let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../project/replays");
+                for artifact in [
+                    "safety-firewall-isolation.json",
+                    "network-customer-dns.json",
+                    "forming-historian.json",
+                    "body-preparation-local-autonomy.json",
+                    "conduit-overload.json",
+                    "recovery-firewall-session.json",
+                ] {
+                    replay(ReplayCommand::Verify {
+                        artifact: root.join(artifact),
+                    })
+                    .unwrap_or_else(|error| panic!("{artifact}: {error}"));
+                }
+            })
+            .expect("constrained replay worker starts")
+            .join()
+            .expect("all golden replays complete on a constrained stack");
     }
 }

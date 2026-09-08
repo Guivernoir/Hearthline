@@ -213,6 +213,8 @@ jobs:
         with:
           workspaces: packages
           shared-key: "replay-${{ matrix.platform }}-Cargo.lock"
+      - name: Verify golden replays on a 1 MiB worker stack
+        run: cargo test --locked --manifest-path packages/Cargo.toml -p hearthline-cli --bin hearthline golden_replays_fit_one_mib_worker_stack -- --nocapture
       - run: cargo run --manifest-path packages/Cargo.toml --bin hearthline -- replay verify project/replays/network-customer-dns.json
       - run: cargo run --manifest-path packages/Cargo.toml --bin hearthline -- replay verify project/replays/safety-firewall-isolation.json
       - run: cargo run --manifest-path packages/Cargo.toml --bin hearthline -- replay verify project/replays/forming-historian.json

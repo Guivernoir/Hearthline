@@ -424,7 +424,7 @@ impl ConfiguredNetwork {
         at_us: u64,
         event_limit: usize,
     ) -> Result<Vec<TraceEntry>, SimulationError> {
-        let mut simulator = Simulator::with_start_time_us(at_us);
+        let mut simulator = boxed_simulator(at_us);
         for appliance in &mut self.appliances {
             simulator.add(appliance)?;
         }
@@ -434,6 +434,12 @@ impl ConfiguredNetwork {
         simulator.inject(target, event)?;
         Ok(simulator.run(event_limit)?.to_vec())
     }
+}
+
+// End the fixed-buffer constructor's stack frame before packet handlers run.
+#[inline(never)]
+fn boxed_simulator<'components>(at_us: u64) -> Box<Simulator<'components>> {
+    Box::new(Simulator::with_start_time_us(at_us))
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]

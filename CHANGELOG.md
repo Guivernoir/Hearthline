@@ -102,6 +102,9 @@ migrations.
   configuration editor.
 - Canonicalized model source paths and text newlines before lock hashing so
   Windows and Unix checkouts produce the same lock and golden-replay authority.
+- Moved host network simulator buffers off the packet-dispatch stack, fixing
+  Windows CLI stack overflow during the firewall-isolation replay. All six
+  golden replays now have a 1 MiB worker-stack regression in each platform job.
 - Prevented recurrence of the Body Preparation HMI stack overflow by moving
   large construction work off constrained caller stacks and adding explicit
   construction, snapshot, projection, and replay stack tests.

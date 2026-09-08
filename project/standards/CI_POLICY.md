@@ -18,7 +18,7 @@ to keep the target wall time below 15 minutes.
 | Capacity and deterministic budgets | Locked compilation, generated capacity report, saturation contracts, 75-cell acceptance model, 24-hour nominal/failure run, allocation counter, queue high-water marks, and structural size budgets |
 | Regression corpus and fuzz smoke | Eight parallel checked-in corpora plus short identifier, appliance, connection, blueprint, compiler, scheduler, replay, and control-parser campaigns |
 | Svelte and Chromium workflows | Exact npm install, SvelteKit synchronization, audit, type checks, Vitest, static production build, and desktop Chromium Playwright workflows |
-| Golden replay matrix | All committed replay artifacts on Linux x64, Linux arm64, Windows x64, and macOS arm64 |
+| Golden replay matrix | All committed replay artifacts on Linux x64, Linux arm64, Windows x64, and macOS arm64, plus complete CLI replay verification on an explicit 1 MiB worker stack on each platform |
 
 Required check names are repository policy. Renaming, removing, or making one
 non-blocking requires a reviewed policy change in the same pull request.
