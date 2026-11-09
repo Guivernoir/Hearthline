@@ -1,0 +1,123 @@
+{
+  "$defs": {
+    "MaterialProvenance": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "kind": {
+              "const": "synthetic-verification",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "description"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Traceability, not a claim that the application has validated this law.",
+          "properties": {
+            "kind": {
+              "const": "public-measurement",
+              "type": "string"
+            },
+            "locator": {
+              "type": "string"
+            },
+            "source": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "source",
+            "locator"
+          ],
+          "type": "object"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Partial constitutive contract. Optional caloric laws store dry-solid and\nliquid sensible energy; vapor storage, sorption and phase equilibria are absent.",
+  "properties": {
+    "diffusivity_multiplier_by_moisture": {
+      "description": "[water mass / dry solid mass, dimensionless diffusivity multiplier].",
+      "items": {
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 2,
+        "minItems": 2,
+        "type": "array"
+      },
+      "type": "array"
+    },
+    "dry_heat_capacity_j_kg_k_by_temperature": {
+      "items": {
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 2,
+        "minItems": 2,
+        "type": "array"
+      },
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "id": {
+      "type": "string"
+    },
+    "liquid_heat_capacity_j_kg_k_by_temperature": {
+      "items": {
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 2,
+        "minItems": 2,
+        "type": "array"
+      },
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "provenance": {
+      "$ref": "#/$defs/MaterialProvenance"
+    },
+    "reference_diffusivity_m2_s": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "temperature_range_k": {
+      "description": "Closed interval; the law must not be extrapolated beyond it.",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 2,
+      "minItems": 2,
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "provenance",
+    "reference_diffusivity_m2_s",
+    "temperature_range_k",
+    "diffusivity_multiplier_by_moisture"
+  ],
+  "title": "DryingMaterialDocument",
+  "type": "object"
+}

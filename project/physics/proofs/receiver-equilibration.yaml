@@ -1,0 +1,16 @@
+schema_version: 0.1.0
+id: receiver-equilibration
+shape: [2, 2, 2]
+spacing_m: ['1', '1', '1']
+timestep_s: '1'
+steps: 40
+maximum_iterations: 400
+residual_tolerance: '0.000000001'
+allocation_budget_bytes: 1610612736
+case:
+  kind: isothermal-receiver
+  temperature_k: '300'
+  gas_constant_j_kg_k: '287.05'
+  initial_pressure_pa: '200000'
+  receiver_pressure_pa: '100000'
+  conductance_kg_pa_s: '0.000001'

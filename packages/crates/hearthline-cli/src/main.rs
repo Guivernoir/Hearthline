@@ -3,6 +3,8 @@ use std::error::Error;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+mod physics;
+
 use clap::{Parser, Subcommand, ValueEnum};
 use hearthline_project::{CapacityStatus, ProjectCompiler};
 use hearthline_sim::{
@@ -27,6 +29,10 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
+    Physics {
+        #[command(subcommand)]
+        command: physics::PhysicsCommand,
+    },
     Model {
         #[command(subcommand)]
         command: ModelCommand,
@@ -87,6 +93,7 @@ enum ReplayCommand {
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
     match cli.command {
+        Command::Physics { command } => physics::execute(command)?,
         Command::Model { command } => model(command)?,
         Command::Capacity { command } => capacity(command)?,
         Command::Run { scenario, record } => run(&scenario, record.as_deref())?,

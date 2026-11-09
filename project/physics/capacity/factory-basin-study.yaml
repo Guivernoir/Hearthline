@@ -1,0 +1,297 @@
+# Same workloads as factory-baseline.yaml; only the product profile is replaced.
+schema_version: 0.1.0
+id: factory-basin-study
+allocation_budget_bytes: 1610612736
+reserve_percent: 25
+snapshot_copies: 2
+profiles:
+  - id: air-equipment
+    shape:
+      - 16
+      - 4
+      - 4
+    kernel: compressible-flow
+    basis: Cartesian equipment-volume envelope; no moisture, turbulence or compressor solids yet.
+  - id: liquid-transport
+    shape:
+      - 32
+      - 4
+      - 4
+    kernel: scalar-transport
+    basis: Transport-array lower bound only; incompressible momentum, species and pipe-wall models are pending.
+  - id: preparation-vessel
+    shape:
+      - 16
+      - 16
+      - 16
+    kernel: scalar-transport
+    basis: Two transported fields only; particles, gas, rheology and treatment chemistry remain unbudgeted.
+  - id: product-basin
+    shape:
+      - 24
+      - 18
+      - 9
+    kernel: drying-elasticity
+    basis: Original sparse basin with synthetic wet-energy and linear-elastic laws; coarse one-cell walls are not
+      a qualified production mesh. Damage, glaze and firing constitutive fields remain absent.
+    model:
+      id: basin-wet-drying
+      sha256: b7372102f125870303c93a52b2d771b689e89a4b5b44e7f98d07c64be8efeb7a
+  - id: process-atmosphere
+    shape:
+      - 32
+      - 16
+      - 16
+    kernel: compressible-flow
+    basis: Gas conservation arrays only; combustion, radiation, humidity and turbulence remain unbudgeted.
+populations:
+  - id: central-air-equipment
+    area: compressor-station
+    profile: air-equipment
+    capacity: 16
+    workload:
+      kind: fixed
+      count: 12
+    overflow: reject-start
+    basis: Planning envelope for redundant compressors, coolers, separators, receivers, dryers and filters; not a
+      finalized equipment list.
+  - id: sector-air-equipment
+    area: factory-utilities
+    profile: air-equipment
+    capacity: 40
+    workload:
+      kind: fixed
+      count: 30
+    overflow: reject-start
+    basis: Ten sectors with one independent compressor, receiver and treatment volume each; local redundancy needs
+      a later equipment review.
+  - id: high-pressure-equipment
+    area: forming
+    profile: air-equipment
+    capacity: 12
+    workload:
+      kind: fixed
+      count: 8
+    overflow: reject-start
+    basis: Four booster and four high-pressure receiver volumes; inlet connections and delivered supply are not
+      simulated by this study.
+  - id: air-distribution
+    area: factory-utilities
+    profile: air-equipment
+    capacity: 88
+    workload:
+      kind: fixed
+      count: 64
+    overflow: reject-start
+    basis: Provisional header and branch volume count; engineering pipe geometry is not available from the screen
+      drawing.
+  - id: industrial-water
+    area: body-preparation
+    profile: liquid-transport
+    capacity: 32
+    workload:
+      kind: fixed
+      count: 24
+    overflow: reject-start
+    basis: Supply treatment and distribution envelope, not a hydraulic design.
+  - id: body-return-water
+    area: body-preparation
+    profile: liquid-transport
+    capacity: 32
+    workload:
+      kind: fixed
+      count: 24
+    overflow: reject-start
+    basis: Independent body-return collection and treatment envelope.
+  - id: glaze-return-water
+    area: body-preparation
+    profile: liquid-transport
+    capacity: 16
+    workload:
+      kind: fixed
+      count: 12
+    overflow: reject-start
+    basis: Glaze returns remain segregated; no mutable fields shared with body returns.
+  - id: slip-preparation
+    area: body-preparation
+    profile: preparation-vessel
+    capacity: 16
+    workload:
+      kind: fixed
+      count: 12
+    overflow: backpressure
+    basis: Concurrent tank, mixing, aging and laboratory sample volume envelope.
+  - id: glaze-preparation
+    area: body-preparation
+    profile: preparation-vessel
+    capacity: 12
+    workload:
+      kind: fixed
+      count: 8
+    overflow: backpressure
+    basis: Independent milling, storage and sample volume envelope.
+  - id: slip-and-glaze-distribution
+    area: factory-utilities
+    profile: liquid-transport
+    capacity: 44
+    workload:
+      kind: fixed
+      count: 32
+    overflow: reject-start
+    basis: Separate slip and glaze transport fields, including flushing and recovery volume allowance.
+  - id: mould-products
+    area: forming
+    profile: product-basin
+    capacity: 6
+    workload:
+      kind: fixed
+      count: 4
+    overflow: backpressure
+    basis: Four equal moulds, one independently evolving product in each.
+  - id: controlled-drying-products
+    area: controlled-drying
+    profile: product-basin
+    capacity: 1600
+    workload:
+      kind: production
+      sources: 4
+      minimum_cycle_us: 900000000
+      maximum_residence_us: 259200000000
+      simultaneous_burst: 4
+    overflow: backpressure
+    basis: Synthetic planning case of one piece per mould per 15 minutes and 72-hour residence; holds beyond the
+      envelope must stop upstream admission.
+  - id: industrial-dryer-products
+    area: industrial-dryer
+    profile: product-basin
+    capacity: 48
+    workload:
+      kind: production
+      sources: 4
+      minimum_cycle_us: 900000000
+      maximum_residence_us: 7200000000
+      simultaneous_burst: 4
+    overflow: backpressure
+    basis: Same source envelope, two-hour drying residence assumption; physical completion is not prescribed by
+      this estimate.
+  - id: glaze-application-products
+    area: color-and-glaze
+    profile: product-basin
+    capacity: 28
+    workload:
+      kind: production
+      sources: 4
+      minimum_cycle_us: 900000000
+      maximum_residence_us: 3600000000
+      simultaneous_burst: 4
+    overflow: backpressure
+    basis: One-hour application and staging envelope, with independent product fields.
+  - id: kiln-one-products
+    area: kiln-one
+    profile: product-basin
+    capacity: 520
+    workload:
+      kind: production
+      sources: 4
+      minimum_cycle_us: 900000000
+      maximum_residence_us: 86400000000
+      simultaneous_burst: 4
+    overflow: backpressure
+    basis: Conservative 24-hour kiln and cooling residence assumption, not a firing recipe.
+  - id: intermediate-inspection-products
+    area: intermediate-inspection
+    profile: product-basin
+    capacity: 28
+    workload:
+      kind: production
+      sources: 4
+      minimum_cycle_us: 900000000
+      maximum_residence_us: 3600000000
+      simultaneous_burst: 4
+    overflow: backpressure
+    basis: One-hour inspection and repair-decision envelope.
+  - id: kiln-two-products
+    area: kiln-two
+    profile: product-basin
+    capacity: 520
+    workload:
+      kind: production
+      sources: 4
+      minimum_cycle_us: 900000000
+      maximum_residence_us: 86400000000
+      simultaneous_burst: 4
+    overflow: backpressure
+    basis: Worst-case route sends every piece through a second 24-hour firing/cooling residence; no assumed
+      average refiring fraction.
+  - id: final-inspection-products
+    area: final-inspection
+    profile: product-basin
+    capacity: 28
+    workload:
+      kind: production
+      sources: 4
+      minimum_cycle_us: 900000000
+      maximum_residence_us: 3600000000
+      simultaneous_burst: 4
+    overflow: backpressure
+    basis: One-hour final inspection and release envelope; released pieces leave the existing logistics boundary.
+  - id: drying-atmospheres
+    area: controlled-drying
+    profile: process-atmosphere
+    capacity: 4
+    workload:
+      kind: fixed
+      count: 3
+    overflow: reject-start
+    basis: Controlled-drying and industrial-dryer gas-region envelope, independent of view visibility.
+  - id: kiln-atmospheres
+    area: factory-thermal
+    profile: process-atmosphere
+    capacity: 3
+    workload:
+      kind: fixed
+      count: 2
+    overflow: reject-start
+    basis: Two independent kiln atmospheres; zoning and exhaust detail still need design.
+  - id: application-atmosphere
+    area: color-and-glaze
+    profile: process-atmosphere
+    capacity: 2
+    workload:
+      kind: fixed
+      count: 1
+    overflow: reject-start
+    basis: Spray booth gas-region envelope; dispersed droplets and overspray are additional pending fields.
+auxiliary:
+  - resource: transfer-queues
+    peak_entries: 98304
+    capacity_entries: 131072
+    bytes_per_entry: 128
+    overflow: backpressure
+    basis: Planned bounded material/network handoff descriptors; no material may be discarded on queue overflow.
+  - resource: controller-and-fault-state
+    peak_entries: 3072
+    capacity_entries: 4096
+    bytes_per_entry: 4096
+    overflow: reject-start
+    basis: Planned controller timers, instrument state, RNG, scheduled faults and genealogy metadata; actual
+      layouts require measurement.
+  - resource: historian
+    peak_entries: 786432
+    capacity_entries: 1048576
+    bytes_per_entry: 64
+    overflow: stop-recording
+    basis: Planned archival ring; failure to drain must raise recording diagnostics without freezing plant physics.
+  - resource: projections
+    peak_entries: 192
+    capacity_entries: 256
+    bytes_per_entry: 65536
+    overflow: drop-oldest
+    basis: Read-only presentation frames may be superseded; authoritative fields may not.
+  - resource: host-metadata
+    peak_entries: 12288
+    capacity_entries: 16384
+    bytes_per_entry: 4096
+    overflow: reject-start
+    basis: Declared envelope for object headers, configuration strings, snapshot metadata and allocator overhead;
+      excludes browser and OS memory and is not an RSS measurement.

@@ -1,0 +1,32 @@
+schema_version: 0.1.0
+id: drying-deformation
+shape: [3, 3, 3]
+spacing_m: ['0.02', '0.02', '0.02']
+timestep_s: '1'
+steps: 40
+maximum_iterations: 400
+residual_tolerance: '0.0000001'
+allocation_budget_bytes: 1610612736
+case:
+  kind: drying-specimen
+  initial_moisture_kg_kg: '0.2'
+  equilibrium_moisture_kg_kg: '0.02'
+  initial_temperature_k: '300'
+  ambient_temperature_k: '300'
+  dry_density_kg_m3: '1800'
+  moisture_diffusivity_m2_s: '0.000001'
+  surface_transfer_m_s: '0.0000001'
+  heat_capacity_j_kg_k: '900'
+  thermal_conductivity_w_m_k: '0.8'
+  surface_heat_transfer_w_m2_k: '8'
+  latent_heat_j_kg: '2400000'
+  mechanics:
+    length_scale_m: '0.06'
+    stress_scale_pa: '1000000'
+    young_modulus_pa: '1000000'
+    poisson_ratio: '0.25'
+    moisture_expansion_per_kg_kg: '0.2'
+    thermal_expansion_per_k: '0.00001'
+    support: fixed-x-face
+    maximum_iterations: 500
+    residual_tolerance: '0.0000001'

@@ -12,7 +12,7 @@ const baseline = JSON.parse(
 const files = report.data?.[0]?.files ?? [];
 
 const groups = [
-  { id: "deterministic", pattern: /hearthline-(model|engine|project|sim)\/src\//u, lines: 85, branches: 80 },
+  { id: "deterministic", pattern: /hearthline-(model|physics|engine|project|sim)\/src\//u, lines: 85, branches: 80 },
   { id: "host", pattern: /hearthline-(config|operator|api|cli)\/src\//u, lines: 80, branches: 75 },
   {
     id: "critical",

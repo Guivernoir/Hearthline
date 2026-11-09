@@ -18,6 +18,7 @@ pub use hearthline_config::{
 mod conduit;
 mod contract;
 mod hmi;
+pub mod physics;
 mod replay;
 mod runtime;
 mod scenario;

@@ -1,0 +1,292 @@
+{
+  "$defs": {
+    "AuxiliaryResource": {
+      "enum": [
+        "transfer-queues",
+        "controller-and-fault-state",
+        "historian",
+        "projections",
+        "host-metadata"
+      ],
+      "type": "string"
+    },
+    "AuxiliaryStorage": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "description": "Declared envelope only; not a claim that the future runtime was measured.",
+          "type": "string"
+        },
+        "bytes_per_entry": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "capacity_entries": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "overflow": {
+          "$ref": "#/$defs/StorageOverflow"
+        },
+        "peak_entries": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "resource": {
+          "$ref": "#/$defs/AuxiliaryResource"
+        }
+      },
+      "required": [
+        "resource",
+        "peak_entries",
+        "capacity_entries",
+        "bytes_per_entry",
+        "overflow",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "CapacityKernel": {
+      "enum": [
+        "scalar-transport",
+        "compressible-flow",
+        "drying-elasticity"
+      ],
+      "type": "string"
+    },
+    "CapacityModelReference": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "CapacityProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "description": "Resolution/geometry assumptions must remain visible in the report.",
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "kernel": {
+          "$ref": "#/$defs/CapacityKernel"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CapacityModelReference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Optional typed proof source. Shape and kernel must agree with it; its\nactual sparse geometry and material storage replace the block estimate."
+        },
+        "shape": {
+          "items": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "shape",
+        "kernel",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "PhysicsPopulation": {
+      "additionalProperties": false,
+      "properties": {
+        "area": {
+          "type": "string"
+        },
+        "basis": {
+          "type": "string"
+        },
+        "capacity": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "id": {
+          "type": "string"
+        },
+        "overflow": {
+          "$ref": "#/$defs/PopulationOverflow"
+        },
+        "profile": {
+          "type": "string"
+        },
+        "workload": {
+          "$ref": "#/$defs/PopulationWorkload"
+        }
+      },
+      "required": [
+        "id",
+        "area",
+        "profile",
+        "capacity",
+        "workload",
+        "overflow",
+        "basis"
+      ],
+      "type": "object"
+    },
+    "PopulationOverflow": {
+      "enum": [
+        "reject-start",
+        "backpressure"
+      ],
+      "type": "string"
+    },
+    "PopulationWorkload": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "count": {
+              "format": "uint64",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "kind": {
+              "const": "fixed",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "count"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Each source emits at most one item per minimum cycle. Residence includes\nall holds/rework covered by this pool; an unbounded hold requires backpressure.",
+          "properties": {
+            "kind": {
+              "const": "production",
+              "type": "string"
+            },
+            "maximum_residence_us": {
+              "format": "uint64",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "minimum_cycle_us": {
+              "format": "uint64",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "simultaneous_burst": {
+              "format": "uint64",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "sources": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "kind",
+            "sources",
+            "minimum_cycle_us",
+            "maximum_residence_us",
+            "simultaneous_burst"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "StorageOverflow": {
+      "enum": [
+        "reject-start",
+        "backpressure",
+        "stop-recording",
+        "drop-oldest"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A resource study, not an executable plant model or geometry specification.",
+  "properties": {
+    "allocation_budget_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "auxiliary": {
+      "items": {
+        "$ref": "#/$defs/AuxiliaryStorage"
+      },
+      "type": "array"
+    },
+    "id": {
+      "type": "string"
+    },
+    "populations": {
+      "items": {
+        "$ref": "#/$defs/PhysicsPopulation"
+      },
+      "type": "array"
+    },
+    "profiles": {
+      "items": {
+        "$ref": "#/$defs/CapacityProfile"
+      },
+      "type": "array"
+    },
+    "reserve_percent": {
+      "format": "uint8",
+      "maximum": 255,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "snapshot_copies": {
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "allocation_budget_bytes",
+    "reserve_percent",
+    "snapshot_copies",
+    "profiles",
+    "populations",
+    "auxiliary"
+  ],
+  "title": "PhysicsCapacityConfig",
+  "type": "object"
+}

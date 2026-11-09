@@ -47,11 +47,48 @@ capacity evidence; expanded per-instance YAML is deliberately not committed.
 
 ## Architecture
 
+### 0.4.0 Numerical Work
+
+The [coupled-process release](project/physics/README.md) is under development.
+Its first isolated proofs cover checked numerical arithmetic, implicit 3D
+scalar transport, isothermal receiver equilibration, and coupled heat/moisture
+diffusion. They have YAML inputs, explicit memory budgets, complete field
+checkpoints, exact replay checks, and a tested wall-time pacing accumulator.
+The numerical library also has compressible-flow kernels with viscous/thermal
+transport, and a drying proof coupled to tetrahedral deformation and stress.
+The compressible receiver proof records momentum/energy fields and retries
+alongside physical pressure, temperature, and session time.
+An [original basin proof](project/physics/geometry/README.md) adds digest-pinned
+solid geometry, cavity-aware transport and compiled sparse elasticity.
+The [material proof](project/physics/materials/README.md) adds digest-pinned
+moisture-dependent diffusion, optional solid/liquid sensible enthalpy, conservative
+liquid heat transport, latent-heat coupling and complete replay using
+explicitly synthetic property data, not validated ceramic predictions.
+The [factory capacity study](project/physics/capacity/README.md) derives concurrent
+product demand from cycle/residence envelopes. Its current storage baseline
+exceeds the laptop budget. Pooled workspaces, exact reconstruction of derived
+fields and streamed archives bring the block and coarse-basin implemented-field
+estimates within budget. The first source-backed basin refinement still exceeds
+the usable budget after reserve. An opt-in [zero-start elastic reconstruction](project/physics/populations/reconstruction.md)
+reduces that unchanged mesh/workload study to about 650 MiB for implemented
+fields, at the cost of repeated equilibrium solves. The old failing study is
+retained. Normalized fixed-point preconditioning reaches the refined first-step
+elastic tolerance without increasing its iteration limit. Numerical and
+full-factory memory qualification remain incomplete.
+Production geometry qualification, remaining constitutive fields, factory integration and
+application memory measurements are still required to qualify the memory gate.
+These proofs do not yet replace the canonical factory,
+provide qualified coupled CFD/material mechanics, predict real product defects,
+or add controls to the frontend.
+The current application and locked model remain on `0.3.2` until migration is
+qualified. See the [numerical qualification decision](project/docs/decisions/0002-physics-qualification-before-factory-migration.md).
+
 Dependencies flow downward through these Rust crates:
 
 | Crate | Responsibility |
 | --- | --- |
 | `hearthline-model` | `no_std` identifiers, events, units, fixed-point quantities, and stable contracts |
+| `hearthline-physics` | `no_std`, allocator-free checked numerical proof kernels; factory coupling is pending |
 | `hearthline-engine` | allocator-free component, network, process, safety, and cell behavior |
 | `hearthline-config` | versioned YAML contracts, validation, and immediately previous schema migrations |
 | `hearthline-project` | blueprint expansion, graph compilation, capacity planning, model locking, catalogs, and draft transactions |

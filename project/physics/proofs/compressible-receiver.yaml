@@ -1,0 +1,26 @@
+schema_version: 0.1.0
+id: compressible-receiver
+shape: [6, 2, 2]
+spacing_m: ['0.1', '0.1', '0.1']
+timestep_s: '0.0001'
+steps: 20
+maximum_iterations: 300
+residual_tolerance: '0.0000001'
+allocation_budget_bytes: 1610612736
+case:
+  kind: compressible-receiver
+  flow:
+    length_scale_m: '1'
+    velocity_scale_m_s: '100'
+    density_scale_kg_m3: '1'
+    gas_constant_j_kg_k: '287.05'
+    heat_capacity_ratio: '1.4'
+    initial_temperature_k: '300'
+    upstream_pressure_pa: '200000'
+    receiver_pressure_pa: '100000'
+    receiver_start_x: 2
+    dynamic_viscosity_pa_s: '0.000018'
+    thermal_conductivity_w_m_k: '0.026'
+    wall_temperature_k: null
+    maximum_substeps: 32
+    minimum_solver_step_us: 100

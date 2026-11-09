@@ -1,0 +1,18 @@
+schema_version: 0.1.0
+id: wet-parser-seed
+provenance:
+  kind: synthetic-verification
+  description: Numerical parser regression input, not material data.
+reference_diffusivity_m2_s: '0.000001'
+temperature_range_k: ['273.15', '350']
+diffusivity_multiplier_by_moisture:
+  - ['0', '0.15']
+  - ['0.4', '2']
+dry_heat_capacity_j_kg_k_by_temperature:
+  - ['273.15', '800']
+  - ['300', '900']
+  - ['350', '1100']
+liquid_heat_capacity_j_kg_k_by_temperature:
+  - ['273.15', '4100']
+  - ['300', '4180']
+  - ['350', '4300']

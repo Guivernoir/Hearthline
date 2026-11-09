@@ -56,6 +56,7 @@ pub fn verify() -> Result<(), Box<dyn Error>> {
     let repository = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
     let runtime_roots = [
         repository.join("packages/crates/hearthline-model/src"),
+        repository.join("packages/crates/hearthline-physics/src"),
         repository.join("packages/crates/hearthline-engine/src"),
     ];
     let host_deterministic_roots = [

@@ -8,6 +8,7 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+hearthline-physics = { path = "../hearthline-physics", version = "=0.3.2" }
 hearthline-config = { path = "../hearthline-config", version = "=0.3.2" }
 hearthline-engine = { path = "../hearthline-engine", version = "=0.3.2" }
 hearthline-model = { path = "../hearthline-model", version = "=0.3.2" }
@@ -30,3 +31,27 @@ harness = false
 
 [lints]
 workspace = true
+
+[[test]]
+name = "physics_caloric"
+path = "tests/physics_cases/caloric.rs"
+
+[[test]]
+name = "physics_material"
+path = "tests/physics_cases/material.rs"
+
+[[test]]
+name = "physics_basin"
+path = "tests/physics_cases/basin.rs"
+
+[[test]]
+name = "physics_wet"
+path = "tests/physics_cases/wet.rs"
+
+[[test]]
+name = "physics_capacity"
+path = "tests/physics_cases/capacity.rs"
+
+[[test]]
+name = "physics_reconstruction"
+path = "tests/physics_cases/reconstruction.rs"

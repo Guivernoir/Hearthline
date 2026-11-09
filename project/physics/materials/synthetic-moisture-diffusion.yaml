@@ -1,0 +1,14 @@
+schema_version: 0.1.0
+id: synthetic-moisture-diffusion
+provenance:
+  kind: synthetic-verification
+  description: >-
+    Dimensionless monotonic table for integration and replay verification only.
+    These coefficients are not measurements of a ceramic formulation.
+reference_diffusivity_m2_s: '0.000001'
+temperature_range_k: ['273.15', '350']
+diffusivity_multiplier_by_moisture:
+  - ['0', '0.15']
+  - ['0.05', '0.3']
+  - ['0.2', '1']
+  - ['0.4', '2']

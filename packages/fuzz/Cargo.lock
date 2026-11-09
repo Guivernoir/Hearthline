@@ -180,6 +180,7 @@ dependencies = [
  "hearthline-model",
  "pest",
  "pest_derive",
+ "schemars",
  "serde",
  "serde_json",
  "serde_yaml_ng",
@@ -193,6 +194,7 @@ version = "0.3.2"
 dependencies = [
  "heapless",
  "hearthline-model",
+ "hearthline-physics",
  "serde",
 ]
 
@@ -203,6 +205,7 @@ dependencies = [
  "hearthline-config",
  "hearthline-engine",
  "hearthline-model",
+ "hearthline-physics",
  "hearthline-project",
  "hearthline-sim",
  "libfuzzer-sys",
@@ -218,18 +221,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "hearthline-physics"
+version = "0.3.2"
+
+[[package]]
 name = "hearthline-project"
 version = "0.3.2"
 dependencies = [
  "hearthline-config",
  "hearthline-engine",
  "hearthline-model",
+ "hearthline-physics",
  "schemars",
  "serde",
  "serde_json",
  "serde_yaml_ng",
  "sha2",
  "tempfile",
+ "url",
  "walkdir",
 ]
 
@@ -240,6 +249,7 @@ dependencies = [
  "hearthline-config",
  "hearthline-engine",
  "hearthline-model",
+ "hearthline-physics",
  "hearthline-project",
  "pest",
  "pest_derive",

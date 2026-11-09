@@ -99,6 +99,30 @@ pub fn generated_contract_files() -> Result<Vec<(PathBuf, String)>, serde_json::
             pretty(&schema_value::<BlueprintDefinition>())?,
         ),
         (
+            PathBuf::from("project/contracts/schemas/physics-proof.schema.json"),
+            pretty(&schema_value::<
+                hearthline_config::physics::PhysicsProofConfig,
+            >())?,
+        ),
+        (
+            PathBuf::from("project/contracts/schemas/physics-capacity.schema.json"),
+            pretty(&schema_value::<
+                hearthline_config::physics::capacity::PhysicsCapacityConfig,
+            >())?,
+        ),
+        (
+            PathBuf::from("project/contracts/schemas/solid-geometry.schema.json"),
+            pretty(&schema_value::<
+                hearthline_config::physics::geometry::SolidGeometryDocument,
+            >())?,
+        ),
+        (
+            PathBuf::from("project/contracts/schemas/drying-material.schema.json"),
+            pretty(&schema_value::<
+                hearthline_config::physics::material::DryingMaterialDocument,
+            >())?,
+        ),
+        (
             PathBuf::from("project/contracts/schemas/blueprint-instance.schema.json"),
             pretty(&schema_value::<BlueprintInstance>())?,
         ),

@@ -1,0 +1,20 @@
+schema_version: 0.1.0
+id: synthetic-drying-enthalpy
+provenance:
+  kind: synthetic-verification
+  description: >-
+    Moisture-dependent diffusion and temperature-dependent dry-solid heat
+    capacity for numerical verification only. These coefficients are not
+    measurements of a ceramic formulation. Liquid sensible energy and phase
+    change storage are not included.
+reference_diffusivity_m2_s: '0.000001'
+temperature_range_k: ['273.15', '350']
+diffusivity_multiplier_by_moisture:
+  - ['0', '0.15']
+  - ['0.05', '0.3']
+  - ['0.2', '1']
+  - ['0.4', '2']
+dry_heat_capacity_j_kg_k_by_temperature:
+  - ['273.15', '800']
+  - ['300', '900']
+  - ['350', '1100']

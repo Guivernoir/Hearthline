@@ -1,0 +1,38 @@
+[package]
+name = "hearthline-physics"
+description = "Checked, allocator-free numerical kernels for Hearthline physical models"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dev-dependencies]
+allocation-counter = "=0.8.1"
+
+[lints]
+workspace = true
+
+[[test]]
+name = "caloric"
+path = "tests/thermal/caloric.rs"
+
+[[test]]
+name = "enthalpy"
+path = "tests/thermal/enthalpy.rs"
+
+[[test]]
+name = "enthalpy_convergence"
+path = "tests/thermal/enthalpy_convergence.rs"
+
+[[test]]
+name = "drying"
+path = "tests/thermal/drying.rs"
+
+[[test]]
+name = "variable_drying"
+path = "tests/thermal/variable_drying.rs"
+
+[[test]]
+name = "wet_enthalpy"
+path = "tests/thermal/wet_enthalpy.rs"

@@ -1,0 +1,452 @@
+{
+  "$defs": {
+    "CaloricSolverConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "maximum_local_iterations": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "maximum_sweeps": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "residual_tolerance_j": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "maximum_sweeps",
+        "maximum_local_iterations",
+        "residual_tolerance_j"
+      ],
+      "type": "object"
+    },
+    "CompressibleReceiverConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "density_scale_kg_m3": {
+          "type": "string"
+        },
+        "dynamic_viscosity_pa_s": {
+          "type": "string"
+        },
+        "gas_constant_j_kg_k": {
+          "type": "string"
+        },
+        "heat_capacity_ratio": {
+          "type": "string"
+        },
+        "initial_temperature_k": {
+          "type": "string"
+        },
+        "length_scale_m": {
+          "type": "string"
+        },
+        "maximum_substeps": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "minimum_solver_step_us": {
+          "description": "Minimum retry step in nondimensional solver microseconds.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "receiver_pressure_pa": {
+          "type": "string"
+        },
+        "receiver_start_x": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "thermal_conductivity_w_m_k": {
+          "type": "string"
+        },
+        "upstream_pressure_pa": {
+          "type": "string"
+        },
+        "velocity_scale_m_s": {
+          "type": "string"
+        },
+        "wall_temperature_k": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "length_scale_m",
+        "velocity_scale_m_s",
+        "density_scale_kg_m3",
+        "gas_constant_j_kg_k",
+        "heat_capacity_ratio",
+        "initial_temperature_k",
+        "upstream_pressure_pa",
+        "receiver_pressure_pa",
+        "receiver_start_x",
+        "dynamic_viscosity_pa_s",
+        "thermal_conductivity_w_m_k",
+        "maximum_substeps",
+        "minimum_solver_step_us"
+      ],
+      "type": "object"
+    },
+    "DryingMaterialConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "caloric_solver": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CaloricSolverConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "maximum_iterations": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "reference": {
+          "$ref": "#/$defs/MaterialReference"
+        },
+        "relaxation": {
+          "type": "string"
+        },
+        "residual_tolerance": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "reference",
+        "maximum_iterations",
+        "residual_tolerance",
+        "relaxation"
+      ],
+      "type": "object"
+    },
+    "GeometryReference": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "sha256": {
+          "description": "SHA-256 of the normalized, typed document, not its YAML formatting.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "MaterialReference": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "sha256": {
+          "description": "SHA-256 of the typed document, independent of YAML key order and comments.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "MechanicsInitialGuess": {
+      "enum": [
+        "previous-step",
+        "zero"
+      ],
+      "type": "string"
+    },
+    "PhysicsProofCase": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "flow": {
+              "$ref": "#/$defs/CompressibleReceiverConfig"
+            },
+            "kind": {
+              "const": "compressible-receiver",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "flow"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "conductance_kg_pa_s": {
+              "type": "string"
+            },
+            "gas_constant_j_kg_k": {
+              "type": "string"
+            },
+            "initial_pressure_pa": {
+              "type": "string"
+            },
+            "kind": {
+              "const": "isothermal-receiver",
+              "type": "string"
+            },
+            "receiver_pressure_pa": {
+              "type": "string"
+            },
+            "temperature_k": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "temperature_k",
+            "gas_constant_j_kg_k",
+            "initial_pressure_pa",
+            "receiver_pressure_pa",
+            "conductance_kg_pa_s"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "ambient_temperature_k": {
+              "type": "string"
+            },
+            "dry_density_kg_m3": {
+              "type": "string"
+            },
+            "equilibrium_moisture_kg_kg": {
+              "type": "string"
+            },
+            "heat_capacity_j_kg_k": {
+              "type": "string"
+            },
+            "initial_moisture_kg_kg": {
+              "type": "string"
+            },
+            "initial_temperature_k": {
+              "type": "string"
+            },
+            "kind": {
+              "const": "drying-specimen",
+              "type": "string"
+            },
+            "latent_heat_j_kg": {
+              "type": "string"
+            },
+            "mechanics": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SpecimenMechanicsConfig"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "moisture_diffusivity_m2_s": {
+              "type": "string"
+            },
+            "surface_heat_transfer_w_m2_k": {
+              "type": "string"
+            },
+            "surface_transfer_m_s": {
+              "type": "string"
+            },
+            "thermal_conductivity_w_m_k": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "initial_moisture_kg_kg",
+            "equilibrium_moisture_kg_kg",
+            "initial_temperature_k",
+            "ambient_temperature_k",
+            "dry_density_kg_m3",
+            "moisture_diffusivity_m2_s",
+            "surface_transfer_m_s",
+            "heat_capacity_j_kg_k",
+            "thermal_conductivity_w_m_k",
+            "surface_heat_transfer_w_m2_k",
+            "latent_heat_j_kg"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "SpecimenMechanicsConfig": {
+      "additionalProperties": false,
+      "description": "Linear isotropic verification law, not a calibrated ceramic constitutive law.",
+      "properties": {
+        "initial_guess": {
+          "$ref": "#/$defs/MechanicsInitialGuess",
+          "description": "Previous-step guesses retain displacement history. Zero-start solves\nmake this history-free elastic law exactly reconstructible."
+        },
+        "length_scale_m": {
+          "type": "string"
+        },
+        "maximum_iterations": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "moisture_expansion_per_kg_kg": {
+          "type": "string"
+        },
+        "poisson_ratio": {
+          "type": "string"
+        },
+        "residual_tolerance": {
+          "type": "string"
+        },
+        "stress_scale_pa": {
+          "type": "string"
+        },
+        "support": {
+          "$ref": "#/$defs/SpecimenSupport"
+        },
+        "thermal_expansion_per_k": {
+          "type": "string"
+        },
+        "young_modulus_pa": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "length_scale_m",
+        "stress_scale_pa",
+        "young_modulus_pa",
+        "poisson_ratio",
+        "moisture_expansion_per_kg_kg",
+        "thermal_expansion_per_k",
+        "support",
+        "maximum_iterations",
+        "residual_tolerance"
+      ],
+      "type": "object"
+    },
+    "SpecimenSupport": {
+      "oneOf": [
+        {
+          "enum": [
+            "fixed-x-face"
+          ],
+          "type": "string"
+        },
+        {
+          "const": "free",
+          "description": "Remove rigid-body modes without restricting uniform free expansion.",
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Standalone numerical verification inputs. These are not factory recipes.",
+  "properties": {
+    "allocation_budget_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "case": {
+      "$ref": "#/$defs/PhysicsProofCase"
+    },
+    "geometry": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/GeometryReference"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "id": {
+      "type": "string"
+    },
+    "material": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DryingMaterialConfig"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "maximum_iterations": {
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "residual_tolerance": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "shape": {
+      "items": {
+        "format": "uint32",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "maxItems": 3,
+      "minItems": 3,
+      "type": "array"
+    },
+    "spacing_m": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 3,
+      "minItems": 3,
+      "type": "array"
+    },
+    "steps": {
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "timestep_s": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "shape",
+    "spacing_m",
+    "timestep_s",
+    "steps",
+    "maximum_iterations",
+    "residual_tolerance",
+    "allocation_budget_bytes",
+    "case"
+  ],
+  "title": "PhysicsProofConfig",
+  "type": "object"
+}

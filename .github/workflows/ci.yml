@@ -69,7 +69,7 @@ jobs:
       - run: cargo fmt --manifest-path packages/fuzz/Cargo.toml --all --check
       - run: cargo check --manifest-path packages/fuzz/Cargo.toml --all-targets
       - run: cargo clippy --manifest-path packages/Cargo.toml --workspace --all-targets --all-features -- -D warnings
-      - run: cargo check --manifest-path packages/Cargo.toml -p hearthline-model -p hearthline-engine --target thumbv7em-none-eabihf
+      - run: cargo check --manifest-path packages/Cargo.toml -p hearthline-model -p hearthline-physics -p hearthline-engine --target thumbv7em-none-eabihf
 
   rust-tests:
     name: Rust tests (${{ matrix.shard }})
@@ -80,7 +80,7 @@ jobs:
       matrix:
         include:
           - shard: deterministic-core
-            packages: -p hearthline-model -p hearthline-engine
+            packages: -p hearthline-model -p hearthline-physics -p hearthline-engine
           - shard: configuration-project
             packages: -p hearthline-config -p hearthline-project
           - shard: simulation-operator
@@ -127,9 +127,29 @@ jobs:
       - run: cargo run --manifest-path packages/Cargo.toml --bin hearthline -- model validate
       - run: cargo run --manifest-path packages/Cargo.toml --bin hearthline -- model compile --locked
       - run: cargo run --manifest-path packages/Cargo.toml --bin hearthline -- capacity report --format json > capacity-report.json
+      - name: Record experimental physics capacity baseline, including failed limits
+        run: cargo run --locked --manifest-path packages/Cargo.toml --bin hearthline -- physics capacity project/physics/capacity/factory-baseline.yaml > physics-capacity-report.json
+      - name: Enforce the implemented-field pooled budget
+        run: cargo run --locked --manifest-path packages/Cargo.toml --bin hearthline -- physics capacity project/physics/capacity/factory-baseline.yaml --pooled --require-fit > physics-pooled-capacity-report.json
+      - name: Enforce source-backed basin capacity and compilation peak
+        run: cargo run --locked --manifest-path packages/Cargo.toml --bin hearthline -- physics capacity project/physics/capacity/factory-basin-study.yaml --proof project/physics/proofs/basin-wet-drying.yaml --geometry project/physics/geometry/original-basin.yaml --material project/physics/materials/synthetic-wet-drying.yaml --pooled --require-fit > physics-basin-capacity-report.json
+      - name: Record the refined basin resource rejection
+        run: cargo run --locked --manifest-path packages/Cargo.toml --bin hearthline -- physics capacity project/physics/capacity/factory-basin-refinement.yaml --proof project/physics/proofs/basin-wet-refined.yaml --geometry project/physics/geometry/original-basin.yaml --material project/physics/materials/synthetic-wet-drying.yaml --pooled > physics-basin-refinement-report.json
+      - name: Enforce opt-in reconstructed elasticity capacity
+        run: cargo run --locked --manifest-path packages/Cargo.toml --bin hearthline -- physics capacity project/physics/capacity/factory-basin-reconstructed.yaml --proof project/physics/proofs/basin-wet-reconstructed.yaml --geometry project/physics/geometry/original-basin.yaml --material project/physics/materials/synthetic-wet-drying.yaml --pooled --require-fit > physics-basin-reconstruction-report.json
       - run: cargo test --manifest-path packages/Cargo.toml -p hearthline-sim --test scheduler --test acceptance --release
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with: { name: capacity-evidence, path: capacity-report.json, retention-days: 30 }
+        if: always()
+        with:
+          name: capacity-evidence
+          path: |
+            capacity-report.json
+            physics-capacity-report.json
+            physics-pooled-capacity-report.json
+            physics-basin-capacity-report.json
+            physics-basin-refinement-report.json
+            physics-basin-reconstruction-report.json
+          retention-days: 30
 
   fuzz-smoke:
     name: Fuzz smoke (${{ matrix.target }})
@@ -147,6 +167,7 @@ jobs:
           - { target: partition_runtime, smoke-runs: 1000 }
           - { target: snapshot_replay, smoke-runs: 100 }
           - { target: control_program, smoke-runs: 100 }
+          - { target: physics_numerics, smoke-runs: 1000 }
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with: { persist-credentials: false }
@@ -215,6 +236,16 @@ jobs:
           shared-key: "replay-${{ matrix.platform }}-Cargo.lock"
       - name: Verify golden replays on a 1 MiB worker stack
         run: cargo test --locked --manifest-path packages/Cargo.toml -p hearthline-cli --bin hearthline golden_replays_fit_one_mib_worker_stack -- --nocapture
+      - name: Verify numerical proofs and spatial replay continuation
+        run: cargo test --locked --manifest-path packages/Cargo.toml -p hearthline-physics -p hearthline-sim -p hearthline-project --test physics --test physics_basin --test physics_geometry --test physics_material --test physics_caloric --test physics_wet --test sparse_transport --test sparse_mechanics --test numerics --test drying --test mechanics --test mechanics_convergence --test flow --test viscous_flow --test convergence --test heterogeneous_transport --test nonlinear_diffusion --test nonlinear_convergence --test variable_drying --test caloric --test enthalpy --test wet_enthalpy --test enthalpy_convergence
+      - name: Verify quantized kernel invariants
+        run: cargo test --locked --manifest-path packages/Cargo.toml -p hearthline-physics --lib
+      - name: Verify source-backed capacity and full basin-bank construction
+        run: cargo test --locked --manifest-path packages/Cargo.toml -p hearthline-project -p hearthline-sim --test physics_capacity --test physics_capacity_sources --test physics_reconstruction
+      - name: Verify checked-in physics field digests
+        run: cargo test --locked --manifest-path packages/Cargo.toml -p hearthline-sim --test physics_golden
+      - name: Verify pooled fields and streamed snapshot continuation
+        run: cargo test --locked --manifest-path packages/Cargo.toml -p hearthline-sim --test physics_population
       - run: cargo run --manifest-path packages/Cargo.toml --bin hearthline -- replay verify project/replays/network-customer-dns.json
       - run: cargo run --manifest-path packages/Cargo.toml --bin hearthline -- replay verify project/replays/safety-firewall-isolation.json
       - run: cargo run --manifest-path packages/Cargo.toml --bin hearthline -- replay verify project/replays/forming-historian.json

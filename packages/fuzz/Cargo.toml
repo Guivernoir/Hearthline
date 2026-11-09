@@ -8,6 +8,7 @@ edition = "2024"
 cargo-fuzz = true
 
 [dependencies]
+hearthline-physics = { path = "../crates/hearthline-physics", version = "=0.3.2" }
 hearthline-config = { path = "../crates/hearthline-config", version = "=0.3.2" }
 hearthline-engine = { path = "../crates/hearthline-engine", version = "=0.3.2" }
 hearthline-model = { path = "../crates/hearthline-model", version = "=0.3.2" }
@@ -73,3 +74,10 @@ doc = false
 bench = false
 
 [workspace]
+
+[[bin]]
+name = "physics_numerics"
+path = "fuzz_targets/physics_numerics.rs"
+test = false
+doc = false
+bench = false

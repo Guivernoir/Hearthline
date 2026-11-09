@@ -23,6 +23,80 @@ to keep the target wall time below 15 minutes.
 Required check names are repository policy. Renaming, removing, or making one
 non-blocking requires a reviewed policy change in the same pull request.
 
+The `0.4.0` numerical proof crate participates in deterministic-core tests,
+`no_std` target compilation, architecture checks, and deterministic coverage.
+The golden matrix additionally recomputes the standalone physics artifacts
+and checks spatial snapshot continuation on a 1 MiB worker stack. This
+qualifies only the recorded proof cases, not the future coupled factory.
+Physics artifact changes require an explanation of changed equations,
+coefficients, numerical resolution or solver behavior and updated analytical
+tests; generating new hashes alone is not review evidence.
+The basin artifact additionally pins its geometry document and compiled-domain
+contract. Its gate checks nonzero mechanical response and the current source
+configuration, and rejects allocation plans whose assembly peak cannot retain
+25% reserve. Sparse topology, matrix validation and geometry parsing participate
+in the numerical fuzz target. Native matrix evidence is still required; local
+recomputation alone does not establish cross-platform qualification.
+Heterogeneous interfaces and nonlinear constitutive transport also run analytical,
+spatial/time-refinement, failure and latent-heat tests in this matrix. The numerical
+fuzzer exercises property tables, wide flux arithmetic and transactional nonlinear
+steps, and parses/compiles material documents. A separate material-bearing golden
+checks source/digest agreement, validity bounds, transactional continuation,
+allocation accounting and pooled-instance isolation. The five earlier numerical
+artifacts remain unchanged. A separate enthalpy artifact adds dry-solid caloric
+integration, bounded row solves and thermal diagnostics; its tests include
+energy-based equilibrium, refinement and thermal-boundary resistance. The six
+pre-enthalpy artifacts retain their prior digests. Both numerical and snapshot
+fuzz targets include the caloric path. These cases have no calibrated
+material-data or canonical factory-session claim.
+
+The wet-energy artifact adds liquid sensible storage and conservative upwind
+energy transfer from accepted moisture fields. Native tests cover analytic
+evaporation/condensation, temporal/spatial refinement, basin coupling, rollback
+and independent pooled continuation. Numerical and snapshot fuzz targets include
+the liquid-caloric path. All seven preceding artifacts retain their digests;
+the eighth is partial numerical evidence, not physical material validation.
+
+The ninth artifact adds opt-in zero-start elastic equilibrium. Native checks
+compare complete independent and pooled fields, archive continuation, pacing,
+failure rollback and the new mode's model identity. Correctly rehashed but
+noncanonical fields and diagnostics are rejected. The eight preceding artifacts
+remain unchanged. Snapshot fuzzing includes zero-start reconstruction.
+
+Capacity evidence also includes the experimental factory physics resource
+report. Its current independent-workspace baseline is deliberately over budget;
+tests require that rejection and preserve the declared mesh/workload inputs.
+An informational report is not permission to migrate the canonical model.
+Changes to its accounting contract, geometry, residence envelopes or declared
+auxiliary storage require corresponding runtime measurements and documentation.
+The pooled comparison is retained alongside that baseline, not substituted for
+it. Its implemented-field budget is enforced with `--pooled --require-fit`;
+new independent fields must be charged before this gate can pass. Passing does
+not fill the report's missing physical-validation or full-application evidence.
+Native golden jobs also exercise interleaved populations and streamed
+snapshot continuation; passing them does not qualify factory integration or
+unimplemented constitutive models.
+
+Capacity contract 3 resolves digest-pinned proof sources and accounts for actual
+sparse geometry, material tables and compilation peaks. CI retains the original
+block report, a coarse source-backed basin report and a refined basin rejection.
+Tests preserve all workload declarations, measure construction of 2,778 coarse
+product slots on a 1 MiB stack, and reject the refined bank before allocation.
+The numerical fuzzer includes source mismatches, missing/duplicate/unused
+documents, invalid proof semantics and population-count overflow. A report
+collected without `--require-fit` is not acceptance of its failed limits.
+An additional reconstructed-refinement report is enforced with `--require-fit`
+without removing the previous-start rejection. It preserves the refined mesh,
+all workload/reserve declarations and full snapshot fields. Its 2,778-slot
+construction and selected-product step are allocation-checked on a 1 MiB stack.
+Sparse SSOR preconditioning must retain the source residual tolerance and
+iteration limit. All four refined source steps and midpoint continuation are
+checked without allocations, including checkpoint digest verification; legacy
+scaling failure remains explicit rollback evidence. Numerical fuzzing compares
+prepared and reassembled loads across preconditioners and checked failures.
+Passing these tests is not physical qualification, a residence-cycle run or
+acceptance of unimplemented fields.
+
 The stable toolchain is pinned to Rust `1.98.1`, Node `26.8.1`, npm `12.0.2`,
 and SvelteKit `2.70.3`. Repository policy requires the Rust toolchain file,
 `.nvmrc`, npm engine metadata, package-manager declaration, lockfile, and

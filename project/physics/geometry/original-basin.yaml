@@ -1,0 +1,7 @@
+schema_version: 0.1.0
+id: original-basin
+solid:
+  kind: open-basin
+  outer_extent_m: ['0.48', '0.36', '0.18']
+  wall_thickness_m: ['0.02', '0.02']
+  floor_thickness_m: '0.02'

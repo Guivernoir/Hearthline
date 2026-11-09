@@ -4,6 +4,7 @@ mod blueprint;
 mod capacity;
 mod compiled;
 mod locking;
+pub mod physics;
 mod runtime_plan;
 mod source;
 mod transaction;

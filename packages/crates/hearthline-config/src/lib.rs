@@ -7,6 +7,7 @@
 mod appliance;
 mod connection;
 mod hmi;
+pub mod physics;
 mod scenario;
 mod service;
 

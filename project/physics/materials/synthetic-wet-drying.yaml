@@ -1,0 +1,24 @@
+schema_version: 0.1.0
+id: synthetic-wet-drying
+provenance:
+  kind: synthetic-verification
+  description: >-
+    Solid and liquid caloric tables with moisture-dependent diffusion for
+    conservation and replay verification. No ceramic formulation or water
+    property data are calibrated here. Vapor storage, sorption, pressure work
+    and internal phase equilibrium are outside this partial model.
+reference_diffusivity_m2_s: '0.000001'
+temperature_range_k: ['273.15', '350']
+diffusivity_multiplier_by_moisture:
+  - ['0', '0.15']
+  - ['0.05', '0.3']
+  - ['0.2', '1']
+  - ['0.4', '2']
+dry_heat_capacity_j_kg_k_by_temperature:
+  - ['273.15', '800']
+  - ['300', '900']
+  - ['350', '1100']
+liquid_heat_capacity_j_kg_k_by_temperature:
+  - ['273.15', '4100']
+  - ['300', '4180']
+  - ['350', '4300']

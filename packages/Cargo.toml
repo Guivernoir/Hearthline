@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "crates/hearthline-model",
+    "crates/hearthline-physics",
     "crates/hearthline-engine",
     "crates/hearthline-config",
     "crates/hearthline-project",
@@ -12,6 +13,7 @@ members = [
 ]
 default-members = [
     "crates/hearthline-model",
+    "crates/hearthline-physics",
     "crates/hearthline-engine",
     "crates/hearthline-config",
     "crates/hearthline-project",
@@ -53,3 +55,8 @@ unsafe_code = "forbid"
 dbg_macro = "deny"
 todo = "deny"
 unimplemented = "deny"
+
+# Numerical loops retain checked arithmetic and debug assertions. Optimize only
+# this dependency so engineering-sized proof meshes are usable in dev builds.
+[profile.dev.package.hearthline-physics]
+opt-level = 2

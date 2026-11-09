@@ -1,4 +1,5 @@
 project/config/** text eol=lf
 project/control/** text eol=lf
 project/replays/** text eol=lf
+project/physics/** text eol=lf
 packages/web/src/generated/*.json text eol=lf

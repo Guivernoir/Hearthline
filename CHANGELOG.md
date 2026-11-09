@@ -5,6 +5,99 @@ All notable changes to Hearthline are recorded here. Releases follow
 development, so minor releases may include documented configuration or API
 migrations.
 
+## 0.4.0 - Unreleased
+
+### Added
+
+- Added opt-in zero-start elastic equilibrium with versioned model identity,
+  exact displacement/stress reconstruction, full-field restore validation and
+  population storage contract 5. Default previous-step behavior and all eight
+  previous replays remain unchanged. A ninth wet-elastic replay, constrained-stack
+  allocation/rollback tests, snapshot fuzzing and a separate refined capacity
+  study cover the new path. The study retains all meshes and workloads and
+  reports 681,641,106 bytes for implemented fields. Checked sparse SSOR
+  preconditioning completes all four refined steps within unchanged source
+  limits; cached per-solve loads reuse existing storage. Restart digest checks
+  no longer allocate a temporary string. Legacy nonconvergence remains rollback
+  evidence. Missing
+  constitutive state, physical validation and full-application memory still
+  prevent factory qualification.
+- Added digest-pinned proof sources to capacity profiles, strict resource
+  resolution, compiled geometry/material accounting and compilation-peak checks.
+  Coarse/refined basin studies retain all baseline workloads. Construction of
+  all 2,778 coarse product slots is allocation-checked on a 1 MiB stack; the
+  refined study exceeds the reviewed budget and is rejected before bank
+  allocation. Capacity contract 3, schema/CLI support, source fuzzing and CI
+  evidence preserve this unresolved resource gate without changing old replays.
+- Added optional liquid sensible-energy storage and conservative implicit
+  upwind transport from accepted moisture-stage fluxes. Synthetic wet-material
+  YAML, compiled storage accounting, coupled rollback, basin/population tests,
+  analytical/refinement checks and an eighth replay cover this partial energy
+  model. The seven previous artifacts remain unchanged; independent vapor
+  storage, sorption and calibrated material predictions remain pending.
+- Added conservative heterogeneous diffusion interfaces, checked tabulated
+  properties, bounded nonlinear diffusion with true-residual acceptance and
+  surface resistance, and nonlinear moisture/latent-heat trial coupling.
+  Analytical, spatial/time-refinement and allocation tests cover these kernels.
+  Stagnated quantized linear solves now report insufficient resolution.
+- Added digest-pinned drying-material YAML, provenance and validity intervals,
+  generated schema, compiled storage accounting, transactional host stepping and
+  material-bearing replays. A synthetic variable-drying artifact exercises
+  the CLI, standalone sessions and shared populations without replacing the
+  five earlier proof artifacts. Material calibration, complete multiphase energy
+  and canonical factory integration remain pending.
+- Added checked integration of dry-solid heat-capacity tables, implicit
+  enthalpy transport with bounded bracketed row solves, thermal/latent ledger
+  diagnostics, and optional YAML/replay integration without additional runtime
+  field arrays. Analytical and spatial/time-refinement tests, sparse coupling,
+  small-stack replay and fuzz targets cover this synthetic, uncalibrated law.
+  A seventh proof retains the six previous artifacts unchanged. Population
+  storage contract 4 includes the measured thermal diagnostic metadata.
+
+- Added the allocator-free `hearthline-physics` numerical proof crate with
+  checked decimal arithmetic, implicit 3D scalar transport, isothermal gas
+  receiver storage, and coupled moisture/heat diffusion with latent heat.
+- Added standalone proof YAML, generated schema, buffer-capacity measurements,
+  exact field snapshots/replays, failed-step rollback, and a tested pacing
+  accumulator that does not alter numerical time or discard delayed work.
+- Added compressible finite-volume flow with optional viscosity, conduction,
+  no-slip/thermal walls, periodic boundaries and bounded timestep retries,
+  matrix-free tetrahedral elasticity with eigenstrain, manufactured spatial
+  convergence tests, and numerical fuzz/mutation scopes. These kernels are not
+  yet coupled to the canonical factory or calibrated to material experiments.
+- Coupled drying moisture/temperature fields to specimen deformation and stress,
+  including compiled tetrahedral geometry, preflight memory accounting,
+  mechanical checkpoint validation, and whole-step rollback on solver failure.
+- Added the SI-configured compressible receiver proof with checked reference
+  scales, pressure-driven finite-inventory transfer, conserved-field replay,
+  validated solver metadata, pacing invariance, and allocation-free retry errors.
+- Added `physics prove`, `physics budget`, and `physics replay` CLI commands,
+  analytical and constrained-stack tests, and four-platform golden proof gates.
+- Added `physics capacity` with typed resource/workload declarations, shared
+  immutable geometry accounting, independent product/snapshot storage, checked
+  arithmetic and reserve enforcement. The current factory-scale baseline is
+  explicitly over budget; measured storage and unimplemented savings remain
+  separate in the reports.
+- Added independently owned numerical state banks with shared per-profile
+  solver workspaces, byte-measured construction, allocation-free stepping and
+  streamed snapshot capture, bounded validated loading and aggregate integrity
+  checks. Existing proof digests remain unchanged. `physics capacity --pooled`
+  reports the measured storage alternative. Authoritative-state banks reconstruct
+  gas readings and linear-elastic stress exactly, preserving full checkpoint
+  bytes. The implemented-field estimate fits the budget; remaining constitutive
+  fields and complete application memory are not yet qualified.
+- Recorded the full coupled-factory release scope and its outstanding numerical,
+  physical-validation, capacity, control and operator-interface gates. The
+  canonical `0.3.2` model remains unchanged; factory-scale CFD/mechanics, compressor
+  equipment, calibrated defects and frontend integration are not implemented.
+- Added an original digest-pinned basin geometry document, sparse material
+  topology and constant-law mechanical stiffness assembly. The geometry-aware
+  proof records all fields and budgets compiler scratch as well as retained
+  arrays. Sparse solves use wide row accumulation and verified true residuals;
+  subquantum positive transport coefficients fail explicitly. The four prior
+  proof digests remain unchanged. Product validation and factory migration
+  remain pending.
+
 ## 0.3.2 - 2026-09-07
 
 ### Added

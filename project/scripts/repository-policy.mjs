@@ -92,7 +92,7 @@ function rustSourceFiles(directory) {
 }
 
 function inspectRuntimeAllocation() {
-  const runtimeCrates = ["hearthline-model", "hearthline-engine"];
+  const runtimeCrates = ["hearthline-model", "hearthline-physics", "hearthline-engine"];
   const forbidden = [
     [/\bextern\s+crate\s+alloc\b/u, "the alloc crate"],
     [/\bstd::/u, "the standard library"],

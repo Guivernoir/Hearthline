@@ -1,0 +1,7 @@
+Yschema_version: 0.1.0
+id: basin
+solid:
+  kind: open-basin
+  outer_extent_m: ['0.12', '0.10', '0.06']
+  wall_thickness_m: ['0.02', '0.02']
+  floor_thickness_m: '0.02'

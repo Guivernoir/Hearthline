@@ -7,6 +7,7 @@ use serde_json::Value;
 
 const CRATES: &[&str] = &[
     "hearthline-model",
+    "hearthline-physics",
     "hearthline-engine",
     "hearthline-config",
     "hearthline-project",

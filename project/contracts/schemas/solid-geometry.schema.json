@@ -1,0 +1,64 @@
+{
+  "$defs": {
+    "SolidGeometry": {
+      "description": "Orthogonal, exactly mesh-aligned solids. Curved/cut-cell geometry requires a\nseparate discretization contract; it is not silently voxelized here.",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "floor_thickness_m": {
+              "type": "string"
+            },
+            "kind": {
+              "const": "open-basin",
+              "type": "string"
+            },
+            "outer_extent_m": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 3,
+              "minItems": 3,
+              "type": "array"
+            },
+            "wall_thickness_m": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            }
+          },
+          "required": [
+            "kind",
+            "outer_extent_m",
+            "wall_thickness_m",
+            "floor_thickness_m"
+          ],
+          "type": "object"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "solid": {
+      "$ref": "#/$defs/SolidGeometry"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "solid"
+  ],
+  "title": "SolidGeometryDocument",
+  "type": "object"
+}

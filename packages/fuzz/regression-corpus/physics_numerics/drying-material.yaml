@@ -1,0 +1,10 @@
+schema_version: 0.1.0
+id: synthetic-parser-case
+provenance:
+  kind: synthetic-verification
+  description: Parser seed, not material measurements.
+reference_diffusivity_m2_s: '0.000001'
+temperature_range_k: ['250', '350']
+diffusivity_multiplier_by_moisture:
+  - ['0', '0.1']
+  - ['0.4', '2']
