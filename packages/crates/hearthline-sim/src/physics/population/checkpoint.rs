@@ -59,6 +59,13 @@ pub(super) struct CheckpointView<'a> {
     diffusion: Option<super::super::DiffusionCheckpoint>,
 }
 
+impl PhysicsProofSession {
+    /// Hash the same complete fields as a checkpoint without allocating a copy.
+    pub fn state_digest(&self) -> Result<[u8; 64], serde_json::Error> {
+        CheckpointView::new(self).digest()
+    }
+}
+
 impl<'a> CheckpointView<'a> {
     pub fn new(worker: &'a PhysicsProofSession) -> Self {
         let model = &worker.model;

@@ -1,4 +1,4 @@
-use std::io::{self, Write};
+use std::io::{self, BufRead, Write};
 
 use serde::Serialize;
 use sha2::{Digest, Sha256};
@@ -47,4 +47,29 @@ pub(super) fn hex_digest(digest: [u8; 32]) -> [u8; 64] {
         output[index * 2 + 1] = digits[usize::from(value & 15)];
     }
     output
+}
+
+pub(super) fn read_line(
+    input: &mut impl BufRead,
+    output: &mut Vec<u8>,
+    maximum: usize,
+) -> Result<(), String> {
+    output.clear();
+    loop {
+        let available = input.fill_buf().map_err(|e| e.to_string())?;
+        if available.is_empty() {
+            return Err("truncated physics snapshot".into());
+        }
+        let available = &available[..available.len().min(maximum - output.len() + 1)];
+        let newline = available.iter().position(|byte| *byte == b'\n');
+        let take = newline.map_or(available.len(), |index| index + 1);
+        if take > maximum - output.len() {
+            return Err("physics snapshot frame exceeds its bounded size".into());
+        }
+        output.extend_from_slice(&available[..take]);
+        input.consume(take);
+        if newline.is_some() {
+            return Ok(());
+        }
+    }
 }

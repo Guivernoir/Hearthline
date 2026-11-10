@@ -12,6 +12,7 @@ fn physics_commands_expose_capacity_without_claiming_factory_qualification() {
     let help = String::from_utf8(help.stdout).unwrap();
     for command in [
         "prove",
+        "worker",
         "replay",
         "budget",
         "capacity",
@@ -75,6 +76,85 @@ fn physics_commands_expose_capacity_without_claiming_factory_qualification() {
     assert_eq!(
         pooled,
         serde_json::from_slice::<serde_json::Value>(&enforced.stdout).unwrap()
+    );
+}
+
+#[test]
+fn dedicated_worker_cli_preserves_digest_for_headless_and_all_requested_rates() {
+    let binary = env!("CARGO_BIN_EXE_hearthline");
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let config = root.join("project/physics/proofs/compressible-receiver.yaml");
+    for args in [
+        vec!["--headless"],
+        vec!["--rate", "1"],
+        vec!["--rate", "2"],
+        vec!["--rate", "5"],
+        vec!["--rate", "10"],
+    ] {
+        let output = Command::new(binary)
+            .args(["physics", "worker"])
+            .arg(&config)
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let text = String::from_utf8(output.stdout).unwrap();
+        assert!(
+            text.contains("6952fa9fd62a4655fd090c0378a37ca7ba723b89a95005801cda9a8e6afa83c3"),
+            "{text}"
+        );
+        assert!(text.contains("achieved") && text.contains("not plant qualification"));
+    }
+    let invalid = Command::new(binary)
+        .args(["physics", "worker"])
+        .arg(&config)
+        .args(["--rate", "3"])
+        .output()
+        .unwrap();
+    assert!(!invalid.status.success());
+    assert!(String::from_utf8_lossy(&invalid.stderr).contains("rate must be"));
+    let conflict = Command::new(binary)
+        .args(["physics", "worker"])
+        .arg(&config)
+        .args(["--rate", "2", "--headless"])
+        .output()
+        .unwrap();
+    assert!(!conflict.status.success());
+}
+
+#[test]
+fn worker_cli_reports_numerical_failure_and_joins_its_thread() {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let text =
+        std::fs::read_to_string(root.join("project/physics/proofs/compressible-receiver.yaml"))
+            .unwrap();
+    let mut config: hearthline_config::physics::PhysicsProofConfig =
+        serde_yaml_ng::from_str(&text).unwrap();
+    config.maximum_iterations = 1;
+    config.residual_tolerance = "0.000000001".into();
+    let hearthline_config::physics::PhysicsProofCase::CompressibleReceiver { flow } =
+        &mut config.case
+    else {
+        unreachable!()
+    };
+    flow.maximum_substeps = 1;
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("rejected.yaml");
+    std::fs::write(&path, serde_yaml_ng::to_string(&config).unwrap()).unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_hearthline"))
+        .args(["physics", "worker"])
+        .arg(path)
+        .arg("--headless")
+        .output()
+        .unwrap();
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("physics worker fault after 0 committed steps: Numerical")
     );
 }
 

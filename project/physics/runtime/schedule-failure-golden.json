@@ -1,0 +1,14 @@
+{
+  "schema_version": "0.1.0",
+  "model_digest": "38cfe1b8a02b6939b5335f6f9c6d3d5f7d335bb83f3bd467386a8fb64eaf7471",
+  "state_digest": "f5fc18b5a4560a677ca8072dd628bfea02315164d7a7dd95a32bc4e318d50540",
+  "failure": {
+    "event": { "time_us": 100, "instance": 1 },
+    "diagnostic": {
+      "kind": "flow",
+      "cause": { "kind": "non-convergence", "iterations": 1, "residual_raw": 4340236889 },
+      "attempts": 1,
+      "smallest_solver_step_us": 10000
+    }
+  }
+}

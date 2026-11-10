@@ -7,8 +7,15 @@ use libfuzzer_sys::fuzz_target;
 use std::io::Cursor;
 use std::sync::{Arc, OnceLock};
 
+#[path = "physics/schedule.rs"]
+mod schedule;
+
 fuzz_target!(|data: &[u8]| {
     let bounded = &data[..data.len().min(256 * 1_024)];
+    if matches!(bounded.first(), Some(b'H' | b'J' | b'W')) {
+        schedule::exercise(bounded);
+        return;
+    }
     if let Some(kind @ (b'P' | b'Q' | b'R' | b'S' | b'T' | b'U' | b'V')) = bounded.first().copied()
     {
         let index = usize::from(kind - b'P');

@@ -14,11 +14,26 @@ use hearthline_project::physics::capacity::{
 };
 use hearthline_project::physics::geometry::geometry_digest;
 use hearthline_project::physics::material::material_digest;
+use hearthline_sim::physics::clock::PlaybackRate;
 use hearthline_sim::physics::population::PooledCapacityComparison;
 use hearthline_sim::physics::{PHYSICS_REPLAY_DOCUMENT_LIMIT, PhysicsReplay};
 
+mod worker;
+
 #[derive(Subcommand)]
 pub enum PhysicsCommand {
+    /// Execute a proof on its dedicated worker; defaults to unpaced execution.
+    Worker {
+        config: PathBuf,
+        #[arg(long)]
+        geometry: Option<PathBuf>,
+        #[arg(long)]
+        material: Option<PathBuf>,
+        #[arg(long, value_parser = worker::parse_rate, conflicts_with = "headless")]
+        rate: Option<PlaybackRate>,
+        #[arg(long, conflicts_with = "rate")]
+        headless: bool,
+    },
     /// Execute an isolated numerical proof; this does not migrate the factory.
     Prove {
         config: PathBuf,
@@ -65,6 +80,21 @@ pub enum PhysicsCommand {
 
 pub fn execute(command: PhysicsCommand) -> Result<(), Box<dyn Error>> {
     match command {
+        PhysicsCommand::Worker {
+            config,
+            geometry,
+            material,
+            rate,
+            headless: _,
+        } => {
+            let config: PhysicsProofConfig = serde_yaml_ng::from_str(&read_bounded(&config)?)?;
+            let model = CompiledPhysicsProof::compile_with_resources(
+                config,
+                read_geometry(geometry)?,
+                read_material(material)?,
+            )?;
+            worker::execute(model, rate)?;
+        }
         PhysicsCommand::Prove {
             config,
             record,

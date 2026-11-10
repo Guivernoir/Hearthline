@@ -72,9 +72,16 @@ estimates within budget. The first source-backed basin refinement still exceeds
 the usable budget after reserve. An opt-in [zero-start elastic reconstruction](project/physics/populations/reconstruction.md)
 reduces that unchanged mesh/workload study to about 650 MiB for implemented
 fields, at the cost of repeated equilibrium solves. The old failing study is
-retained. Normalized fixed-point preconditioning reaches the refined first-step
-elastic tolerance without increasing its iteration limit. Numerical and
+retained. Sparse symmetric preconditioning completes the four refined source
+steps without increasing their iteration limit. Numerical and
 full-factory memory qualification remain incomplete.
+An isolated [dedicated physics worker](project/physics/runtime/README.md) now
+owns proof execution with bounded revision-checked clock commands, copied
+engineering projections, checkpoint continuation, and paced/headless CLI runs.
+It is not yet the multi-profile factory scheduler or connected to HTTP/HMIs.
+A separate [multirate population schedule](project/physics/runtime/schedule.md)
+now compiles stable event ordering and validates full-state restart frontiers;
+worker integration and conservative exchanges between profiles remain pending.
 Production geometry qualification, remaining constitutive fields, factory integration and
 application memory measurements are still required to qualify the memory gate.
 These proofs do not yet replace the canonical factory,

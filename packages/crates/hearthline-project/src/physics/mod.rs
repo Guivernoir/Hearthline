@@ -3,6 +3,7 @@ mod flow;
 pub mod geometry;
 pub mod material;
 mod mechanics;
+pub mod schedule;
 mod storage;
 pub use flow::CompiledReceiverFlow;
 pub use mechanics::CompiledSpecimenMechanics;

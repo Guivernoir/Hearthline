@@ -13,6 +13,8 @@ use libfuzzer_sys::fuzz_target;
 mod caloric;
 #[path = "physics/capacity.rs"]
 mod capacity;
+#[path = "physics/clock.rs"]
+mod clock;
 #[path = "physics/constitutive.rs"]
 mod constitutive;
 #[path = "physics/geometry.rs"]
@@ -29,6 +31,7 @@ fuzz_target!(|input: &[u8]| {
     material::exercise(input);
     capacity::exercise(input);
     mechanics::exercise(input);
+    clock::exercise(input);
     if let Ok(text) = core::str::from_utf8(&input[..input.len().min(64)]) {
         let _ = text.parse::<Scalar>();
     }

@@ -7,6 +7,8 @@ mod flow;
 mod material;
 mod mechanics;
 pub mod population;
+pub mod schedule;
+pub mod worker;
 use buffers::{ProofBuffers, TransportBuffers};
 use flow::FlowBuffers;
 pub use flow::{FlowCheckpoint, FlowStepCheckpoint};

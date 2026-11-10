@@ -6,7 +6,7 @@ use hearthline_project::physics::{CompiledPhysicsProof, PhysicsStorageLayout};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-use super::super::checkpoint::{HashWriter, hex_digest};
+use super::super::checkpoint::{HashWriter, hex_digest, read_line};
 use super::super::{PHYSICS_REPLAY_DOCUMENT_LIMIT, PhysicsCheckpoint};
 use super::checkpoint::CheckpointView;
 use super::{PhysicsProofPopulation, PopulationMemoryPlan};
@@ -179,26 +179,5 @@ impl PhysicsProofPopulation {
             return Err("physics population snapshot has trailing data".into());
         }
         Ok(population)
-    }
-}
-
-fn read_line(input: &mut impl BufRead, output: &mut Vec<u8>, maximum: usize) -> Result<(), String> {
-    output.clear();
-    loop {
-        let available = input.fill_buf().map_err(|e| e.to_string())?;
-        if available.is_empty() {
-            return Err("truncated physics population snapshot".into());
-        }
-        let available = &available[..available.len().min(maximum - output.len() + 1)];
-        let newline = available.iter().position(|byte| *byte == b'\n');
-        let take = newline.map_or(available.len(), |index| index + 1);
-        if take > maximum - output.len() {
-            return Err("physics snapshot frame exceeds its bounded size".into());
-        }
-        output.extend_from_slice(&available[..take]);
-        input.consume(take);
-        if newline.is_some() {
-            return Ok(());
-        }
     }
 }

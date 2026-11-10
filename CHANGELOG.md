@@ -9,6 +9,20 @@ migrations.
 
 ### Added
 
+- Added compiled multirate numerical-population scheduling with source-order
+  independent identities/profile assignment, a preallocated event heap, aggregate
+  memory/restore preflight, streamed full-field snapshots and chronological
+  frontier validation. A new compact golden fixture, native-matrix checks and
+  snapshot/order fuzzing cover independent profiles. Physical exchange, aggregate
+  worker integration and canonical factory migration remain pending.
+- Added a dedicated numerical-proof worker with exclusive state ownership,
+  revision-checked clock commands, a preallocated request/reply mailbox,
+  allocation-free execution and engineering projections. Pause/single-step,
+  1x/2x/5x/10x and headless modes preserve physical results. Worker construction
+  accounts for mailbox and stack reserve; shutdown joins at a solver boundary.
+  The `physics worker` CLI, native-matrix checks, clock fuzzing and targeted
+  mutation tests cover this increment. Coupled factory/API/HMI integration and
+  total application memory qualification remain pending.
 - Added opt-in zero-start elastic equilibrium with versioned model identity,
   exact displacement/stress reconstruction, full-field restore validation and
   population storage contract 5. Default previous-step behavior and all eight

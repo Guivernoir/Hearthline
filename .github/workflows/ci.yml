@@ -240,6 +240,12 @@ jobs:
         run: cargo test --locked --manifest-path packages/Cargo.toml -p hearthline-physics -p hearthline-sim -p hearthline-project --test physics --test physics_basin --test physics_geometry --test physics_material --test physics_caloric --test physics_wet --test sparse_transport --test sparse_mechanics --test numerics --test drying --test mechanics --test mechanics_convergence --test flow --test viscous_flow --test convergence --test heterogeneous_transport --test nonlinear_diffusion --test nonlinear_convergence --test variable_drying --test caloric --test enthalpy --test wet_enthalpy --test enthalpy_convergence
       - name: Verify quantized kernel invariants
         run: cargo test --locked --manifest-path packages/Cargo.toml -p hearthline-physics --lib
+      - name: Verify dedicated physics worker and bounded command mailbox
+        run: cargo test --locked --manifest-path packages/Cargo.toml -p hearthline-sim --lib physics::worker
+      - name: Verify multirate physics order and full-state snapshot frontier
+        run: cargo test --locked --manifest-path packages/Cargo.toml -p hearthline-sim --lib physics::schedule
+      - name: Verify worker native digests and numerical failure shutdown
+        run: cargo test --locked --manifest-path packages/Cargo.toml -p hearthline-cli --test physics worker_cli
       - name: Verify source-backed capacity and full basin-bank construction
         run: cargo test --locked --manifest-path packages/Cargo.toml -p hearthline-project -p hearthline-sim --test physics_capacity --test physics_capacity_sources --test physics_reconstruction
       - name: Verify checked-in physics field digests

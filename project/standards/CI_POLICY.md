@@ -63,6 +63,25 @@ failure rollback and the new mode's model identity. Correctly rehashed but
 noncanonical fields and diagnostics are rejected. The eight preceding artifacts
 remain unchanged. Snapshot fuzzing includes zero-start reconstruction.
 
+Dedicated-worker checks run on the same native matrix. They compare physical
+digests across paced/headless execution, preserve full-state continuation,
+exercise concurrent/stale clock revisions and full unread mailboxes, and check
+shutdown wake-up races. The sealed worker-loop allocation counter must stay at
+zero. Mailbox allocation and 25% burst reserve are measured independently of
+proof-array budgets. Clock transitions join the numerical fuzz target; worker
+clock/runner/mailbox mutations have their own nightly matrix entry. These tests
+do not qualify canonical factory integration or total application RSS.
+
+Multirate population checks additionally pin initial, partial-timestamp and
+final aggregate field digests, check source-order-independent compilation, and
+validate every snapshot prefix against the stable event order. Rehashed but
+impossible frontiers and fabricated numerical failures must be rejected. The
+same suite checks measured construction allocation, allocation-free execution
+and capture, and a 1 MiB worker stack. Snapshot fuzzing includes generated and
+mutated schedule archives and reordered registrations; nightly mutation targets
+the schedule compiler, event loop, memory plan and frontier reader. This evidence
+does not establish physical coupling between independent numerical populations.
+
 Capacity evidence also includes the experimental factory physics resource
 report. Its current independent-workspace baseline is deliberately over budget;
 tests require that rejection and preserve the declared mesh/workload inputs.
