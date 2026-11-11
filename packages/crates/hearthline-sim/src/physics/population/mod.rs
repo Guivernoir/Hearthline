@@ -174,6 +174,11 @@ impl PhysicsProofPopulation {
         Ok(report)
     }
 
+    /// Only used immediately after an accepted step by the serial scheduler.
+    pub(super) fn accepted_field_ranges(&self) -> super::NumericalFieldRanges {
+        self.worker.field_ranges()
+    }
+
     /// Allocating compatibility projection, outside the sealed worker path.
     /// Use write_snapshot for allocation-free capture of the complete population.
     pub fn checkpoint(&mut self, instance: usize) -> Result<PhysicsCheckpoint, PopulationError> {

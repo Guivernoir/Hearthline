@@ -106,7 +106,7 @@ jobs:
           - area: physics-numerics
             arguments: --file crates/hearthline-physics/src/scalar.rs --file crates/hearthline-physics/src/flow.rs --file crates/hearthline-physics/src/flow/scales.rs --file crates/hearthline-physics/src/flow/viscous.rs --file crates/hearthline-physics/src/mechanics.rs --file crates/hearthline-physics/src/mechanics/sparse.rs
           - area: physics-worker
-            arguments: --file crates/hearthline-sim/src/physics/clock.rs --file crates/hearthline-sim/src/physics/worker/runner.rs --file crates/hearthline-sim/src/physics/worker/mailbox.rs
+            arguments: --file crates/hearthline-sim/src/physics/clock.rs --file crates/hearthline-sim/src/physics/worker/runner.rs --file crates/hearthline-sim/src/physics/worker/mailbox.rs --file crates/hearthline-sim/src/physics/worker/backend.rs --file crates/hearthline-sim/src/physics/worker/mod.rs
           - area: physics-schedule
             arguments: --file crates/hearthline-project/src/physics/schedule.rs --file crates/hearthline-sim/src/physics/schedule/mod.rs --file crates/hearthline-sim/src/physics/schedule/memory.rs --file crates/hearthline-sim/src/physics/schedule/archive.rs --file crates/hearthline-sim/src/physics/schedule/diagnostic.rs
     steps:

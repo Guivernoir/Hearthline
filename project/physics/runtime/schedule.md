@@ -2,8 +2,8 @@
 
 Status: event-order and restart foundation for the coupled runtime. This composes
 the existing numerical populations; it does not yet connect physical ports,
-equipment, controls or the canonical factory. The dedicated worker's public
-mailbox currently hosts one proof, not this aggregate schedule.
+equipment, controls or the canonical factory. The dedicated worker can now own
+this aggregate through its existing revision-checked mailbox and one event clock.
 
 ## Compiled Model
 
@@ -104,7 +104,7 @@ before restoration; this API does not grant an additional per-session budget.
 This is not total application RSS. Thread stacks/mailboxes, host document strings,
 compiler peak memory, HTTP, renderer and allocator/OS overhead require integration
 with the existing worker and factory resource studies. Remaining work includes
-the aggregate worker adapter, pacing for event deadlines, physical connections,
+physical connections,
 bounded transfer queues, equipment/fault/controller tasks, genealogy, incremental
 projections and canonical model compilation. Production geometry, constitutive
 validation and full-factory memory qualification remain open gates.

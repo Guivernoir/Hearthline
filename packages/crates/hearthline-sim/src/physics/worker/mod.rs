@@ -1,6 +1,7 @@
 //! Dedicated execution for the numerical qualification models. No API handler
 //! receives mutable plant state. Canonical factory integration remains gated.
 
+mod backend;
 mod mailbox;
 mod runner;
 #[cfg(test)]
@@ -11,9 +12,12 @@ use std::sync::atomic::Ordering;
 use std::thread::JoinHandle;
 
 use hearthline_project::physics::CompiledPhysicsProof;
+use hearthline_project::physics::schedule::CompiledPhysicsSchedule;
 
 use super::clock::{PacingError, PlaybackMode, PlaybackRate};
-use super::{PhysicsProofSession, PhysicsStepError};
+use super::schedule::{PhysicsSchedule, ScheduleFailure, ScheduleMemoryPlan};
+use super::{NumericalFieldRanges, PhysicsProofSession, PhysicsStepError};
+pub use backend::WorkerRuntime;
 use mailbox::Shared;
 pub use mailbox::{CommandTicket, PhysicsWorkerClient};
 use runner::Runner;
@@ -47,9 +51,11 @@ pub struct CommandReply {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum WorkerFault {
     Numerical(PhysicsStepError),
+    Schedule(ScheduleFailure),
     Pacing(PacingError),
     PublicationOverflow,
     WallClockRegression,
+    RuntimeInvariant,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -70,9 +76,13 @@ impl std::fmt::Display for WorkerAccessError {
 impl std::error::Error for WorkerAccessError {}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct FieldRange {
-    pub minimum_raw: i64,
-    pub maximum_raw: i64,
+pub struct WorkerFields {
+    /// None is the single-proof runtime; aggregate instances use compiled order.
+    pub instance: Option<usize>,
+    pub profile_digest: [u8; 64],
+    pub instance_step: u32,
+    pub time_us: u64,
+    pub values: NumericalFieldRanges,
 }
 
 /// Engineering state, not instrument readings. Wall metrics do not enter replay.
@@ -81,7 +91,7 @@ pub struct WorkerProjection {
     pub model_digest: [u8; 64],
     pub generation: u64,
     pub command_revision: u64,
-    pub step: u32,
+    pub committed_events: u64,
     pub time_us: u64,
     pub mode: PlaybackMode,
     pub paused: bool,
@@ -90,8 +100,8 @@ pub struct WorkerProjection {
     pub active_wall_us: u64,
     pub automatic_completed_us: u64,
     pub pending_pacing_us: u64,
-    pub first_field: FieldRange,
-    pub temperature_k: FieldRange,
+    /// Latest accepted instance update, never extrema across unrelated profiles.
+    pub fields: Option<WorkerFields>,
     pub fault: Option<WorkerFault>,
     pub outstanding_commands: usize,
     pub command_high_water: usize,
@@ -141,6 +151,31 @@ pub struct WorkerMemoryPlan {
 
 impl WorkerMemoryPlan {
     pub fn compile(model: &CompiledPhysicsProof, policy: WorkerPolicy) -> Result<Self, String> {
+        let numerical_bytes = model
+            .storage_layout()
+            .instance_buffer_bytes()?
+            .checked_add(model.storage_layout().immutable_bytes()?)
+            .ok_or("worker memory overflow")?;
+        Self::with_runtime(
+            numerical_bytes,
+            model.config().allocation_budget_bytes,
+            policy,
+        )
+    }
+
+    pub fn compile_schedule(
+        plan: &CompiledPhysicsSchedule,
+        policy: WorkerPolicy,
+    ) -> Result<Self, String> {
+        let numerical_bytes = ScheduleMemoryPlan::compile(plan)?.total_planned_bytes;
+        Self::with_runtime(numerical_bytes, plan.allocation_budget_bytes(), policy)
+    }
+
+    fn with_runtime(
+        numerical_bytes: u64,
+        budget: u64,
+        policy: WorkerPolicy,
+    ) -> Result<Self, String> {
         if policy.command_capacity == 0
             || policy.reviewed_command_burst == 0
             || policy.reviewed_command_burst as u128 * 4 > policy.command_capacity as u128 * 3
@@ -148,11 +183,6 @@ impl WorkerMemoryPlan {
         {
             return Err("worker requires a 1 MiB stack and 25% command reserve over a nonzero reviewed burst".into());
         }
-        let numerical_bytes = model
-            .storage_layout()
-            .instance_buffer_bytes()?
-            .checked_add(model.storage_layout().immutable_bytes()?)
-            .ok_or("worker memory overflow")?;
         let mailbox_bytes = mailbox::allocation_bytes(policy.command_capacity)?;
         let requested_stack_bytes = u64::try_from(policy.stack_bytes).map_err(|e| e.to_string())?;
         let planned_bytes = numerical_bytes
@@ -160,8 +190,7 @@ impl WorkerMemoryPlan {
             .and_then(|n| n.checked_add(requested_stack_bytes))
             .ok_or("worker memory overflow")?;
         let reviewed_budget_bytes =
-            u64::try_from(u128::from(model.config().allocation_budget_bytes) * 3 / 4)
-                .map_err(|e| e.to_string())?;
+            u64::try_from(u128::from(budget) * 3 / 4).map_err(|e| e.to_string())?;
         if planned_bytes > reviewed_budget_bytes {
             return Err("physics worker exceeds its budget with 25% reserve".into());
         }
@@ -175,13 +204,13 @@ impl WorkerMemoryPlan {
     }
 }
 
-pub struct PhysicsWorker {
+pub struct PhysicsWorker<S: WorkerRuntime = PhysicsProofSession> {
     client: PhysicsWorkerClient,
-    thread: Option<JoinHandle<PhysicsProofSession>>,
+    thread: Option<JoinHandle<S>>,
     memory: WorkerMemoryPlan,
 }
 
-impl PhysicsWorker {
+impl PhysicsWorker<PhysicsProofSession> {
     /// Starts paused. Construction and thread startup precede sealed execution.
     pub fn spawn(model: Arc<CompiledPhysicsProof>, policy: WorkerPolicy) -> Result<Self, String> {
         let memory = WorkerMemoryPlan::compile(&model, policy)?;
@@ -197,12 +226,28 @@ impl PhysicsWorker {
         let memory = WorkerMemoryPlan::compile(&session.model, policy)?;
         Self::launch(session, policy, memory)
     }
+}
 
-    fn launch(
-        session: PhysicsProofSession,
+impl PhysicsWorker<PhysicsSchedule> {
+    pub fn spawn_schedule(
+        plan: Arc<CompiledPhysicsSchedule>,
         policy: WorkerPolicy,
-        memory: WorkerMemoryPlan,
     ) -> Result<Self, String> {
+        let memory = WorkerMemoryPlan::compile_schedule(&plan, policy)?;
+        Self::launch(PhysicsSchedule::new(plan)?, policy, memory)
+    }
+
+    pub fn spawn_schedule_session(
+        session: PhysicsSchedule,
+        policy: WorkerPolicy,
+    ) -> Result<Self, String> {
+        let memory = WorkerMemoryPlan::compile_schedule(session.plan(), policy)?;
+        Self::launch(session, policy, memory)
+    }
+}
+
+impl<S: WorkerRuntime> PhysicsWorker<S> {
+    fn launch(session: S, policy: WorkerPolicy, memory: WorkerMemoryPlan) -> Result<Self, String> {
         let runner = Runner::new(session)?;
         let shared = Arc::new(Shared::new(policy.command_capacity, runner.projection())?);
         let client = PhysicsWorkerClient {
@@ -229,7 +274,7 @@ impl PhysicsWorker {
 
     /// Stops at the next accepted/rejected solver boundary, joins the worker,
     /// and returns its state for archival or an explicit new session.
-    pub fn shutdown(mut self) -> Result<PhysicsProofSession, WorkerAccessError> {
+    pub fn shutdown(mut self) -> Result<S, WorkerAccessError> {
         self.stop();
         let session = self
             .thread
@@ -250,7 +295,7 @@ impl PhysicsWorker {
     }
 }
 
-impl Drop for PhysicsWorker {
+impl<S: WorkerRuntime> Drop for PhysicsWorker<S> {
     fn drop(&mut self) {
         self.stop();
         if let Some(thread) = self.thread.take() {

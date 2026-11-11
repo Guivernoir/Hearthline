@@ -21,10 +21,10 @@ a substitute canonical plant or a production recipe collection.
 | Original basin | Digest-pinned geometry, active-volume transport without fictitious cavity inventory, compiled mechanical sparsity and complete geometry-aware replay; coarse orthogonal development mesh, not qualified product geometry |
 | Memory | Actual field-buffer allocations checked against compiled measurements; zero allocations during successful stepping |
 | Factory resource study | Typed population/workload compiler, shared geometry, independent fields/snapshots and declared auxiliary envelopes; the current full-factory baseline exceeds the memory budget |
-| Pooled proof runtime | Independent state banks with one serial workspace per profile, allocation-free stepping and streamed capture, bounded validated loading, opt-in zero-start elastic reconstruction; compiled multirate event order and restartable frontier; not yet integrated with the factory worker |
+| Pooled proof runtime | Independent state banks with one serial workspace per profile, allocation-free stepping and streamed capture, bounded validated loading, opt-in zero-start elastic reconstruction; compiled multirate event order and restartable frontier on one dedicated worker; not yet coupled by physical connections |
 | Transactions | Failed coupled steps preserve physical state, time and conservation ledgers |
 | Replay | Complete initial/intermediate/final fields, model and numerical-contract digests, exact re-execution and checkpoint continuation |
-| Dedicated worker and pacing | Exclusive proof-session ownership, bounded revision-checked commands, copied engineering projections, pause/single-step, 1x/2x/5x/10x and headless CLI; allocation-tested thread loop; not yet the coupled factory scheduler or connected to API/HMI |
+| Dedicated worker and pacing | Exclusive proof/schedule ownership, bounded revision-checked commands, copied instance-qualified engineering projections, deadline-based pause/single-event step and 1x/2x/5x/10x/headless execution; allocation-tested thread loop; single-proof CLI; not yet the coupled factory or connected to API/HMI |
 | Configuration | Strict standalone proof YAML and generated JSON Schema; not yet included in canonical drafts or `model.lock.json` |
 
 Analytical tests cover two-volume exchange, constant fields, manufactured

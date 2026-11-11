@@ -2,6 +2,7 @@
 
 mod buffers;
 mod checkpoint;
+pub use checkpoint::{FieldRange, NumericalFieldRanges};
 pub mod clock;
 mod flow;
 mod material;

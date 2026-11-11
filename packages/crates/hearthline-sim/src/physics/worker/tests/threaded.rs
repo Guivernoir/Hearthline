@@ -30,7 +30,7 @@ fn dedicated_worker_resumes_full_state_and_does_not_own_the_calling_thread() {
     let worker = PhysicsWorker::spawn_session(saved, WorkerPolicy::reviewed_default()).unwrap();
     let client = worker.client();
     let restored = client.projection().unwrap();
-    assert_eq!(restored.step, 2);
+    assert_eq!(restored.committed_events, 2);
     assert_eq!(restored.time_us, 2 * model.timestep_us());
     assert_eq!(restored.active_wall_us, 0);
     assert!(command(&client, 0, ClockCommand::Headless).result.is_ok());

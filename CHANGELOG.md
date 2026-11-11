@@ -9,6 +9,12 @@ migrations.
 
 ### Added
 
+- Integrated multirate populations with the dedicated numerical worker through
+  one sealed backend, mailbox and event clock. Pacing preserves equal-time event
+  order and physical timesteps; copied field updates identify their instance and
+  profile. Aggregate worker memory includes stack/mailbox overhead, and restored
+  numerical failures remain latched. Physical exchanges and canonical API/HMI
+  integration remain pending.
 - Added compiled multirate numerical-population scheduling with source-order
   independent identities/profile assignment, a preallocated event heap, aggregate
   memory/restore preflight, streamed full-field snapshots and chronological

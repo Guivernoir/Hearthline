@@ -26,7 +26,7 @@ fn clock_commands_are_revision_checked_and_pause_is_not_a_physical_step() {
                 .result
                 .is_ok()
         );
-        assert_eq!(runner.projection().step, 1);
+        assert_eq!(runner.projection().committed_events, 1);
         assert_eq!(runner.projection().automatic_completed_us, 0);
         assert!(
             runner
@@ -53,7 +53,7 @@ fn clock_commands_are_revision_checked_and_pause_is_not_a_physical_step() {
             Err(CommandRejection::NotPaused)
         );
         runner.cycle(dt / 5, None);
-        assert_eq!(runner.projection().step, 2);
+        assert_eq!(runner.projection().committed_events, 2);
         assert_eq!(runner.projection().achieved_milli_rate(), Some(5000));
         assert!(
             runner
@@ -63,7 +63,7 @@ fn clock_commands_are_revision_checked_and_pause_is_not_a_physical_step() {
                 .is_ok()
         );
         runner.cycle(dt * 100, None);
-        assert_eq!(runner.projection().step, 2);
+        assert_eq!(runner.projection().committed_events, 2);
         assert_eq!(runner.projection().time_us, 2 * dt);
     });
     assert_eq!(measured.count_total, 0);

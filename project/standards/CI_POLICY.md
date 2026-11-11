@@ -82,6 +82,14 @@ mutated schedule archives and reordered registrations; nightly mutation targets
 the schedule compiler, event loop, memory plan and frontier reader. This evidence
 does not establish physical coupling between independent numerical populations.
 
+The worker suite now runs aggregate schedules as well as individual proofs.
+It verifies native headless/all-rate equivalence, identity-qualified live field
+updates, equal-time manual steps, restored failure latches and a full unread
+mailbox on a 1 MiB thread with zero execution allocations. Event-clock fuzzing
+includes empty/equal/regressing/maximum deadlines and checked state preservation.
+Worker memory preflight adds mailbox and stack overhead to the aggregate budget;
+it does not assign a new independent budget to each population.
+
 Capacity evidence also includes the experimental factory physics resource
 report. Its current independent-workspace baseline is deliberately over budget;
 tests require that rejection and preserve the declared mesh/workload inputs.

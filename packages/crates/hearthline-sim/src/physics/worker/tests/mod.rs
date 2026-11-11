@@ -7,6 +7,7 @@ use hearthline_project::physics::CompiledPhysicsProof;
 use super::*;
 use crate::physics::{PhysicsProofSession, PhysicsReplay};
 
+mod schedule;
 mod state;
 mod threaded;
 

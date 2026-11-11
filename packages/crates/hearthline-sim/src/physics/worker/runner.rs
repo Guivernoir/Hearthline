@@ -1,52 +1,48 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use hearthline_physics::Scalar;
-
 use super::super::PhysicsProofSession;
 use super::super::clock::{PacingError, PhysicsPacer};
 use super::mailbox::{CloseOnExit, Request, Shared};
 use super::{
-    ClockCommand, CommandRejection, CommandReply, FieldRange, WorkerFault, WorkerProjection,
+    ClockCommand, CommandRejection, CommandReply, WorkerFault, WorkerFields, WorkerProjection,
+    WorkerRuntime,
 };
 
-pub(super) struct Runner {
-    pub session: PhysicsProofSession,
+pub(super) struct Runner<S: WorkerRuntime = PhysicsProofSession> {
+    pub session: S,
     pub clock: PhysicsPacer,
     revision: u64,
     generation: u64,
     fault: Option<WorkerFault>,
+    fields: Option<WorkerFields>,
 }
 
-impl Runner {
-    pub fn new(session: PhysicsProofSession) -> Result<Self, String> {
-        let time_us = u64::from(session.step)
-            .checked_mul(session.model.timestep_us())
-            .ok_or("worker clock overflow")?;
-        let mut clock = PhysicsPacer::at_boundary(session.model.timestep_us(), time_us)
-            .map_err(|e| format!("{e:?}"))?;
+impl<S: WorkerRuntime> Runner<S> {
+    pub fn new(session: S) -> Result<Self, String> {
+        let time_us = session.time_us().map_err(|e| format!("{e:?}"))?;
+        let next = session.next_deadline_us().map_err(|e| format!("{e:?}"))?;
+        let mut clock =
+            PhysicsPacer::at_event_boundary(time_us, next).map_err(|e| format!("{e:?}"))?;
         clock.set_paused(true);
+        let fields = session.initial_fields().map_err(|e| format!("{e:?}"))?;
+        let fault = session.initial_failure();
         Ok(Self {
             session,
             clock,
             revision: 0,
             generation: 0,
-            fault: None,
+            fault,
+            fields,
         })
     }
 
     pub fn projection(&self) -> WorkerProjection {
         WorkerProjection {
-            model_digest: self
-                .session
-                .model
-                .digest()
-                .as_bytes()
-                .try_into()
-                .expect("compiled SHA-256 digest"),
+            model_digest: super::backend::digest_bytes(self.session.digest()),
             generation: self.generation,
             command_revision: self.revision,
-            step: self.session.step,
+            committed_events: self.session.event_count(),
             time_us: self.clock.completed_us(),
             mode: self.clock.mode(),
             paused: self.clock.paused(),
@@ -55,8 +51,7 @@ impl Runner {
             active_wall_us: self.clock.elapsed_wall_us(),
             automatic_completed_us: self.clock.automatic_completed_us(),
             pending_pacing_us: self.clock.pending_credit_us(),
-            first_field: range(&self.session.field),
-            temperature_k: range(&self.session.temperature),
+            fields: self.fields,
             fault: self.fault,
             outstanding_commands: 0,
             command_high_water: 0,
@@ -64,7 +59,7 @@ impl Runner {
     }
 
     fn complete(&self) -> bool {
-        self.session.step == self.session.model.config().steps
+        self.session.complete()
     }
 
     fn fail(&mut self, fault: WorkerFault) {
@@ -98,9 +93,24 @@ impl Runner {
             let mut next_clock = self.clock;
             match next_clock.commit_step() {
                 Err(error) => self.fail(WorkerFault::Pacing(error)),
-                Ok(()) => match self.session.step() {
-                    Ok(_) => self.clock = next_clock,
-                    Err(error) => self.fail(WorkerFault::Numerical(error)),
+                Ok(()) => match self.session.advance() {
+                    Ok(fields) => {
+                        self.clock = next_clock;
+                        self.fields = Some(fields);
+                        if fields.time_us != self.clock.completed_us() {
+                            self.fail(WorkerFault::RuntimeInvariant);
+                        } else {
+                            match self.session.next_deadline_us() {
+                                Ok(next) => {
+                                    if let Err(error) = self.clock.set_next_event(next) {
+                                        self.fail(WorkerFault::Pacing(error));
+                                    }
+                                }
+                                Err(error) => self.fail(error),
+                            }
+                        }
+                    }
+                    Err(error) => self.fail(error),
                 },
             }
         }
@@ -147,7 +157,7 @@ impl Runner {
         Ok(())
     }
 
-    pub fn run(mut self, shared: Arc<Shared>) -> PhysicsProofSession {
+    pub fn run(mut self, shared: Arc<Shared>) -> S {
         let _close = CloseOnExit(&shared);
         let mut sampled = Instant::now();
         while !shared.stopped() {
@@ -156,11 +166,11 @@ impl Runner {
                 Err(_) => break,
             };
             let elapsed = self.sample_wall(&mut sampled);
-            let automatic_before = self.clock.automatic_completed_us();
+            let automatic_before = self.clock.automatic_events();
             let reply = self.cycle(elapsed, request);
             // Include solver time in achieved speed and pacing debt immediately.
             let elapsed = self.sample_wall(&mut sampled);
-            if self.complete() && self.clock.automatic_completed_us() != automatic_before {
+            if self.complete() && self.clock.automatic_events() != automatic_before {
                 if let Err(error) = self.clock.accrue(elapsed) {
                     self.fail(WorkerFault::Pacing(error));
                 }
@@ -220,18 +230,4 @@ impl Runner {
         }
         micros
     }
-}
-
-fn range(field: &[Scalar]) -> FieldRange {
-    let initial = field[0].raw();
-    field.iter().fold(
-        FieldRange {
-            minimum_raw: initial,
-            maximum_raw: initial,
-        },
-        |range, value| FieldRange {
-            minimum_raw: range.minimum_raw.min(value.raw()),
-            maximum_raw: range.maximum_raw.max(value.raw()),
-        },
-    )
 }

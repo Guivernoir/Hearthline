@@ -1,7 +1,44 @@
 use std::io::{self, BufRead, Write};
 
+use hearthline_physics::Scalar;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
+
+use super::PhysicsProofSession;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct FieldRange {
+    pub minimum_raw: i64,
+    pub maximum_raw: i64,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct NumericalFieldRanges {
+    pub first_field: FieldRange,
+    pub temperature_k: FieldRange,
+}
+
+impl PhysicsProofSession {
+    pub(in crate::physics) fn field_ranges(&self) -> NumericalFieldRanges {
+        fn range(field: &[Scalar]) -> FieldRange {
+            let initial = field[0].raw();
+            field.iter().fold(
+                FieldRange {
+                    minimum_raw: initial,
+                    maximum_raw: initial,
+                },
+                |range, value| FieldRange {
+                    minimum_raw: range.minimum_raw.min(value.raw()),
+                    maximum_raw: range.maximum_raw.max(value.raw()),
+                },
+            )
+        }
+        NumericalFieldRanges {
+            first_field: range(&self.field),
+            temperature_k: range(&self.temperature),
+        }
+    }
+}
 
 pub(super) struct HashWriter<W> {
     pub output: W,

@@ -29,6 +29,7 @@ impl PlaybackRate {
 pub enum PacingError {
     ZeroStep,
     InvalidBoundary,
+    WrongCadence,
     Overflow,
     NoStepDue,
 }
@@ -40,12 +41,19 @@ pub enum PacingError {
 pub struct PhysicsPacer {
     mode: PlaybackMode,
     paused: bool,
-    step_us: u64,
+    cadence: Cadence,
     credit_us: u64,
     manual_steps: u64,
     completed_us: u64,
     elapsed_wall_us: u64,
     automatic_completed_us: u64,
+    automatic_events: u64,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum Cadence {
+    Fixed(u64),
+    Events(Option<u64>),
 }
 
 impl PhysicsPacer {
@@ -63,13 +71,38 @@ impl PhysicsPacer {
         Ok(Self {
             mode: PlaybackMode::Paced(PlaybackRate::One),
             paused: false,
-            step_us,
+            cadence: Cadence::Fixed(step_us),
             credit_us: 0,
             manual_steps: 0,
             completed_us,
             elapsed_wall_us: 0,
             automatic_completed_us: 0,
+            automatic_events: 0,
         })
+    }
+    /// Equal-time events are valid. Their execution consumes no additional
+    /// simulated duration, but still requires a manual step while paused.
+    pub fn at_event_boundary(completed_us: u64, next_us: Option<u64>) -> Result<Self, PacingError> {
+        let mut clock = Self::at_boundary(1, completed_us)?;
+        clock.cadence = Cadence::Events(None);
+        clock.set_next_event(next_us)?;
+        Ok(clock)
+    }
+    pub fn set_next_event(&mut self, next_us: Option<u64>) -> Result<(), PacingError> {
+        if !matches!(self.cadence, Cadence::Events(_)) {
+            return Err(PacingError::WrongCadence);
+        }
+        if next_us.is_some_and(|next| next < self.completed_us) {
+            return Err(PacingError::InvalidBoundary);
+        }
+        self.cadence = Cadence::Events(next_us);
+        Ok(())
+    }
+    fn next_duration_us(&self) -> Option<u64> {
+        match self.cadence {
+            Cadence::Fixed(step) => Some(step),
+            Cadence::Events(next) => next.map(|next| next - self.completed_us),
+        }
     }
     pub fn set_rate(&mut self, rate: PlaybackRate) {
         self.mode = PlaybackMode::Paced(rate);
@@ -112,34 +145,46 @@ impl PhysicsPacer {
         Ok(())
     }
     pub fn step_due(&self) -> bool {
+        let Some(step_us) = self.next_duration_us() else {
+            return false;
+        };
         if self.paused {
             self.manual_steps > 0
         } else {
-            self.mode == PlaybackMode::Headless || self.credit_us >= self.step_us
+            self.mode == PlaybackMode::Headless || self.credit_us >= step_us
         }
     }
     pub fn commit_step(&mut self) -> Result<(), PacingError> {
         if !self.step_due() {
             return Err(PacingError::NoStepDue);
         }
+        let step_us = self.next_duration_us().ok_or(PacingError::NoStepDue)?;
         let completed = self
             .completed_us
-            .checked_add(self.step_us)
+            .checked_add(step_us)
             .ok_or(PacingError::Overflow)?;
         let automatic = if self.paused {
             self.automatic_completed_us
         } else {
             self.automatic_completed_us
-                .checked_add(self.step_us)
+                .checked_add(step_us)
                 .ok_or(PacingError::Overflow)?
         };
+        let automatic_events = self
+            .automatic_events
+            .checked_add(u64::from(!self.paused))
+            .ok_or(PacingError::Overflow)?;
         if self.paused {
             self.manual_steps -= 1;
         } else if matches!(self.mode, PlaybackMode::Paced(_)) {
-            self.credit_us -= self.step_us;
+            self.credit_us -= step_us;
         }
         self.completed_us = completed;
         self.automatic_completed_us = automatic;
+        self.automatic_events = automatic_events;
+        if matches!(self.cadence, Cadence::Events(_)) {
+            self.cadence = Cadence::Events(None);
+        }
         Ok(())
     }
     pub const fn mode(&self) -> PlaybackMode {
@@ -151,14 +196,18 @@ impl PhysicsPacer {
     pub const fn automatic_completed_us(&self) -> u64 {
         self.automatic_completed_us
     }
+    pub const fn automatic_events(&self) -> u64 {
+        self.automatic_events
+    }
     /// None means wait for a command; zero means process another physical step.
     pub fn wait_us(&self) -> Option<u64> {
+        let step_us = self.next_duration_us()?;
         if self.step_due() {
             Some(0)
         } else if self.paused {
             None
         } else if let PlaybackMode::Paced(rate) = self.mode {
-            Some((self.step_us - self.credit_us).div_ceil(rate.multiplier()))
+            Some((step_us - self.credit_us).div_ceil(rate.multiplier()))
         } else {
             Some(0)
         }

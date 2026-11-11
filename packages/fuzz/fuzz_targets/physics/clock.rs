@@ -1,6 +1,7 @@
 use hearthline_sim::physics::clock::{PhysicsPacer, PlaybackRate};
 
 pub fn exercise(input: &[u8]) {
+    exercise_events(input);
     let step = u64::from(input.first().copied().unwrap_or(0)) + 1;
     let initial = input
         .get(..8)
@@ -49,5 +50,80 @@ pub fn exercise(input: &[u8]) {
                 if before.paused() { 0 } else { step }
             );
         }
+    }
+}
+
+fn exercise_events(input: &[u8]) {
+    let initial = input
+        .get(..8)
+        .map_or(0, |bytes| u64::from_le_bytes(bytes.try_into().unwrap()));
+    let mut deadline = Some(initial);
+    let mut clock = PhysicsPacer::at_event_boundary(initial, deadline).unwrap();
+    for &byte in input.iter().take(256) {
+        let before = clock;
+        let action = byte % 12;
+        let result = match action {
+            0 => {
+                clock.set_paused(true);
+                Ok(())
+            }
+            1 => {
+                clock.set_paused(false);
+                Ok(())
+            }
+            2 => {
+                clock.set_headless();
+                Ok(())
+            }
+            3 => {
+                clock.set_rate(
+                    [
+                        PlaybackRate::One,
+                        PlaybackRate::Two,
+                        PlaybackRate::Five,
+                        PlaybackRate::Ten,
+                    ][usize::from(byte / 12) % 4],
+                );
+                Ok(())
+            }
+            4 => clock.request_single_step(),
+            5 => clock.commit_step(),
+            6 => clock.accrue(u64::MAX),
+            7 => clock.accrue(u64::from(byte)),
+            _ => {
+                let next = match action {
+                    8 => None,
+                    9 => Some(0),
+                    10 => Some(u64::MAX),
+                    _ => clock.completed_us().checked_add(u64::from(byte / 12)),
+                };
+                let result = clock.set_next_event(next);
+                if result.is_ok() {
+                    deadline = next;
+                }
+                result
+            }
+        };
+        if result.is_err() {
+            assert_eq!(clock, before);
+        }
+        if action == 5 && result.is_ok() {
+            assert_eq!(clock.completed_us(), deadline.unwrap());
+            assert_eq!(
+                clock.automatic_completed_us() - before.automatic_completed_us(),
+                if before.paused() {
+                    0
+                } else {
+                    clock.completed_us() - before.completed_us()
+                }
+            );
+            assert_eq!(
+                clock.automatic_events() - before.automatic_events(),
+                u64::from(!before.paused())
+            );
+            deadline = None;
+        }
+        assert!(clock.completed_us() >= before.completed_us());
+        assert_eq!(clock.wait_us() == Some(0), clock.step_due());
     }
 }

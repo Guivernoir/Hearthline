@@ -52,6 +52,8 @@ pub struct ScheduledPhysicsStep {
     pub event: PhysicsEvent,
     pub sequence: u64,
     pub report: PhysicsStepReport,
+    pub instance_step: u32,
+    pub fields: super::NumericalFieldRanges,
 }
 
 /// Ownership is transferred to one worker, never cloned between executors.
@@ -180,6 +182,8 @@ impl PhysicsSchedule {
             event,
             sequence,
             report,
+            instance_step: step,
+            fields: population.accepted_field_ranges(),
         })
     }
 }

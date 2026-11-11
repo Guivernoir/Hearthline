@@ -36,7 +36,7 @@ pub(super) fn execute(
         if let Some(fault) = status.fault {
             return Err(format!(
                 "physics worker fault after {} committed steps: {fault:?}",
-                status.step
+                status.committed_events
             )
             .into());
         }
@@ -60,7 +60,7 @@ pub(super) fn execute(
     );
     println!(
         "{id}: {} physical steps, {} us, digest {}; requested {requested}, achieved {achieved}; numerical worker only, not plant qualification",
-        finished.step,
+        finished.committed_events,
         finished.time_us,
         std::str::from_utf8(&digest)?
     );

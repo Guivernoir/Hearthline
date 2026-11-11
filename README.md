@@ -76,12 +76,12 @@ retained. Sparse symmetric preconditioning completes the four refined source
 steps without increasing their iteration limit. Numerical and
 full-factory memory qualification remain incomplete.
 An isolated [dedicated physics worker](project/physics/runtime/README.md) now
-owns proof execution with bounded revision-checked clock commands, copied
+owns single-proof or multirate population execution with bounded revision-checked clock commands, copied
 engineering projections, checkpoint continuation, and paced/headless CLI runs.
-It is not yet the multi-profile factory scheduler or connected to HTTP/HMIs.
-A separate [multirate population schedule](project/physics/runtime/schedule.md)
-now compiles stable event ordering and validates full-state restart frontiers;
-worker integration and conservative exchanges between profiles remain pending.
+It is not yet the coupled factory runtime or connected to HTTP/HMIs.
+The [multirate population schedule](project/physics/runtime/schedule.md)
+compiles stable event ordering and validates full-state restart frontiers;
+conservative exchanges between profiles remain pending.
 Production geometry qualification, remaining constitutive fields, factory integration and
 application memory measurements are still required to qualify the memory gate.
 These proofs do not yet replace the canonical factory,

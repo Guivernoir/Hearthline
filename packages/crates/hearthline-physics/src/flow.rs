@@ -6,6 +6,7 @@ use crate::transport::{Grid3d, SolverLimits};
 use crate::{PhysicsError, Scalar};
 
 mod advance;
+pub mod connected;
 mod scales;
 mod viscous;
 pub use advance::{FlowAdvanceError, FlowAdvanceReport, FlowAdvanceWorkspace, FlowRetryPolicy};
@@ -373,15 +374,26 @@ impl CompressibleFlow {
         right: Conserved,
         axis: usize,
     ) -> Result<Conserved, PhysicsError> {
-        let a = self.gas.primitive(left)?;
-        let b = self.gas.primitive(right)?;
+        self.gas.flux(left, right, axis)
+    }
+}
+
+impl IdealGas {
+    fn flux(
+        self,
+        left: Conserved,
+        right: Conserved,
+        axis: usize,
+    ) -> Result<Conserved, PhysicsError> {
+        let a = self.primitive(left)?;
+        let b = self.primitive(right)?;
         let speed = a.velocity[axis]
             .abs()?
-            .checked_add(self.gas.acoustic_speed(a)?)?
+            .checked_add(self.acoustic_speed(a)?)?
             .max(
                 b.velocity[axis]
                     .abs()?
-                    .checked_add(self.gas.acoustic_speed(b)?)?,
+                    .checked_add(self.acoustic_speed(b)?)?,
             );
         let f = physical_flux(left, a, axis)?.components();
         let g = physical_flux(right, b, axis)?.components();
