@@ -2,6 +2,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 pub mod capacity;
+pub mod connected;
 pub mod geometry;
 pub mod material;
 

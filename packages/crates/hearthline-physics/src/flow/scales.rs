@@ -55,6 +55,9 @@ impl GasScales {
     pub fn length_to_solver(self, value_m: Scalar) -> Result<Scalar, PhysicsError> {
         value_m.checked_div(self.length)
     }
+    pub fn velocity_to_solver(self, value_m_s: Scalar) -> Result<Scalar, PhysicsError> {
+        value_m_s.checked_div(self.velocity)
+    }
     pub fn density_to_solver(self, value_kg_m3: Scalar) -> Result<Scalar, PhysicsError> {
         value_kg_m3.checked_div(self.density)
     }

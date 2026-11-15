@@ -1,18 +1,18 @@
 # Dedicated Physics Worker
 
-Status: numerical qualification runtime. It hosts a compiled proof session or
-an aggregate multirate population schedule on one worker;
+Status: numerical qualification runtime. It hosts a compiled proof session,
+a connected-gas island or an aggregate multirate population schedule on one worker;
 the coupled factory, canonical API sessions and HMIs are not migrated yet.
 
 ## Ownership And Clock
 
-`PhysicsWorker` transfers exclusive ownership of a `PhysicsProofSession` or
-`PhysicsSchedule` to a
+`PhysicsWorker` transfers exclusive ownership of a `PhysicsProofSession`,
+`ConnectedGasSession` or `PhysicsSchedule` to a
 named OS worker thread. A client cannot mutate or borrow its fields. The pinned
 compiled model is immutable and retained by `Arc`; changing source files cannot
 change an existing worker. State returns to the owner only after shutdown joins
 the thread at a solver boundary.
-Both use the same sealed execution adapter, bounded mailbox and shutdown path;
+All use the same sealed execution adapter, bounded mailbox and shutdown path;
 the aggregate does not spawn another thread for each profile or instance.
 
 Workers start paused. Supported commands are software Pause, Resume, SingleStep,
@@ -117,7 +117,11 @@ The CLI reports a full-state digest and requested/achieved speed. It hashes the
 same fields as a checkpoint without allocating a spatial copy. It does not
 write a replay or modify the source model. Rate defaults to headless; `--rate`
 and `--headless` are mutually exclusive.
-The CLI still loads individual proof YAML. Rust hosts can transfer an aggregate
+The connected-gas source adapter is available as `physics gas budget` and
+`physics gas run`, with optional streamed snapshot continuation/capture; see
+[connected sources and their limits](connections.md#yaml-and-cli).
+These inputs remain standalone verification fixtures, not canonical appliance
+YAML or factory controls. Rust hosts can transfer an aggregate
 with `PhysicsWorker::spawn_schedule`, or restore its full snapshot before
 `spawn_schedule_session`. Canonical model compilation and its public adapters
 are not migrated yet.
@@ -138,3 +142,8 @@ simulation-time equipment/fault commands, controller and instrument integration,
 generated API/TypeScript controls, streamed archival, historian, and spatial UI.
 This worker is progress toward the integrated release, not completion of those
 requirements or a physical-validation claim.
+
+The [connected-gas runtime](connections.md) now joins finite-volume regions in
+one accepted step and supports full-state worker restart. This is separate from
+the independent-population schedule: cross-island multirate transfer, equipment
+ports, controller tasks and canonical YAML/CLI integration remain pending.

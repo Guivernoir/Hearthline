@@ -16,8 +16,6 @@ hearthline-project = { path = "../hearthline-project", version = "=0.3.2" }
 hearthline-sim = { path = "../hearthline-sim", version = "=0.3.2" }
 serde_json.workspace = true
 serde_yaml_ng.workspace = true
-
-[dev-dependencies]
 tempfile.workspace = true
 
 [[bin]]

@@ -1,0 +1,69 @@
+# Synthetic SI verification values, not compressed-air equipment specifications.
+# This document reproduces connected-retry.json; canonical appliances are unchanged.
+schema_version: "0.1.0"
+id: connected-gas-retry-proof
+allocation_budget_bytes: 67108864
+reference:
+  length_m: "1"
+  velocity_m_s: "1"
+  density_kg_m3: "1"
+gas:
+  gas_constant_j_kg_k: "1"
+  heat_capacity_ratio: "1.4"
+  dynamic_viscosity_pa_s: "0.01"
+  thermal_conductivity_w_m_k: "0.02"
+integration:
+  timestep_us: 1001
+  steps: 3
+  maximum_iterations: 14
+  residual_tolerance: "0.0000001"
+  retries:
+    maximum_substeps: 64
+    minimum_timestep_us: 1
+regions:
+  - identity: &supply {site: factory, cell: air, instance: supply}
+    shape: [2, 2, 2]
+    spacing_m: ["0.37", "1", "1"]
+    boundaries:
+      x_minus: &wall {kind: adiabatic-slip-wall}
+      x_plus: &coupled {kind: coupled}
+      y_minus: *wall
+      y_plus: *wall
+      z_minus: *wall
+      z_plus: *wall
+    initial:
+      density_kg_m3: "2"
+      pressure_absolute_pa: "2"
+      velocity_m_s: ["0", "0", "0"]
+  - identity: &pipe {site: factory, cell: air, instance: pipe}
+    shape: [2, 2, 2]
+    spacing_m: ["0.71", "1", "1"]
+    boundaries:
+      x_minus: *coupled
+      x_plus: *coupled
+      y_minus: *wall
+      y_plus: *wall
+      z_minus: *wall
+      z_plus: *wall
+    initial: &low
+      density_kg_m3: "1"
+      pressure_absolute_pa: "1"
+      velocity_m_s: ["0", "0", "0"]
+  - identity: &receiver {site: factory, cell: air, instance: receiver}
+    shape: [2, 2, 2]
+    spacing_m: ["1.13", "1", "1"]
+    boundaries:
+      x_minus: *coupled
+      x_plus: *wall
+      y_minus: *wall
+      y_plus: *wall
+      z_minus: *wall
+      z_plus: *wall
+    initial: *low
+connections:
+  - id: supply-pipe
+    first: {region: *supply, face: x-plus}
+    second: {region: *pipe, face: x-minus}
+  - id: pipe-receiver
+    first: {region: *pipe, face: x-plus}
+    second: {region: *receiver, face: x-minus}

@@ -14,6 +14,7 @@ a substitute canonical plant or a production recipe collection.
 | Spatial transport | Cell-centered Cartesian 3D finite volumes, implicit backward Euler, deterministic lexicographic Gauss-Seidel |
 | Isothermal receiver equilibration | Finite ideal-gas mass storage and linear pressure-driven conductances; no compression work, momentum equation, or compressor equipment yet |
 | Compressible flow kernel | Conservative density, three momentum components and total energy in 3D; implicit Rusanov fluxes, Newtonian viscous stress, Fourier heat conduction, periodic/slip/no-slip boundaries and bounded whole-horizon timestep retries; turbulence and plant integration remain pending |
+| Connected gas regions | SI-normalized immutable model, named conforming face connections, extensive mass/momentum/energy state, exact quantized accounting and bounded whole-horizon retries; dedicated worker, full-state restart, current/previous snapshot readers and native goldens; not yet integrated into appliance YAML, equipment controls or the multirate aggregate |
 | Compressible receiver proof | Two finite chambers on a fixed Cartesian mesh, SI inputs with checked reference-scale conversion, pressure-driven charging and reflected waves; conserved-field snapshots include accepted-step retry metadata |
 | Mechanical kernel | Compiled linear tetrahedra, matrix-free or immutable sparse elasticity, imposed expansion/shrinkage strain and checked iterative equilibrium; verified free/restrained expansion and rigid motion, not fracture or a calibrated product model |
 | Drying specimen | Spatial moisture/heat diffusion, surface exchange, evaporation/condensation heat; optional tetrahedral equilibrium driven by local thermal/moisture eigenstrain, with displacement and stress snapshots; constant properties, no fracture or calibrated ceramic law yet |
@@ -24,7 +25,7 @@ a substitute canonical plant or a production recipe collection.
 | Pooled proof runtime | Independent state banks with one serial workspace per profile, allocation-free stepping and streamed capture, bounded validated loading, opt-in zero-start elastic reconstruction; compiled multirate event order and restartable frontier on one dedicated worker; not yet coupled by physical connections |
 | Transactions | Failed coupled steps preserve physical state, time and conservation ledgers |
 | Replay | Complete initial/intermediate/final fields, model and numerical-contract digests, exact re-execution and checkpoint continuation |
-| Dedicated worker and pacing | Exclusive proof/schedule ownership, bounded revision-checked commands, copied instance-qualified engineering projections, deadline-based pause/single-event step and 1x/2x/5x/10x/headless execution; allocation-tested thread loop; single-proof CLI; not yet the coupled factory or connected to API/HMI |
+| Dedicated worker and pacing | Exclusive proof/connected-gas/schedule ownership, bounded revision-checked commands, copied engineering projections, deadline-based pause/single-event step and 1x/2x/5x/10x/headless execution; allocation-tested thread loop; proof and connected-source CLI; not yet the coupled factory or connected to API/HMI |
 | Configuration | Strict standalone proof YAML and generated JSON Schema; not yet included in canonical drafts or `model.lock.json` |
 
 Analytical tests cover two-volume exchange, constant fields, manufactured
@@ -39,6 +40,9 @@ The [dedicated runtime work](runtime/README.md) records clock semantics, mailbox
 saturation, shutdown, checkpoint continuation and remaining factory integration.
 The [multirate schedule](runtime/schedule.md) composes numerical populations with
 stable identity ordering, shared resource preflight and full-state prefix validation.
+The [connected gas-domain work](runtime/connections.md) supplies explicit face
+topology, a conservative joint solve and full-state worker restart; controller
+and canonical source integration are pending.
 
 ## Run The Proofs
 

@@ -111,6 +111,12 @@ pub fn generated_contract_files() -> Result<Vec<(PathBuf, String)>, serde_json::
             >())?,
         ),
         (
+            PathBuf::from("project/contracts/schemas/connected-gas.schema.json"),
+            pretty(&schema_value::<
+                hearthline_config::physics::connected::ConnectedGasDocument,
+            >())?,
+        ),
+        (
             PathBuf::from("project/contracts/schemas/solid-geometry.schema.json"),
             pretty(&schema_value::<
                 hearthline_config::physics::geometry::SolidGeometryDocument,

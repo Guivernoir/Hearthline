@@ -107,6 +107,10 @@ jobs:
             arguments: --file crates/hearthline-physics/src/scalar.rs --file crates/hearthline-physics/src/flow.rs --file crates/hearthline-physics/src/flow/scales.rs --file crates/hearthline-physics/src/flow/viscous.rs --file crates/hearthline-physics/src/mechanics.rs --file crates/hearthline-physics/src/mechanics/sparse.rs
           - area: physics-worker
             arguments: --file crates/hearthline-sim/src/physics/clock.rs --file crates/hearthline-sim/src/physics/worker/runner.rs --file crates/hearthline-sim/src/physics/worker/mailbox.rs --file crates/hearthline-sim/src/physics/worker/backend.rs --file crates/hearthline-sim/src/physics/worker/mod.rs
+          - area: physics-connected
+            arguments: --file crates/hearthline-physics/src/flow/connected/mod.rs --file crates/hearthline-physics/src/flow/connected/advance.rs --file crates/hearthline-physics/src/flow/connected/mesh.rs --file crates/hearthline-physics/src/flow/connected/viscous.rs --file crates/hearthline-project/src/physics/flow/mesh.rs
+          - area: physics-connected-runtime
+            arguments: --file crates/hearthline-project/src/physics/flow/connected.rs --file crates/hearthline-project/src/physics/flow/source.rs --file crates/hearthline-project/src/physics/flow/source/memory.rs --file crates/hearthline-config/src/physics/connected/bounded.rs --file crates/hearthline-sim/src/physics/flow/connected/mod.rs --file crates/hearthline-sim/src/physics/flow/connected/archive.rs
           - area: physics-schedule
             arguments: --file crates/hearthline-project/src/physics/schedule.rs --file crates/hearthline-sim/src/physics/schedule/mod.rs --file crates/hearthline-sim/src/physics/schedule/memory.rs --file crates/hearthline-sim/src/physics/schedule/archive.rs --file crates/hearthline-sim/src/physics/schedule/diagnostic.rs
     steps:

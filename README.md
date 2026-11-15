@@ -76,12 +76,20 @@ retained. Sparse symmetric preconditioning completes the four refined source
 steps without increasing their iteration limit. Numerical and
 full-factory memory qualification remain incomplete.
 An isolated [dedicated physics worker](project/physics/runtime/README.md) now
-owns single-proof or multirate population execution with bounded revision-checked clock commands, copied
+owns single-proof, connected-gas or multirate population execution with bounded revision-checked clock commands, copied
 engineering projections, checkpoint continuation, and paced/headless CLI runs.
 It is not yet the coupled factory runtime or connected to HTTP/HMIs.
 The [multirate population schedule](project/physics/runtime/schedule.md)
 compiles stable event ordering and validates full-state restart frontiers;
-conservative exchanges between profiles remain pending.
+integration of conservative exchanges between profiles remains pending. A
+[connected gas runtime](project/physics/runtime/connections.md) now joins
+named regions through shared finite-volume faces with exact quantized inventory
+accounting, bounded whole-horizon retries, full-state snapshots with previous-schema
+migration and worker restart/pacing equivalence.
+It is not yet connected to canonical YAML, equipment controls or the multirate aggregate.
+Its standalone [YAML/CLI fixture](project/physics/runtime/connections.md#yaml-and-cli)
+supports bounded source validation, worker pacing and streamed snapshot
+continuation without changing the canonical appliances or existing golden results.
 Production geometry qualification, remaining constitutive fields, factory integration and
 application memory measurements are still required to qualify the memory gate.
 These proofs do not yet replace the canonical factory,

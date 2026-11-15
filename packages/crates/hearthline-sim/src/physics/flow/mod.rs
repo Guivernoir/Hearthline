@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 
 use super::{PhysicsStepError, field};
 
+pub mod connected;
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct FlowCheckpoint {

@@ -9,6 +9,34 @@ migrations.
 
 ### Added
 
+- Added bounded typed YAML input for isolated connected-gas verification, named
+  coupled faces with mandatory unique links, SI parsing and source-memory
+  accounting. `physics gas budget|run` exposes worker execution, requested/achieved
+  pacing, streamed snapshot continuation and fault-preserving capture without
+  overwriting existing files. Generated JSON Schema, source/CLI regression tests
+  and parser/compiler fuzzing reuse the existing numerical goldens. This does
+  not migrate canonical appliance files or qualify factory operation.
+- Added opt-in bounded whole-horizon retries for connected flow. Failed attempts
+  discard their complete candidate; accepted substeps conserve inventory and
+  exactly partition normalized time without relaxing solver tolerances. The
+  compiler includes retry policy in model identity and bounds all-attempt work.
+  Snapshot `0.2.0` retains accepted retry history and exhausted-failure detail;
+  original `0.1.0` snapshots/goldens are preserved and migrate in memory. Native
+  pacing/restart tests, malformed-metadata checks and fuzzing cover this path.
+- Added an SI-normalized immutable connected-gas model and exclusive runtime,
+  shared dedicated-worker execution, bounded streamed cell snapshots, cumulative
+  inventory checks and retained numerical failures. Native golden fixtures cover
+  every restart boundary, all pacing modes and failed-state restart. Memory
+  preflight includes candidate/solver fields, source metadata, archive rows and
+  worker overhead. Compiler/snapshot fuzzing and targeted mutation checks cover
+  this path; canonical YAML, controls and aggregate coupling remain pending.
+- Added experimental named gas-region connection compilation and joint implicit
+  flow with extensive cell inventories, exact paired transfers, viscous/thermal
+  transport, capacity preflight and atomic rejection. Verification includes
+  spatial/time refinement, unequal-volume conservation, measured allocations,
+  mesh fuzzing and a pinned native field digest. Canonical source schemas
+  and equipment/control integration remain pending; connected worker snapshots
+  are covered by the subsequent runtime increment above.
 - Integrated multirate populations with the dedicated numerical worker through
   one sealed backend, mailbox and event clock. Pacing preserves equal-time event
   order and physical timesteps; copied field updates identify their instance and
@@ -19,8 +47,8 @@ migrations.
   independent identities/profile assignment, a preallocated event heap, aggregate
   memory/restore preflight, streamed full-field snapshots and chronological
   frontier validation. A new compact golden fixture, native-matrix checks and
-  snapshot/order fuzzing cover independent profiles. Physical exchange, aggregate
-  worker integration and canonical factory migration remain pending.
+  snapshot/order fuzzing cover independent profiles. Physical exchange and
+  canonical factory migration remain pending; worker integration is recorded above.
 - Added a dedicated numerical-proof worker with exclusive state ownership,
   revision-checked clock commands, a preallocated request/reply mailbox,
   allocation-free execution and engineering projections. Pause/single-step,

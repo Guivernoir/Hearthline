@@ -14,6 +14,18 @@ allocation-counter = "=0.8.1"
 workspace = true
 
 [[test]]
+name = "flow"
+path = "tests/flow/inviscid.rs"
+
+[[test]]
+name = "viscous_flow"
+path = "tests/flow/viscous.rs"
+
+[[test]]
+name = "connected_flow"
+path = "tests/flow/connected.rs"
+
+[[test]]
 name = "caloric"
 path = "tests/thermal/caloric.rs"
 

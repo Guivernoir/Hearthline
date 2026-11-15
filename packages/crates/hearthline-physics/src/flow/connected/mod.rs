@@ -1,8 +1,13 @@
 //! Joint implicit integration of conforming, face-connected gas domains.
 //! Extensive state makes each rounded internal transfer equal and opposite.
 
+mod advance;
 mod mesh;
 mod viscous;
+pub use advance::{
+    CONNECTED_ADVANCE_CONTRACT, ConnectedAdvanceError, ConnectedAdvanceReport,
+    ConnectedAdvanceWorkspace, ConnectedRetryPolicy,
+};
 pub use mesh::{FaceLink, FlowCell, FlowMesh};
 
 use super::{Conserved, FlowBoundary, IdealGas, Primitive, ViscousTransport};

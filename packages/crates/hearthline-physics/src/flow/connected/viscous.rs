@@ -1,6 +1,10 @@
 use super::{CellInventory, ConnectedFlow, Conserved, FaceLink, FlowBoundary, ViscousTransport};
 use crate::{PhysicsError, Scalar};
 
+#[cfg(test)]
+#[path = "viscous_tests.rs"]
+mod tests;
+
 fn interpolate(a: Scalar, b: Scalar, left: Scalar, right: Scalar) -> Result<Scalar, PhysicsError> {
     let numerator = (i128::from(a.raw()) * i128::from(right.raw()))
         .checked_add(i128::from(b.raw()) * i128::from(left.raw()))
@@ -73,7 +77,7 @@ impl ConnectedFlow<'_> {
                 } else {
                     self.gradient(state, cell)?
                 };
-                let sign = Scalar::integer(if face % 2 == 0 { -1 } else { 1 })?;
+                let sign = Scalar::integer(if face.is_multiple_of(2) { -1 } else { 1 })?;
                 for i in 0..3 {
                     gradient[i][axis] = velocity[i]
                         .checked_sub(center.velocity[i])?

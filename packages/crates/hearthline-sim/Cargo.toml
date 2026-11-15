@@ -55,3 +55,7 @@ path = "tests/physics_cases/capacity.rs"
 [[test]]
 name = "physics_reconstruction"
 path = "tests/physics_cases/reconstruction.rs"
+
+[[test]]
+name = "physics_connected_runtime"
+path = "tests/physics_cases/connected.rs"

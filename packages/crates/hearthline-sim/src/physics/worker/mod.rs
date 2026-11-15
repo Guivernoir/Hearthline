@@ -11,7 +11,9 @@ use std::sync::Arc;
 use std::sync::atomic::Ordering;
 use std::thread::JoinHandle;
 
+use super::flow::connected::{ConnectedGasSession, ConnectedSessionMemory};
 use hearthline_project::physics::CompiledPhysicsProof;
+use hearthline_project::physics::flow::connected::CompiledConnectedGas;
 use hearthline_project::physics::schedule::CompiledPhysicsSchedule;
 
 use super::clock::{PacingError, PlaybackMode, PlaybackRate};
@@ -51,6 +53,7 @@ pub struct CommandReply {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum WorkerFault {
     Numerical(PhysicsStepError),
+    Connected(hearthline_physics::flow::connected::ConnectedAdvanceError),
     Schedule(ScheduleFailure),
     Pacing(PacingError),
     PublicationOverflow,
@@ -76,6 +79,16 @@ impl std::fmt::Display for WorkerAccessError {
 impl std::error::Error for WorkerAccessError {}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ConnectedWork {
+    pub attempts: u32,
+    pub substeps: u32,
+    pub accepted_iterations: u64,
+    pub accepted_evaluations: u64,
+    /// Conservative bound for the complete horizon, including rejected work.
+    pub evaluation_bound: u64,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct WorkerFields {
     /// None is the single-proof runtime; aggregate instances use compiled order.
     pub instance: Option<usize>,
@@ -83,6 +96,7 @@ pub struct WorkerFields {
     pub instance_step: u32,
     pub time_us: u64,
     pub values: NumericalFieldRanges,
+    pub connected_work: Option<ConnectedWork>,
 }
 
 /// Engineering state, not instrument readings. Wall metrics do not enter replay.
@@ -150,6 +164,16 @@ pub struct WorkerMemoryPlan {
 }
 
 impl WorkerMemoryPlan {
+    pub fn compile_connected(
+        model: &CompiledConnectedGas,
+        policy: WorkerPolicy,
+    ) -> Result<Self, String> {
+        Self::with_runtime(
+            ConnectedSessionMemory::compile(model)?.runtime_bytes,
+            model.memory().allocation_budget_bytes,
+            policy,
+        )
+    }
     pub fn compile(model: &CompiledPhysicsProof, policy: WorkerPolicy) -> Result<Self, String> {
         let numerical_bytes = model
             .storage_layout()
@@ -208,6 +232,23 @@ pub struct PhysicsWorker<S: WorkerRuntime = PhysicsProofSession> {
     client: PhysicsWorkerClient,
     thread: Option<JoinHandle<S>>,
     memory: WorkerMemoryPlan,
+}
+
+impl PhysicsWorker<ConnectedGasSession> {
+    pub fn spawn_connected(
+        model: Arc<CompiledConnectedGas>,
+        policy: WorkerPolicy,
+    ) -> Result<Self, String> {
+        let memory = WorkerMemoryPlan::compile_connected(&model, policy)?;
+        Self::launch(ConnectedGasSession::new(model)?, policy, memory)
+    }
+    pub fn spawn_connected_session(
+        session: ConnectedGasSession,
+        policy: WorkerPolicy,
+    ) -> Result<Self, String> {
+        let memory = WorkerMemoryPlan::compile_connected(session.model(), policy)?;
+        Self::launch(session, policy, memory)
+    }
 }
 
 impl PhysicsWorker<PhysicsProofSession> {

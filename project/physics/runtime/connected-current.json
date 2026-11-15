@@ -1,0 +1,9 @@
+{
+  "schema_version": "0.2.0",
+  "model_digest": "2b21e78ed4b2e54e2f3f848d3cf94c8d2cdfa8186f1cb3f99e22208ab8c7d37c",
+  "initial_digest": "901fec50e026a5222b09f3d63462d0c448c249f6a2f24b6970017bda53dde065",
+  "after_eight_steps_digest": "39e311f17191c3439378cd200a2356d326c9a6cc22469f7aa98f28e7018528df",
+  "final_digest": "6395eaf75393684d1898bf3973eed13021d98053a535697b055ef12a05eecea5",
+  "failure_model_digest": "fe20546a77d6d8f4deff9e7c78642c2e8b82a3930af3913f4785e5d2313b5c48",
+  "failure_digest": "a725530e9d424c1e4e402a51aa25329fb944109d65c0016afef835417c2e66e4"
+}

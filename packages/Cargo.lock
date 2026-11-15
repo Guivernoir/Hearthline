@@ -582,6 +582,7 @@ dependencies = [
 name = "hearthline-project"
 version = "0.3.2"
 dependencies = [
+ "allocation-counter",
  "hearthline-config",
  "hearthline-engine",
  "hearthline-model",

@@ -8,6 +8,10 @@ use hearthline_physics::{PhysicsError, Scalar};
 
 use super::{error, nonnegative, positive};
 
+pub mod connected;
+pub mod mesh;
+pub mod source;
+
 #[derive(Clone, Debug)]
 pub struct CompiledReceiverFlow {
     solver: CompressibleFlow,

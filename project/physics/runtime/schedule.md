@@ -39,6 +39,8 @@ connections still require conservative boundary exchange and synchronization
 rules. It must not be used to infer that independently advanced fields already
 exchange mass, energy or force. Equipment, instrument and network events also
 need explicit ordering against this clock before factory integration.
+The [connected gas kernel and compiler](connections.md) now provide a jointly
+solved conforming mesh, but are not yet scheduled or archived by this aggregate.
 
 ## Snapshots And Replay Evidence
 

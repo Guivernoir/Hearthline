@@ -1,0 +1,399 @@
+{
+  "$defs": {
+    "GasBoundaryConfig": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "coupled",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "adiabatic-slip-wall",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "no-slip-wall",
+              "type": "string"
+            },
+            "temperature_k": {
+              "description": "Omit for an adiabatic wall; otherwise this is a maintained temperature.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "velocity_m_s": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 3,
+              "minItems": 3,
+              "type": "array"
+            }
+          },
+          "required": [
+            "kind",
+            "velocity_m_s"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "description": "An explicitly infinite external boundary, never a finite receiver/compressor.",
+          "properties": {
+            "kind": {
+              "const": "reservoir",
+              "type": "string"
+            },
+            "state": {
+              "$ref": "#/$defs/GasPrimitiveConfig"
+            }
+          },
+          "required": [
+            "kind",
+            "state"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "GasBoundarySet": {
+      "additionalProperties": false,
+      "properties": {
+        "x_minus": {
+          "$ref": "#/$defs/GasBoundaryConfig"
+        },
+        "x_plus": {
+          "$ref": "#/$defs/GasBoundaryConfig"
+        },
+        "y_minus": {
+          "$ref": "#/$defs/GasBoundaryConfig"
+        },
+        "y_plus": {
+          "$ref": "#/$defs/GasBoundaryConfig"
+        },
+        "z_minus": {
+          "$ref": "#/$defs/GasBoundaryConfig"
+        },
+        "z_plus": {
+          "$ref": "#/$defs/GasBoundaryConfig"
+        }
+      },
+      "required": [
+        "x_minus",
+        "x_plus",
+        "y_minus",
+        "y_plus",
+        "z_minus",
+        "z_plus"
+      ],
+      "type": "object"
+    },
+    "GasConnectionConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "first": {
+          "$ref": "#/$defs/GasEndpointConfig"
+        },
+        "id": {
+          "type": "string"
+        },
+        "second": {
+          "$ref": "#/$defs/GasEndpointConfig"
+        }
+      },
+      "required": [
+        "id",
+        "first",
+        "second"
+      ],
+      "type": "object"
+    },
+    "GasEndpointConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "face": {
+          "$ref": "#/$defs/GasFace"
+        },
+        "region": {
+          "$ref": "#/$defs/GasRegionIdentity"
+        }
+      },
+      "required": [
+        "region",
+        "face"
+      ],
+      "type": "object"
+    },
+    "GasFace": {
+      "enum": [
+        "x-minus",
+        "x-plus",
+        "y-minus",
+        "y-plus",
+        "z-minus",
+        "z-plus"
+      ],
+      "type": "string"
+    },
+    "GasIntegrationConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "maximum_iterations": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "residual_tolerance": {
+          "description": "Dimensionless, normalized solver residual. It is not a pressure error in Pa.",
+          "type": "string"
+        },
+        "retries": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GasRetryConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "steps": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "timestep_us": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "timestep_us",
+        "steps",
+        "maximum_iterations",
+        "residual_tolerance"
+      ],
+      "type": "object"
+    },
+    "GasPrimitiveConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "density_kg_m3": {
+          "type": "string"
+        },
+        "pressure_absolute_pa": {
+          "type": "string"
+        },
+        "velocity_m_s": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "type": "array"
+        }
+      },
+      "required": [
+        "density_kg_m3",
+        "pressure_absolute_pa",
+        "velocity_m_s"
+      ],
+      "type": "object"
+    },
+    "GasReferenceConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "density_kg_m3": {
+          "type": "string"
+        },
+        "length_m": {
+          "type": "string"
+        },
+        "velocity_m_s": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "length_m",
+        "velocity_m_s",
+        "density_kg_m3"
+      ],
+      "type": "object"
+    },
+    "GasRegionConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "boundaries": {
+          "$ref": "#/$defs/GasBoundarySet"
+        },
+        "identity": {
+          "$ref": "#/$defs/GasRegionIdentity"
+        },
+        "initial": {
+          "$ref": "#/$defs/GasPrimitiveConfig"
+        },
+        "shape": {
+          "items": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "type": "array"
+        },
+        "spacing_m": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "type": "array"
+        }
+      },
+      "required": [
+        "identity",
+        "shape",
+        "spacing_m",
+        "boundaries",
+        "initial"
+      ],
+      "type": "object"
+    },
+    "GasRegionIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "cell": {
+          "type": "string"
+        },
+        "instance": {
+          "type": "string"
+        },
+        "site": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "site",
+        "cell",
+        "instance"
+      ],
+      "type": "object"
+    },
+    "GasRetryConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "maximum_substeps": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "minimum_timestep_us": {
+          "description": "Physical microseconds, unlike the internal nondimensional retry duration.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "maximum_substeps",
+        "minimum_timestep_us"
+      ],
+      "type": "object"
+    },
+    "IdealGasConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "dynamic_viscosity_pa_s": {
+          "type": "string"
+        },
+        "gas_constant_j_kg_k": {
+          "type": "string"
+        },
+        "heat_capacity_ratio": {
+          "type": "string"
+        },
+        "thermal_conductivity_w_m_k": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "gas_constant_j_kg_k",
+        "heat_capacity_ratio",
+        "dynamic_viscosity_pa_s",
+        "thermal_conductivity_w_m_k"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "allocation_budget_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "connections": {
+      "items": {
+        "$ref": "#/$defs/GasConnectionConfig"
+      },
+      "type": "array"
+    },
+    "gas": {
+      "$ref": "#/$defs/IdealGasConfig"
+    },
+    "id": {
+      "type": "string"
+    },
+    "integration": {
+      "$ref": "#/$defs/GasIntegrationConfig"
+    },
+    "reference": {
+      "$ref": "#/$defs/GasReferenceConfig"
+    },
+    "regions": {
+      "items": {
+        "$ref": "#/$defs/GasRegionConfig"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "allocation_budget_bytes",
+    "reference",
+    "gas",
+    "integration",
+    "regions",
+    "connections"
+  ],
+  "title": "ConnectedGasDocument",
+  "type": "object"
+}

@@ -1,5 +1,5 @@
 pub mod capacity;
-mod flow;
+pub mod flow;
 pub mod geometry;
 pub mod material;
 mod mechanics;

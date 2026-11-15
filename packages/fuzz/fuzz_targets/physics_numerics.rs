@@ -15,14 +15,21 @@ mod caloric;
 mod capacity;
 #[path = "physics/clock.rs"]
 mod clock;
+#[path = "physics/connected.rs"]
+mod connected;
 #[path = "physics/constitutive.rs"]
 mod constitutive;
+#[path = "physics/gas.rs"]
+#[allow(dead_code)]
+mod gas;
 #[path = "physics/geometry.rs"]
 mod geometry;
 #[path = "physics/material.rs"]
 mod material;
 #[path = "physics/mechanics.rs"]
 mod mechanics;
+#[path = "physics/source.rs"]
+mod source;
 
 fuzz_target!(|input: &[u8]| {
     geometry::exercise(input);
@@ -32,6 +39,9 @@ fuzz_target!(|input: &[u8]| {
     capacity::exercise(input);
     mechanics::exercise(input);
     clock::exercise(input);
+    connected::exercise(input);
+    gas::exercise_compile(input);
+    source::exercise(input);
     if let Ok(text) = core::str::from_utf8(&input[..input.len().min(64)]) {
         let _ = text.parse::<Scalar>();
     }

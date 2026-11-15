@@ -18,10 +18,16 @@ use hearthline_sim::physics::clock::PlaybackRate;
 use hearthline_sim::physics::population::PooledCapacityComparison;
 use hearthline_sim::physics::{PHYSICS_REPLAY_DOCUMENT_LIMIT, PhysicsReplay};
 
+mod connected;
 mod worker;
 
 #[derive(Subcommand)]
 pub enum PhysicsCommand {
+    /// Compile or execute a standalone connected-gas verification source.
+    Gas {
+        #[command(subcommand)]
+        command: connected::GasCommand,
+    },
     /// Execute a proof on its dedicated worker; defaults to unpaced execution.
     Worker {
         config: PathBuf,
@@ -80,6 +86,7 @@ pub enum PhysicsCommand {
 
 pub fn execute(command: PhysicsCommand) -> Result<(), Box<dyn Error>> {
     match command {
+        PhysicsCommand::Gas { command } => connected::execute(command)?,
         PhysicsCommand::Worker {
             config,
             geometry,

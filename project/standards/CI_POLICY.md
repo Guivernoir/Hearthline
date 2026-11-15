@@ -90,6 +90,32 @@ includes empty/equal/regressing/maximum deadlines and checked state preservation
 Worker memory preflight adds mailbox and stack overhead to the aggregate budget;
 it does not assign a new independent budget to each population.
 
+Connected-flow tests add exact extensive-inventory balances across conforming
+faces, unequal-volume shear/thermal checks, spatial/time refinement, atomic
+failure and compiler peak-allocation measurements. The native matrix checks a
+named 24-cell connected-domain field digest plus full-state connected runtime
+goldens. Those fixtures verify native recomputation, streamed restart at all 21
+step boundaries, paced/headless equivalence and retained failures after worker
+restart. They are not yet public CLI replay artifacts. Numerical fuzzing
+exercises reciprocal topology, SI compilation and failed-step rollback; snapshot
+fuzzing includes generated/mutated connected archives. Native source/CLI
+checks reproduce the existing retry fixture from YAML, including every pacing
+mode, snapshot continuation, fault retention and no-clobber capture. Source
+fuzzing exercises raw/mutated YAML, alias/depth budgets and compilation-order
+invariance. Numerical replay remains distinct from checkpoint loading. Nightly
+mutation targets the bounded source reader, SI/mesh/model compiler, connected
+kernel, session and snapshot reader. The
+preceding replay fixtures retain their original meanings.
+
+Connected retry checks additionally compare recovered horizons with explicit
+substeps, validate time remainders and conservative work bounds, reject forged
+retry metadata, preserve exhausted failures through worker restart, and compare
+all pacing modes. Snapshot `0.1.0` fixtures retain their original footer digests;
+readers migrate them to `0.2.0` in memory and writers emit only the current schema.
+The current header changes state hashes without changing the preceding case's
+physical fields, which are independently compared after migration. Separate
+retry goldens pin changed numerical paths rather than replacing old outcomes.
+
 Capacity evidence also includes the experimental factory physics resource
 report. Its current independent-workspace baseline is deliberately over budget;
 tests require that rejection and preserve the declared mesh/workload inputs.

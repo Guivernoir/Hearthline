@@ -1,10 +1,48 @@
 use std::io::{self, BufRead, Write};
 
-use hearthline_physics::Scalar;
-use serde::Serialize;
+use hearthline_physics::{PhysicsError, Scalar};
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 use super::PhysicsProofSession;
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(tag = "kind", rename_all = "kebab-case", deny_unknown_fields)]
+pub(super) enum NumericalCause {
+    Overflow,
+    DivisionByZero,
+    InvalidDecimal,
+    InvalidGeometry,
+    InvalidCoefficient,
+    InsufficientResolution,
+    InvalidState,
+    BufferLength,
+    NonPositiveDefinite,
+    NonConvergence { iterations: u32, residual_raw: i64 },
+}
+
+impl From<PhysicsError> for NumericalCause {
+    fn from(error: PhysicsError) -> Self {
+        match error {
+            PhysicsError::Overflow => Self::Overflow,
+            PhysicsError::DivisionByZero => Self::DivisionByZero,
+            PhysicsError::InvalidDecimal => Self::InvalidDecimal,
+            PhysicsError::InvalidGeometry => Self::InvalidGeometry,
+            PhysicsError::InvalidCoefficient => Self::InvalidCoefficient,
+            PhysicsError::InsufficientResolution => Self::InsufficientResolution,
+            PhysicsError::InvalidState => Self::InvalidState,
+            PhysicsError::BufferLength => Self::BufferLength,
+            PhysicsError::NonPositiveDefinite => Self::NonPositiveDefinite,
+            PhysicsError::NonConvergence {
+                iterations,
+                residual,
+            } => Self::NonConvergence {
+                iterations,
+                residual_raw: residual.raw(),
+            },
+        }
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct FieldRange {

@@ -7,11 +7,18 @@ use libfuzzer_sys::fuzz_target;
 use std::io::Cursor;
 use std::sync::{Arc, OnceLock};
 
+#[path = "physics/gas.rs"]
+#[allow(dead_code)]
+mod gas;
 #[path = "physics/schedule.rs"]
 mod schedule;
 
 fuzz_target!(|data: &[u8]| {
     let bounded = &data[..data.len().min(256 * 1_024)];
+    if matches!(bounded.first(), Some(b'C' | b'D' | b'E' | b'F')) {
+        gas::exercise_snapshot(bounded);
+        return;
+    }
     if matches!(bounded.first(), Some(b'H' | b'J' | b'W')) {
         schedule::exercise(bounded);
         return;
