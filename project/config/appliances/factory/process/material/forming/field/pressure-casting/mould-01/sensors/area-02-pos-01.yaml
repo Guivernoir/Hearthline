@@ -5,8 +5,8 @@ kind: "field-sensor"
 site: "Factory"
 environment: "Forming"
 zone: "OT-AREA-02"
-role: "Slip fill-head position transducer"
-summary: "Reports the fill-head or distribution-module position at the pressure-casting mould."
+role: "Slip fill valve open feedback"
+summary: "Reports whether the fill valve on Mould 1's permanently connected slip feed is open."
 lifecycle: "simulated"
 tags: ["ot-area-02", "sensor", "station-mould-01", "position", "mould"]
 render:
@@ -22,7 +22,7 @@ interfaces:
 behavior:
   family: "field-sensor"
   signal_tag: "area-02-pos-01"
-  unit: "millimetre"
+  unit: "boolean"
   minimum: 0
-  maximum: 800
+  maximum: 1
   initial_value: 0

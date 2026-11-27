@@ -36,6 +36,7 @@
               "type": "string"
             },
             "temperature_k": {
+              "default": null,
               "description": "Omit for an adiabatic wall; otherwise this is a maintained temperature.",
               "type": [
                 "string",

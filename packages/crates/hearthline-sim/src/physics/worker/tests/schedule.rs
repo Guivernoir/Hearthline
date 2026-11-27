@@ -31,7 +31,7 @@ fn plan(fails: bool) -> Arc<CompiledPhysicsSchedule> {
     ]
     .map(|(id, model)| PhysicsInstanceRegistration {
         identity: PhysicsInstanceIdentity::new("factory", "air", id).unwrap(),
-        model,
+        model: model.into(),
     });
     Arc::new(CompiledPhysicsSchedule::compile(Vec::from(registrations), 16 * 1024 * 1024).unwrap())
 }
@@ -60,7 +60,10 @@ fn multirate_worker_preserves_every_event_and_field_at_every_pacing_mode() {
             .instances()
             .iter()
             .map(|binding| {
-                PhysicsProofSession::new(Arc::clone(&plan.profiles()[binding.profile])).unwrap()
+                PhysicsProofSession::new(Arc::clone(
+                    plan.profiles()[binding.profile].proof().unwrap(),
+                ))
+                .unwrap()
             })
             .collect();
         assert!(runner.projection().fields.is_none());
@@ -234,7 +237,7 @@ fn aggregate_memory_preflight_counts_stack_mailbox_and_shared_schedule_once() {
         .iter()
         .map(|instance| PhysicsInstanceRegistration {
             identity: instance.identity.clone(),
-            model: Arc::clone(&plan.profiles()[instance.profile]),
+            model: plan.profiles()[instance.profile].clone(),
         })
         .collect();
     let limited = Arc::new(CompiledPhysicsSchedule::compile(registrations, 1024 * 1024).unwrap());

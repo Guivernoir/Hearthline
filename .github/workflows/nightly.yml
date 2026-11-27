@@ -21,23 +21,23 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with: { persist-credentials: false }
-      - uses: dtolnay/rust-toolchain@7c8d7d138f5c09cef361f8214cf96882cd029cdb
-        with: { toolchain: nightly-2026-08-20, components: llvm-tools-preview }
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+        with: { toolchain: nightly-2026-11-25, components: llvm-tools-preview }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: packages/web/package-lock.json
-      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
         with: { workspaces: packages, shared-key: nightly-coverage-Cargo.lock }
-      - run: cargo install cargo-llvm-cov --version 0.9.0 --locked
-      - run: cargo install cargo-audit --version 0.22.2 --locked
-      - run: cargo install cargo-cyclonedx --version 0.5.9 --locked
-      - run: cargo install cargo-deny --version 0.20.2 --locked
+      - run: cargo install cargo-llvm-cov --version 0.9.2 --locked
+      - run: cargo install cargo-audit --version 0.23.0 --locked
+      - run: cargo install cargo-cyclonedx --version 0.5.10 --locked
+      - run: cargo install cargo-deny --version 0.22.1 --locked
       - run: cargo clean --manifest-path packages/Cargo.toml --target-dir packages/target/llvm-cov-target
-      - run: cargo +nightly-2026-08-20 llvm-cov --branch --manifest-path packages/Cargo.toml --workspace --all-features --json --output-path rust-coverage.json
+      - run: cargo +nightly-2026-11-25 llvm-cov --branch --locked --manifest-path packages/Cargo.toml --workspace --all-features --json --output-path rust-coverage.json --no-fail-fast -- --test-threads=2
         env:
           RUST_MIN_STACK: "16777216"
       - run: node project/scripts/check-coverage.mjs rust-coverage.json
@@ -50,7 +50,8 @@ jobs:
         working-directory: packages/web
       - run: npm ci && npm audit --audit-level=high && npm test && npm sbom --sbom-format cyclonedx > web-sbom.json
         working-directory: packages/web
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: ${{ !cancelled() }}
         with:
           name: nightly-coverage-sbom
           path: |
@@ -78,16 +79,16 @@ jobs:
           - control_program
           - physics_numerics
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with: { persist-credentials: false }
-      - uses: dtolnay/rust-toolchain@7c8d7d138f5c09cef361f8214cf96882cd029cdb
-        with: { toolchain: nightly-2026-08-20 }
-      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+        with: { toolchain: nightly-2026-11-25 }
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
         with:
           workspaces: packages/fuzz
           shared-key: "nightly-fuzz-${{ matrix.target }}-Cargo.lock"
       - run: cargo install cargo-fuzz --version 0.13.2 --locked
-      - run: cargo +nightly-2026-08-20 fuzz run ${{ matrix.target }} --fuzz-dir packages/fuzz packages/fuzz/regression-corpus/${{ matrix.target }} -- -max_total_time=1200
+      - run: cargo +nightly-2026-11-25 fuzz run ${{ matrix.target }} --fuzz-dir packages/fuzz packages/fuzz/regression-corpus/${{ matrix.target }} -- -max_total_time=1200
 
   mutation:
     name: Mutation (${{ matrix.area }})
@@ -111,14 +112,16 @@ jobs:
             arguments: --file crates/hearthline-physics/src/flow/connected/mod.rs --file crates/hearthline-physics/src/flow/connected/advance.rs --file crates/hearthline-physics/src/flow/connected/mesh.rs --file crates/hearthline-physics/src/flow/connected/viscous.rs --file crates/hearthline-project/src/physics/flow/mesh.rs
           - area: physics-connected-runtime
             arguments: --file crates/hearthline-project/src/physics/flow/connected.rs --file crates/hearthline-project/src/physics/flow/source.rs --file crates/hearthline-project/src/physics/flow/source/memory.rs --file crates/hearthline-config/src/physics/connected/bounded.rs --file crates/hearthline-sim/src/physics/flow/connected/mod.rs --file crates/hearthline-sim/src/physics/flow/connected/archive.rs
+          - area: physics-connected-population
+            arguments: --file crates/hearthline-sim/src/physics/flow/connected/population.rs --file crates/hearthline-sim/src/physics/flow/connected/population/archive.rs --file crates/hearthline-sim/src/physics/checkpoint/cause.rs
           - area: physics-schedule
-            arguments: --file crates/hearthline-project/src/physics/schedule.rs --file crates/hearthline-sim/src/physics/schedule/mod.rs --file crates/hearthline-sim/src/physics/schedule/memory.rs --file crates/hearthline-sim/src/physics/schedule/archive.rs --file crates/hearthline-sim/src/physics/schedule/diagnostic.rs
+            arguments: --file crates/hearthline-project/src/physics/schedule.rs --file crates/hearthline-sim/src/physics/schedule/mod.rs --file crates/hearthline-sim/src/physics/schedule/memory.rs --file crates/hearthline-sim/src/physics/schedule/archive.rs --file crates/hearthline-sim/src/physics/schedule/diagnostic.rs --file crates/hearthline-sim/src/physics/schedule/population.rs --file crates/hearthline-sim/src/physics/schedule/framing.rs
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with: { persist-credentials: false }
-      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c
-        with: { toolchain: 1.98.1 }
-      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+        with: { toolchain: 1.100.0 }
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
         with:
           workspaces: packages
           shared-key: "mutation-${{ matrix.area }}-Cargo.lock"
@@ -128,8 +131,12 @@ jobs:
           mutants="$(cargo mutants --manifest-path packages/Cargo.toml --list ${{ matrix.arguments }})"
           test -n "$mutants"
           printf '%s\n' "$mutants"
-      - run: cargo mutants --manifest-path packages/Cargo.toml --copy-target false --timeout 300 --jobs 2 ${{ matrix.arguments }}
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - name: Test mutations with repository fixtures available
+        run: cargo mutants --manifest-path packages/Cargo.toml --in-place --timeout 300 --jobs 1 ${{ matrix.arguments }}
+        env:
+          CARGO_INCREMENTAL: "1"
+          RUST_MIN_STACK: "1310720"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: ${{ !cancelled() }}
         with:
           name: mutation-${{ matrix.area }}
@@ -141,23 +148,23 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with: { persist-credentials: false }
-      - uses: dtolnay/rust-toolchain@7c8d7d138f5c09cef361f8214cf96882cd029cdb
-        with: { toolchain: nightly-2026-08-20, components: miri }
-      - run: cargo +nightly-2026-08-20 miri test --manifest-path packages/Cargo.toml -p hearthline-model --test domain --test quantity
-      - run: cargo +nightly-2026-08-20 miri test --manifest-path packages/Cargo.toml -p hearthline-engine --lib --test link_appliance
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+        with: { toolchain: nightly-2026-11-25, components: miri }
+      - run: cargo +nightly-2026-11-25 miri test --manifest-path packages/Cargo.toml -p hearthline-model --test domain --test quantity
+      - run: cargo +nightly-2026-11-25 miri test --manifest-path packages/Cargo.toml -p hearthline-engine --lib --test link_appliance
 
   soak-performance:
     name: Soak and deterministic performance evidence
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with: { persist-credentials: false }
-      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c
-        with: { toolchain: 1.98.1 }
-      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+        with: { toolchain: 1.100.0 }
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
         with: { workspaces: packages, shared-key: soak-bench-Cargo.lock }
       - run: cargo test --manifest-path packages/Cargo.toml -p hearthline-sim --test acceptance --release -- --nocapture
       - run: cargo bench --manifest-path packages/Cargo.toml -p hearthline-engine --bench runtime -- --noplot
@@ -169,7 +176,7 @@ jobs:
             "$(stat --printf='%s' packages/target/release/hearthline-api)" \
             > runtime-size-report.json
       - run: cargo run --manifest-path packages/Cargo.toml --bin hearthline -- capacity report --format json > capacity-report.json
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: nightly-soak-performance
           path: |
@@ -184,24 +191,25 @@ jobs:
     timeout-minutes: 45
     defaults: { run: { working-directory: packages/web } }
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with: { persist-credentials: false }
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: packages/web/package-lock.json
-      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c
-        with: { toolchain: 1.98.1 }
-      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+        with: { toolchain: 1.100.0 }
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
         with: { workspaces: packages, shared-key: browser-api-Cargo.lock }
       - name: Install pinned npm
         run: npm install --global "$(node -p 'require("./package.json").packageManager')"
       - run: npm ci
       - run: npx playwright install --with-deps chromium firefox webkit
       - run: npm run build
+      - run: cargo build --locked --manifest-path ../Cargo.toml -p hearthline-api
       - run: npm run test:e2e
         env: { HEARTHLINE_ALL_BROWSERS: "1" }
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: ${{ !cancelled() }}
         with: { name: nightly-playwright, path: packages/web/artifacts/playwright, retention-days: 30 }

@@ -1,0 +1,17 @@
+{
+  "schema_version": "0.2.0",
+  "model_digest": "313ae1a92f3ebd1338221c30d2b2356a519952d66771c81a0c804846ea02e2e9",
+  "initial_digest": "2ebf4072628bf2aa582d6dfd27d54672396a6f53cf54074e5dee8620118d800c",
+  "after_four_events_digest": "7bf42420a02c2da35764e8bd1d099e6a4389696847deef503cdf56550f57f962",
+  "final_digest": "b0ffc24aa5088207f9dc8daafb389d7468b84e9d2fffa130e5f804384a5fa019",
+  "failure_model_digest": "20b5296cc1c49f1149b00917f187a2bb39d003595fe7a77b2b44525ad7b2280c",
+  "failure_digest": "9ee1d1b9922d44a71c4147a1c79b0262e2bb98ab9038f38b6a3e4d66fe459b88",
+  "failure": {
+    "event": { "instance": 1, "time_us": 1001 },
+    "diagnostic": {
+      "kind": "connected",
+      "cause": { "kind": "non-convergence", "iterations": 1, "residual_raw": 62522 },
+      "retry": { "attempts": 7, "substeps": 64, "completed_substeps": 0, "smallest_step_raw": 15640 }
+    }
+  }
+}

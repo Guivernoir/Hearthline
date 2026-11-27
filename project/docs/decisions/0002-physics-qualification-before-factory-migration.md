@@ -63,6 +63,6 @@ Physical calibration, enthalpy-based storage and canonical material integration
 remain part of the numerical and release gates.
 
 The integrated release target remains `0.4.0`. The current release metadata
-and canonical artifacts stay at `0.3.2` until the release migration is actually
+and canonical artifacts stay on the `0.3.x` process baseline until the migration is actually
 ready. The [physics work record](../../physics/README.md) separates implemented
 proofs from the remaining accepted release scope.

@@ -1,5 +1,5 @@
 use super::*;
-use crate::flow::connected::{FlowCell, FlowMesh};
+use crate::flow::connected::{FaceLink, FlowCell, FlowMesh};
 use crate::flow::{IdealGas, Primitive};
 use crate::transport::SolverLimits;
 

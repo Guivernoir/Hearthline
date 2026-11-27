@@ -1,0 +1,13 @@
+{
+  "schema_version": "0.1.0",
+  "model_digest": "bec0d81f3bbadfa098416ecfaa2e3d90359b52163dec6a37677961fdac1e590b",
+  "failure_model_digest": "b490ef9b3378fdc1bf5025bcdfb1f22defbe46b6fc94714e895a8136e61459a8",
+  "instances": 3,
+  "interleaved_slots": [2, 0, 2, 1, 1, 0, 2, 0, 1],
+  "intermediate_after_events": 4,
+  "initial_digest": "211d9e8a7828f6277d07fa76360d3246fe3891589096dfebdb3b574fef206a79",
+  "intermediate_digest": "e2f2f2cf9109a7989df2ebeff1d193453b405c78cb1fdc24b864f457a8ba05c9",
+  "final_digest": "30b0f4227ac9516faeb9ef8d2dda9dff8fd8379f3ed1fa222ce0d392c01ff331",
+  "failed_slot": 0,
+  "failure_digest": "ea55053ad7b359ad8cb92e2b3fbedac01e1b7e9f260a9a7caaef7b6400938e1b"
+}

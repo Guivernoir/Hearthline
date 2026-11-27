@@ -12,6 +12,7 @@ use hearthline_project::physics::flow::connected::{
 use hearthline_project::physics::flow::mesh::{FlowPatch, FlowPatchConnection};
 use hearthline_project::physics::schedule::PhysicsInstanceIdentity;
 use hearthline_sim::physics::clock::PlaybackRate;
+use hearthline_sim::physics::flow::connected::population::ConnectedGasPopulation;
 use hearthline_sim::physics::flow::connected::{ConnectedGasSession, ConnectedStepError};
 use hearthline_sim::physics::worker::{
     ClockCommand, CommandReply, PhysicsWorker, PhysicsWorkerClient, WorkerMemoryPlan, WorkerPolicy,
@@ -120,6 +121,48 @@ fn previous_snapshot_schema_migrates_without_changing_physical_fields() {
         .unwrap();
         assert_eq!(header["schema_version"], "0.2.0");
     }
+}
+
+#[test]
+fn population_hash_normalizes_previous_and_current_child_snapshots() {
+    let old = include_bytes!("../../../../../project/physics/runtime/connected-v1/eighth.ndjson");
+    let model = model(false);
+    let mut pool = ConnectedGasPopulation::new(Arc::clone(&model), 2).unwrap();
+    pool.restore_instance(0, Cursor::new(old)).unwrap();
+    let expected = pool.state_digest().unwrap();
+    let mut current = Vec::new();
+    pool.write_snapshot(&mut current).unwrap();
+    let current = std::str::from_utf8(&current).unwrap();
+    let header: Value = serde_json::from_str(current.lines().next().unwrap()).unwrap();
+    let footer: Value = serde_json::from_str(current.lines().last().unwrap()).unwrap();
+    let mut fresh = Vec::new();
+    pool.write_instance_snapshot(1, &mut fresh).unwrap();
+    // Reframe one previous and one current child. The semantic root stays fixed
+    // even though the old child's header, length and own digest are different.
+    let mut mixed = Vec::new();
+    serde_json::to_writer(&mut mixed, &header).unwrap();
+    mixed.push(b'\n');
+    for (instance, bytes) in [old.as_slice(), &fresh].into_iter().enumerate() {
+        serde_json::to_writer(
+            &mut mixed,
+            &serde_json::json!({ "instance": instance, "bytes": bytes.len() }),
+        )
+        .unwrap();
+        mixed.push(b'\n');
+        mixed.extend_from_slice(bytes);
+    }
+    serde_json::to_writer(&mut mixed, &footer).unwrap();
+    mixed.push(b'\n');
+    let mut restored = ConnectedGasPopulation::read_snapshot(model, Cursor::new(mixed)).unwrap();
+    assert_eq!(restored.state_digest().unwrap(), expected);
+    assert_eq!(restored.fields(0).unwrap(), pool.fields(0).unwrap());
+    assert_eq!(restored.completed_steps(0).unwrap(), 8);
+    assert_eq!(restored.completed_steps(1).unwrap(), 0);
+    assert_eq!(restored.step(0).unwrap(), pool.step(0).unwrap());
+    assert_eq!(
+        restored.state_digest().unwrap(),
+        pool.state_digest().unwrap()
+    );
 }
 
 fn s(value: &str) -> Scalar {
@@ -575,4 +618,42 @@ fn measured_compiler_and_runtime_allocations_fit_declared_memory_and_worker_adds
     );
     assert!(ConnectedGasSession::new(Arc::clone(&small)).is_ok());
     assert!(PhysicsWorker::spawn_connected(small, WorkerPolicy::reviewed_default()).is_err());
+}
+
+#[test]
+fn malformed_archive_rows_fit_the_declared_decoder_envelope() {
+    let model = model(false);
+    let session = ConnectedGasSession::new(Arc::clone(&model)).unwrap();
+    let decoder_bytes = session.memory().snapshot_decoder_bytes;
+    let mut bytes = Vec::new();
+    session.write_snapshot(&mut bytes).unwrap();
+    let source = std::str::from_utf8(&bytes).unwrap();
+    let header = source.lines().next().unwrap();
+    // Include errors both before and after allocation of the temporary fields.
+    let bad_cause = format!("{{{}\"kind\":\"overflow\"}}", "\"x\":0,".repeat(400));
+    let malformed = [
+        format!("{{\"{}\":0}}\n", "x".repeat(4000)),
+        format!("{{\"{}\":0}}\n", "\\t".repeat(2000)),
+        header.replace("\"failure\":null", &format!("\"failure\":{bad_cause}")) + "\n",
+        format!("{header}\n{{\"{}\":0}}\n", "x".repeat(4000)),
+        format!("{header}\n{{\"{}\":0}}\n", "\\t".repeat(2000)),
+        format!(
+            "{header}\n{{\"index\":0,\"inventory_raw\":[{}]}}\n",
+            "0,".repeat(1800)
+        ),
+    ];
+    for source in malformed {
+        assert!(source.lines().all(|row| row.len() < 4096));
+        let allocation = allocation_counter::measure(|| {
+            assert!(
+                ConnectedGasSession::read_snapshot(Arc::clone(&model), Cursor::new(&source))
+                    .is_err()
+            );
+        });
+        assert!(
+            allocation.bytes_max <= model.memory().field_bytes + decoder_bytes,
+            "malformed input used {} bytes",
+            allocation.bytes_max
+        );
+    }
 }

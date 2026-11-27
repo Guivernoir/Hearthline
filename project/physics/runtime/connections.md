@@ -142,6 +142,16 @@ multirate coupling across separately advanced islands requires conservative
 transfer accounting, explicit synchronization and rollback. The current
 independent-population scheduler has not been relabeled as this coupled runtime.
 
+The numerical kernel also accepts a validated reciprocal isolation mask over
+compiled named connections. Closing a patch replaces its two faces with
+stationary adiabatic slip walls, consistent with the impermeable stationary
+boundary in [NASA's LAVA documentation](https://nas.nasa.gov/LAVA/cart_docs/boundary_conditions/).
+There is no mass or heat transfer across the closed patch; momentum exchange
+with the walls remains in the boundary ledger. Reopening uses the existing gas
+inventories, rather than reinitializing the isolated volumes. The mask is
+derived scratch space (one byte per cell) supplied by the caller. This is a
+numerical boundary proof, not a valve actuator, shutoff schedule or plant control.
+
 ## Session And Snapshots
 
 `ConnectedGasSession` owns four preallocated extensive field arrays: accepted
@@ -159,6 +169,12 @@ summary, not instrument readings. Accepted-attempt counts and the all-attempt
 evaluation bound are labeled separately; rejected work is not reported as zero.
 Shutdown returns exclusive session ownership. A restored failure remains latched;
 Resume cannot clear it or restart equipment.
+
+[Population storage](connected-population.md) extends this to independent
+accepted state banks sharing one serial workspace and immutable model. The
+[multirate scheduler](schedule/README.md) registers these domains alongside drying
+profiles on the same worker clock. Different population instances are not yet
+connected physically.
 
 Snapshot schema `0.2.0` streams an NDJSON header, one fixed-size inventory record
 per cell and a SHA-256 footer. The header pins model/numerical contracts, physical
@@ -232,7 +248,10 @@ odd Q9 time remainder against explicit integration of all 64 accepted substeps.
 The mesh-only preflight counts cells, boundary/region/connection metadata, three
 extensive field arrays and live compiler inputs. The enclosing gas model extends
 this to four arrays, normalized initial states and SI compiler inputs; session
-metadata and the bounded restore row are charged separately. Worker preflight
+metadata and the bounded restore decoder envelope are charged separately. The
+decoder includes its 4 KiB row, string scratch and error-formatting overhead;
+fault causes are read directly into fixed typed fields. Malformed archive rows
+are allocation-tested, and unknown/duplicate cause fields are rejected. Worker preflight
 adds the mailbox and requested stack under the same budget. Each phase requires
 25% unused reserve before mesh/field allocation. Measured tests check allocation
 peaks; capture and accepted/rejected stepping allocate nothing. Restore preflight

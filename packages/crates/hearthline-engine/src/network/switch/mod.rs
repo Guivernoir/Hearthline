@@ -152,10 +152,7 @@ impl LearningSwitch {
         else {
             return false;
         };
-        if !group.set_member_forwarding(port, forwarding) {
-            return false;
-        }
-        true
+        group.set_member_forwarding(port, forwarding)
     }
 
     pub fn set_multi_chassis_peer_forwarding(

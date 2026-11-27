@@ -6,12 +6,12 @@ location and environment drill-downs, the factory process canvas,
 Rust-generated inspection, revisioned draft editing across model source types,
 and the configured simulation workspace.
 
-The current development release is `0.3.2`. Project release compatibility is
+The current development release is `0.3.3`. Project release compatibility is
 defined in the [versioning policy](versioning.md), while frontend data
 schemas retain their own independent versions.
 
-The frontend toolchain is pinned to Node `26.8.1`, npm `12.0.2`, and
-SvelteKit `2.70.3`. SvelteKit owns application startup and the root route;
+The frontend toolchain is pinned to Node `26.13.1`, npm `12.2.3`, Svelte `5.59.2`,
+and SvelteKit `3.4.1`. SvelteKit owns application startup and the root route;
 `@sveltejs/adapter-static` emits the deployable SPA while the existing hash
 routes preserve direct navigation to architecture, simulation, workstation,
 HMI, and model-editor surfaces.

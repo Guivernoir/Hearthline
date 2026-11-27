@@ -562,12 +562,10 @@ impl<'a> MechanicalSystem<'a> {
         for i in 0..output.len() {
             output[i] = if self.constraints[i].is_some() {
                 Scalar::ZERO
+            } else if self.normalized_preconditioner {
+                residual[i].checked_mul_div(scale, diagonal[i])?
             } else {
-                if self.normalized_preconditioner {
-                    residual[i].checked_mul_div(scale, diagonal[i])?
-                } else {
-                    residual[i].checked_div(diagonal[i])?
-                }
+                residual[i].checked_div(diagonal[i])?
             };
         }
         Ok(())

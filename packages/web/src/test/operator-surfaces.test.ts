@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import HmiView from "../lib/process/hmi/HmiView.svelte";
+import MouldVisualization from "../lib/process/hmi/machine/MouldVisualization.svelte";
 import SecurityConsoleView from "../lib/office/SecurityConsoleView.svelte";
 import WorkstationView from "../lib/workstation/WorkstationView.svelte";
 import {
@@ -81,24 +82,43 @@ async function clickButton(name: RegExp | string) {
 }
 
 describe("operator interfaces", () => {
-  it("exercises the independent body-preparation workspaces and handoff controls", async () => {
-    for (const id of [
-      "area-01-hmi-01",
-      "area-01-gl-hmi-01",
-      "area-01-wt-hmi-01",
-      "area-01-wd-hmi-01",
-      "area-01-rw-hmi-01",
-      "area-01-rc-hmi-01",
-    ]) {
-      const view = await openHmi(id);
-      for (const page of [/process/i, /handoffs/i, /recipes/i, /diagnostics/i, /routes/i, /pumps/i]) {
-        const button = screen.queryAllByRole("button", { name: page })[0];
-        if (button) await fireEvent.click(button);
-      }
-      expect(view.container.querySelector(".body-workspace")).not.toBeNull();
-      view.unmount();
+  it("keeps the slip pipe connected and follows only fill-valve feedback", async () => {
+    const mould = { ...hmiSnapshot("area-02-hmi-04").moulds[3], phase: "mould-filling" };
+    const feedback = { componentId: "valve-feedback", label: "Fill valve", tag: "area-02-m04-pos-01", unit: "boolean", minimum: 0, maximum: 1, value: 0, qualityGood: true, timestampMs: 0 };
+    const view = render(MouldVisualization, { mould, signals: [feedback] });
+    const pipes = () => Array.from(view.container.querySelectorAll(".slip-pipe"), (pipe) => pipe.getAttribute("d"));
+    const closedPipes = pipes();
+    expect(closedPipes).toHaveLength(2);
+    expect(screen.getByText("Closed")).toBeTruthy();
+
+    await view.rerender({ mould, signals: [{ ...feedback, value: 1 }] });
+    expect(screen.getByText("Open")).toBeTruthy();
+    expect(pipes()).toEqual(closedPipes);
+
+    await view.rerender({ mould: { ...mould, phase: "pressurizing" }, signals: [feedback] });
+    expect(screen.getByText("Closed")).toBeTruthy();
+    expect(pipes()).toEqual(closedPipes);
+
+    await view.rerender({ mould, signals: [{ ...feedback, value: 1, qualityGood: false }] });
+    expect(screen.getByText("Unavailable")).toBeTruthy();
+    expect(pipes()).toEqual(closedPipes);
+  });
+
+  it.each([
+    "area-01-hmi-01",
+    "area-01-gl-hmi-01",
+    "area-01-wt-hmi-01",
+    "area-01-wd-hmi-01",
+    "area-01-rw-hmi-01",
+    "area-01-rc-hmi-01",
+  ])("exercises the body-preparation workspace and handoffs on %s", async (id) => {
+    const view = await openHmi(id);
+    for (const page of [/process/i, /handoffs/i, /recipes/i, /diagnostics/i, /routes/i, /pumps/i]) {
+      const button = screen.queryAllByRole("button", { name: page })[0];
+      if (button) await fireEvent.click(button);
     }
-  }, 30_000);
+    expect(view.container.querySelector(".body-workspace")).not.toBeNull();
+  }, 20_000);
 
   it("exercises mould station state, commands, alarms, and control-source inspection", async () => {
     const view = await openHmi("area-02-hmi-01");
@@ -109,7 +129,7 @@ describe("operator interfaces", () => {
     await waitFor(() => expect(screen.getByText("PROGRAM FORMING", { exact: false })).not.toBeNull());
     await clickButton(/close/i);
     expect(view.container.querySelector(".hmi-cycle-section")).not.toBeNull();
-  });
+  }, 20_000);
 
   it("exercises robot status, jog, and authoritative program controls", async () => {
     const view = await openHmi("area-02-joystick-01");

@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
+import { env } from "node:process";
 
-const browsers = process.env.HEARTHLINE_ALL_BROWSERS === "1"
+const browsers = env.HEARTHLINE_ALL_BROWSERS === "1"
   ? [
       { name: "chromium-desktop", use: { ...devices["Desktop Chrome"] } },
       { name: "firefox-desktop", use: { ...devices["Desktop Firefox"] } },
@@ -15,8 +16,8 @@ export default defineConfig({
   outputDir: "artifacts/playwright/results",
   reporter: [["list"], ["html", { outputFolder: "artifacts/playwright/report", open: "never" }]],
   fullyParallel: true,
-  forbidOnly: Boolean(process.env.CI),
-  retries: process.env.CI ? 1 : 0,
+  forbidOnly: Boolean(env.CI),
+  retries: env.CI ? 1 : 0,
   timeout: 30_000,
   expect: { timeout: 15_000 },
   use: {
@@ -27,16 +28,16 @@ export default defineConfig({
   projects: browsers,
   webServer: [
     {
-      command: "cargo run --manifest-path ../Cargo.toml -p hearthline-api",
+      command: "cargo run --locked --manifest-path ../Cargo.toml -p hearthline-api",
       url: "http://127.0.0.1:3001/api/health",
       timeout: 180_000,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: !env.CI,
     },
     {
-      command: "npm run dev -- --port 4173",
+      command: `npm run ${env.CI ? "preview" : "dev"} -- --host 127.0.0.1 --port 4173 --strictPort`,
       url: "http://127.0.0.1:4173",
       timeout: 60_000,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: !env.CI,
     },
   ],
 });

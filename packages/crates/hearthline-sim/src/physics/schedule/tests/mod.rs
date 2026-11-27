@@ -9,6 +9,10 @@ use sha2::{Digest, Sha256};
 use super::*;
 use crate::physics::{PhysicsProofSession, PhysicsReplay};
 
+mod diagnostics;
+pub(in crate::physics) mod mixed;
+mod previous;
+
 fn compressible(fails: bool) -> Arc<CompiledPhysicsProof> {
     let mut config: PhysicsProofConfig = serde_yaml_ng::from_str(include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
@@ -51,7 +55,7 @@ fn drying() -> Arc<CompiledPhysicsProof> {
 fn registration(id: &str, model: Arc<CompiledPhysicsProof>) -> PhysicsInstanceRegistration {
     PhysicsInstanceRegistration {
         identity: PhysicsInstanceIdentity::new("factory", "body-preparation", id).unwrap(),
-        model,
+        model: model.into(),
     }
 }
 
@@ -110,7 +114,7 @@ fn source_order_does_not_change_profiles_slots_digest_or_event_order() {
     let mut expected = Vec::new();
     for (instance, binding) in plan.instances().iter().enumerate() {
         let model = &plan.profiles()[binding.profile];
-        for step in 1..=model.config().steps {
+        for step in 1..=model.steps() {
             expected.push(PhysicsEvent {
                 time_us: u64::from(step) * model.timestep_us(),
                 instance,
@@ -133,12 +137,12 @@ fn source_order_does_not_change_profiles_slots_digest_or_event_order() {
     let final_digest = first.state_digest().unwrap();
     let golden: serde_json::Value = serde_json::from_str(include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../../../project/physics/runtime/schedule-golden.json"
+        "/../../../project/physics/runtime/schedule/current.json"
     )))
     .unwrap();
     assert_eq!(
         serde_json::json!({
-            "schema_version": "0.1.0",
+            "schema_version": "0.2.0",
             "model_digest": first.plan.digest(),
             "initial_digest": std::str::from_utf8(&initial_digest).unwrap(),
             "after_four_events_digest": std::str::from_utf8(&middle_digest).unwrap(),
@@ -196,8 +200,9 @@ fn complete_spatial_fields_match_independent_runs_on_a_constrained_stack() {
             assert_eq!(runtime.time_us(), plan.horizon_us());
             for (instance, binding) in plan.instances().iter().enumerate() {
                 let model = &plan.profiles()[binding.profile];
-                let mut independent = PhysicsProofSession::new(Arc::clone(model)).unwrap();
-                for _ in 0..model.config().steps {
+                let mut independent =
+                    PhysicsProofSession::new(Arc::clone(model.proof().unwrap())).unwrap();
+                for _ in 0..model.steps() {
                     independent.step().unwrap();
                 }
                 assert_eq!(
@@ -277,13 +282,13 @@ fn failure_retains_the_next_event_and_replays_the_same_failed_attempt() {
     }
     let expected: serde_json::Value = serde_json::from_str(include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../../../project/physics/runtime/schedule-failure-golden.json"
+        "/../../../project/physics/runtime/schedule/failure-current.json"
     )))
     .unwrap();
     let state_digest = runtime.state_digest().unwrap();
     assert_eq!(
         serde_json::json!({
-            "schema_version": "0.1.0", "model_digest": runtime.plan.digest(),
+            "schema_version": "0.2.0", "model_digest": runtime.plan.digest(),
             "state_digest": std::str::from_utf8(&state_digest).unwrap(),
             "failure": diagnostic::FailureRecord::from(runtime.failure().unwrap()),
         }),
@@ -312,6 +317,10 @@ fn rewrite(bytes: &[u8], change: impl FnOnce(&mut [serde_json::Value])) -> Vec<u
         .collect();
     records.pop();
     change(&mut records);
+    for child in (2..records.len()).step_by(2) {
+        records[child - 1]["bytes"] =
+            (serde_json::to_vec(&records[child]).unwrap().len() + 1).into();
+    }
     let mut output = Vec::new();
     for record in records {
         serde_json::to_writer(&mut output, &record).unwrap();
@@ -330,7 +339,7 @@ fn rehashed_individual_checkpoints_cannot_forge_a_scheduler_frontier_or_failure(
     let mut runtime = PhysicsSchedule::new(Arc::clone(&plan)).unwrap();
     runtime.step_next().unwrap();
     let saved = capture(&mut runtime);
-    let changed = rewrite(&saved, |records| records.swap(1, 2));
+    let changed = rewrite(&saved, |records| records.swap(2, 4));
     assert!(
         PhysicsSchedule::read_snapshot(Arc::clone(&plan), Cursor::new(changed))
             .err()
@@ -368,7 +377,7 @@ fn rehashed_individual_checkpoints_cannot_forge_a_scheduler_frontier_or_failure(
             .is_err()
     );
     let changed = rewrite(&saved, |records| {
-        records[1]["first_field_raw"][0] = 0.into()
+        records[2]["first_field_raw"][0] = 0.into()
     });
     assert!(PhysicsSchedule::read_snapshot(plan, Cursor::new(changed)).is_err());
 }
@@ -428,7 +437,7 @@ fn failure_diagnostic_schema_preserves_all_numerical_error_variants() {
     ] {
         let record = diagnostic::FailureRecord::from(ScheduleFailure {
             event,
-            error: PopulationError::Step(PhysicsStepError::Numerical(cause)),
+            error: ScheduleInstanceError::Proof(PhysicsStepError::Numerical(cause)),
         });
         let json = serde_json::to_value(record).unwrap();
         assert_eq!(json["diagnostic"]["cause"]["kind"], kind);
@@ -437,7 +446,7 @@ fn failure_diagnostic_schema_preserves_all_numerical_error_variants() {
     }
     let record = diagnostic::FailureRecord::from(ScheduleFailure {
         event,
-        error: PopulationError::UnknownInstance,
+        error: ScheduleInstanceError::UnknownInstance,
     });
     assert_eq!(
         serde_json::to_value(record).unwrap()["diagnostic"]["kind"],

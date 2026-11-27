@@ -9,6 +9,28 @@ migrations.
 
 ### Added
 
+- Composed connected-gas and drying populations in the same typed multirate
+  scheduler and dedicated worker. Independent accepted fields, failure latches,
+  stable event order and measured construction/restore memory remain explicit.
+  Identical gas profiles reject conflicting reviewed budgets; schedule identity
+  pins that policy without changing standalone physics identity.
+  Schedule snapshot `0.2.0` adds bounded typed child frames; original `0.1.0`
+  archives and digests are retained and migrate in memory. Mixed native goldens,
+  constrained-stack/allocation tests, all-rate worker restart, forged-frontier
+  checks and fuzz cases cover this path. Conservative exchange between separately
+  scheduled domains, equipment integration and canonical migration remain pending.
+- Added connected-gas population storage with independent accepted fields,
+  clocks and fault latches over one shared serial workspace and immutable model.
+  Memory preflight includes state banks, metadata and transactional restore peaks;
+  checked workload plans bound physical steps and solver/restore evaluations.
+  Framed streaming snapshots, normalized population digests, interleaved reference
+  comparisons, allocation/stack checks and native golden tests cover this path.
+  Aggregate scheduling is covered above; canonical factory integration remains
+  pending.
+- Replaced buffered numerical-fault deserialization with direct typed-field
+  validation. Unknown and duplicate fields are rejected without map-size memory
+  amplification; connected snapshot budgets now include malformed-input decoder
+  scratch and error formatting, guarded by allocation regressions.
 - Added bounded typed YAML input for isolated connected-gas verification, named
   coupled faces with mandatory unique links, SI parsing and source-memory
   accounting. `physics gas budget|run` exposes worker execution, requested/achieved
@@ -136,7 +158,7 @@ migrations.
   fields and complete application memory are not yet qualified.
 - Recorded the full coupled-factory release scope and its outstanding numerical,
   physical-validation, capacity, control and operator-interface gates. The
-  canonical `0.3.2` model remains unchanged; factory-scale CFD/mechanics, compressor
+  canonical model has not migrated to continuum physics; factory-scale CFD/mechanics, compressor
   equipment, calibrated defects and frontend integration are not implemented.
 - Added an original digest-pinned basin geometry document, sparse material
   topology and constant-law mechanical stiffness assembly. The geometry-aware
@@ -145,6 +167,16 @@ migrations.
   subquantum positive transport coefficients fail explicitly. The four prior
   proof digests remain unchanged. Product validation and factory migration
   remain pending.
+
+## 0.3.3 - 2026-11-27
+
+- Pinned Rust `1.100.0`, Node `26.13.1`, npm `12.2.3`, Svelte `5.59.2`, and
+  SvelteKit `3.4.1`. Updated build and test dependencies and retired the older
+  Rust CI lane. TypeScript stays on `6.0.3` for Svelte tooling compatibility.
+- Replaced the moving fill probe with a permanently connected slip line,
+  independent inlet valves, and valve feedback on all mould HMIs and the machine PC.
+- Restored macOS ARM replay, moved mutation tests into the fixture checkout,
+  and corrected the generated-contract test to check paths instead of counts.
 
 ## 0.3.2 - 2026-09-07
 

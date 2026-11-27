@@ -471,7 +471,6 @@ fn forming_measurements() -> FormingMeasurements {
         slip_feed_pressure_bar: fixed!(2.5),
         mould_pressure_bar: fixed!(0.0),
         mould_temperature_c: fixed!(25.0),
-        fill_head_position_mm: fixed!(0.0),
         mould_position_mm: fixed!(0.0),
         water_flow_l_min: fixed!(0.0),
         excess_slip_drain_flow_l_min: fixed!(0.0),

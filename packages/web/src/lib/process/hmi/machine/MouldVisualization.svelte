@@ -1,6 +1,7 @@
 <script lang="ts">
   import {
     Activity,
+    CircleDot,
     CircleGauge,
     Clock3,
     Gauge,
@@ -26,7 +27,7 @@
     "mould-01": {
       pressure: "area-02-pt-02",
       temperature: "area-02-tt-02",
-      fillHead: "area-02-pos-01",
+      fillValve: "area-02-pos-01",
       position: "area-02-pos-02",
       moisture: "area-02-mt-02",
       inclination: "area-02-m01-inc-01",
@@ -39,21 +40,23 @@
   };
 
   $: currentTags = tags[mould.target] ?? tags["mould-01"];
-  $: pressure = value(currentTags.pressure);
-  $: temperature = value(currentTags.temperature);
-  $: fillHead = value(currentTags.fillHead);
-  $: position = value(currentTags.position);
-  $: moisture = value(currentTags.moisture);
-  $: inclination = value(currentTags.inclination);
+  $: pressure = value(signals, currentTags.pressure);
+  $: temperature = value(signals, currentTags.temperature);
+  $: position = value(signals, currentTags.position);
+  $: moisture = value(signals, currentTags.moisture);
+  $: inclination = value(signals, currentTags.inclination);
+  $: fillFeedback = signals.find((signal) => signal.tag === currentTags.fillValve);
+  $: fillValve = !fillFeedback?.qualityGood ? "Unavailable" : fillFeedback.value === 1 ? "Open" : "Closed";
   $: selector = stations.find((station) => station.target === mould.target);
   $: mode = selector?.selectedMode ?? "auto";
-  $: movement = actuatorState(currentTags.movement, "stopped");
-  $: manifold = actuatorState(currentTags.manifold, "isolated");
+  $: movement = actuatorState(actuators, currentTags.movement, "stopped");
+  $: manifold = actuatorState(actuators, currentTags.manifold, "isolated");
   $: opening = Math.min(1, Math.max(0, position / 600));
-  $: fillProbe = Math.min(1, Math.max(0, fillHead / 800));
   $: mouldGap = opening * 32;
   $: upperLift = opening * 30;
-  $: fillProbeY = 90 + fillProbe * 45;
+  $: inletAngle = (inclination * Math.PI) / 180;
+  $: inletX = 318 - 22 * Math.sin(inletAngle);
+  $: inletY = 231 + 22 * Math.cos(inletAngle);
   $: pieceVisible = ["mould-opening", "robot-pickup", "operator-delivery"].includes(mould.phase);
   $: service = serviceState(manifold);
 
@@ -61,7 +64,7 @@
     return {
       pressure: `area-02-${prefix}-pt-01`,
       temperature: `area-02-${prefix}-tt-01`,
-      fillHead: `area-02-${prefix}-pos-01`,
+      fillValve: `area-02-${prefix}-pos-01`,
       position: `area-02-${prefix}-pos-02`,
       moisture: `area-02-${prefix}-mt-01`,
       inclination: `area-02-${prefix}-inc-01`,
@@ -70,11 +73,11 @@
     };
   }
 
-  function value(tag: string) {
+  function value(signals: HmiSignal[], tag: string) {
     return signals.find((signal) => signal.tag === tag)?.value ?? 0;
   }
 
-  function actuatorState(tag: string, fallback: string) {
+  function actuatorState(actuators: HmiActuator[], tag: string, fallback: string) {
     return actuators.find((actuator) => actuator.commandTag === tag)?.currentState ?? fallback;
   }
 
@@ -145,6 +148,15 @@
         <path class:active={service !== "isolated"} class={`service-line service-${service}`} d="M166 148 H230 V184 H253"></path>
       </g>
 
+      <g class="slip-feed" class:open={fillValve === "Open"}>
+        <title>{`Permanently connected slip feed; fill valve ${fillValve.toLowerCase()}`}</title>
+        <path class="slip-pipe" d="M45 244 H163"></path>
+        <path class="slip-pipe" d={`M163 244 C206 244 242 280 ${inletX} ${inletY}`}></path>
+        <path class="slip-valve-body" d="M143 234 L163 244 L143 254 Z M183 234 L163 244 L183 254 Z"></path>
+        <path class="slip-valve-stem" d="M163 244 V226"></path>
+        <path class="slip-valve-handle" d={fillValve === "Open" ? "M153 226 H173" : "M163 216 V235"}></path>
+      </g>
+
       <g class="mould-tilt-frame" transform={`rotate(${inclination} 318 231)`}>
         <path class="mould-carrier" d="M228 265 V151 H408 V265"></path>
         <g class="mould-package">
@@ -154,10 +166,7 @@
           <path class:visible={pieceVisible} class="cast-piece" d="M299 188 Q318 174 337 188 V241 Q318 252 299 241 Z"></path>
           <path class:active={pressure > 0.1} class="mould-cavity-fill" d="M301 238 V191 Q318 179 335 191 V238 Q318 247 301 238 Z"></path>
         </g>
-      </g>
-
-      <g class="fill-probe" transform={`translate(0 ${fillProbeY - 90})`}>
-        <path d="M307 91 H329 V136 H322 V153 H314 V136 H307 Z"></path>
+        <circle class="slip-inlet" cx="318" cy="253" r="5"></circle>
       </g>
 
       <g class="machine-labels">
@@ -165,6 +174,8 @@
         <text x="497" y="238">MAIN HYDRAULIC AXIS</text>
         <text x="274" y="52">VERTICAL CLAMP</text>
         <text x="102" y="211">SERVICE MANIFOLD</text>
+        <text x="42" y="263">SLIP FEED</text>
+        <text x="140" y="270">FILL VALVE</text>
         <text x="260" y="324">MULTI-PART MOULD ASSEMBLY</text>
       </g>
     </svg>
@@ -172,7 +183,7 @@
     <dl class="hmi-mould-metrics">
       <div><dt><Rotate3D size={14} />Inclination</dt><dd>{inclination.toFixed(1)}<small>degree</small></dd></div>
       <div><dt><Move3D size={14} />Opening stroke</dt><dd>{position.toFixed(0)}<small>millimetre</small></dd></div>
-      <div><dt><Move3D size={14} />Fill probe</dt><dd>{fillHead.toFixed(0)}<small>millimetre</small></dd></div>
+      <div><dt><CircleDot size={14} />Slip fill valve</dt><dd class="hmi-mould-valve-status">{fillValve}</dd></div>
       <div><dt><Gauge size={14} />Casting pressure</dt><dd>{pressure.toFixed(1)}<small>bar</small></dd></div>
       <div><dt><Thermometer size={14} />Mould temperature</dt><dd>{temperature.toFixed(1)}<small>degree Celsius</small></dd></div>
       <div><dt><Waves size={14} />Residual moisture</dt><dd>{moisture.toFixed(1)}<small>percent</small></dd></div>

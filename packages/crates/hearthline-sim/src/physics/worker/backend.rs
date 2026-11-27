@@ -3,7 +3,7 @@ use crate::physics::PhysicsProofSession;
 use crate::physics::PhysicsStepError;
 use crate::physics::clock::PacingError;
 use crate::physics::flow::connected::{ConnectedGasSession, ConnectedStepError};
-use crate::physics::schedule::{PhysicsSchedule, ScheduleError};
+use crate::physics::schedule::{PhysicsSchedule, ScheduleError, ScheduledStepReport};
 
 mod sealed {
     pub trait Sealed {}
@@ -159,13 +159,26 @@ impl WorkerRuntime for PhysicsSchedule {
             ScheduleError::Failed(failure) => WorkerFault::Schedule(failure),
         })?;
         let binding = &self.plan().instances()[result.event.instance];
+        let model = &self.plan().profiles()[binding.profile];
         Ok(WorkerFields {
             instance: Some(result.event.instance),
-            profile_digest: digest_bytes(self.plan().profiles()[binding.profile].digest()),
+            profile_digest: digest_bytes(model.digest()),
             instance_step: result.instance_step,
             time_us: result.event.time_us,
             values: result.fields,
-            connected_work: None,
+            connected_work: match result.report {
+                ScheduledStepReport::Proof(_) => None,
+                ScheduledStepReport::Connected(report) => Some(ConnectedWork {
+                    attempts: report.attempts,
+                    substeps: report.substeps,
+                    accepted_iterations: report.accepted_iterations,
+                    accepted_evaluations: report.accepted_evaluations,
+                    evaluation_bound: model
+                        .connected_gas()
+                        .expect("connected report profile")
+                        .evaluation_bound(),
+                }),
+            },
         })
     }
 }

@@ -1,17 +1,21 @@
 use std::cmp::Reverse;
-use std::io::{self, BufRead, Write};
+use std::io::{self, BufRead, BufReader, Read, Write};
 use std::sync::Arc;
 
-use hearthline_project::physics::schedule::{CompiledPhysicsSchedule, PHYSICS_SCHEDULE_CONTRACT};
+use hearthline_project::physics::schedule::{
+    CompiledPhysicsSchedule, NumericalProfileKind, PHYSICS_SCHEDULE_CONTRACT,
+};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 use super::diagnostic::FailureRecord;
-use super::{PhysicsEvent, PhysicsSchedule, ScheduleError, ScheduleMemoryPlan};
+use super::framing::{ByteCounter, HashingRead};
+use super::population::ScheduledPopulation;
+use super::{PhysicsEvent, PhysicsSchedule, ScheduleError, ScheduleFailure, ScheduleMemoryPlan};
 use crate::physics::PhysicsCheckpoint;
 use crate::physics::checkpoint::{HashWriter, hex_digest, read_line};
 
-pub const SCHEDULE_SNAPSHOT_SCHEMA: &str = "0.1.0";
+pub const SCHEDULE_SNAPSHOT_SCHEMA: &str = "0.2.0";
 const HEADER_LIMIT: usize = 4096;
 
 #[derive(Deserialize, Serialize)]
@@ -36,6 +40,14 @@ struct Footer<'a> {
     sha256: &'a str,
 }
 
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+struct Frame {
+    instance: usize,
+    kind: NumericalProfileKind,
+    bytes: u64,
+}
+
 impl PhysicsSchedule {
     /// Captures every spatial field in instance identity order. Valid output to
     /// a preallocated/streaming writer does not allocate on the simulation side.
@@ -50,7 +62,7 @@ impl PhysicsSchedule {
             &mut output,
             &Header {
                 schema_version: SCHEDULE_SNAPSHOT_SCHEMA,
-                schedule_contract: PHYSICS_SCHEDULE_CONTRACT,
+                schedule_contract: self.plan.contract(),
                 model_digest: self.plan.digest(),
                 instances: self.plan.instances().len(),
                 time_us: self.time_us,
@@ -59,9 +71,25 @@ impl PhysicsSchedule {
             },
         )?;
         output.write_all(b"\n").map_err(serde_json::Error::io)?;
-        for binding in self.plan.instances() {
-            self.populations[binding.profile].write_checkpoint(binding.slot, &mut output)?;
+        for (instance, binding) in self.plan.instances().iter().enumerate() {
+            let population = &mut self.populations[binding.profile];
+            let mut counter = ByteCounter(0);
+            population.write_instance(binding.slot, &mut counter)?;
+            if counter.0 > self.memory.maximum_snapshot_frame_bytes {
+                return Err(serde_json::Error::io(io::Error::other(
+                    "schedule child frame exceeds compiled bound",
+                )));
+            }
+            serde_json::to_writer(
+                &mut output,
+                &Frame {
+                    instance,
+                    kind: self.plan.profiles()[binding.profile].kind(),
+                    bytes: counter.0,
+                },
+            )?;
             output.write_all(b"\n").map_err(serde_json::Error::io)?;
+            population.write_instance(binding.slot, &mut output)?;
         }
         let (mut output, digest) = output.finish();
         serde_json::to_writer(
@@ -96,8 +124,10 @@ impl PhysicsSchedule {
         let mut hash = Sha256::new();
         hash.update(&row);
         let header: Header<'_> = serde_json::from_slice(&row).map_err(|e| e.to_string())?;
-        if header.schema_version != SCHEDULE_SNAPSHOT_SCHEMA
-            || header.schedule_contract != PHYSICS_SCHEDULE_CONTRACT
+        let previous = header.schema_version == "0.1.0";
+        if (!previous && header.schema_version != SCHEDULE_SNAPSHOT_SCHEMA)
+            || (previous && plan.contract() != PHYSICS_SCHEDULE_CONTRACT)
+            || header.schedule_contract != plan.contract()
             || header.model_digest != plan.digest()
             || header.instances != plan.instances().len()
             || header.committed_events > plan.total_events()
@@ -110,14 +140,75 @@ impl PhysicsSchedule {
         let mut restored = Self::new(plan)?;
         row.clear();
         let maximum =
-            usize::try_from(memory.maximum_snapshot_frame_bytes).map_err(|e| e.to_string())?;
+            usize::try_from(memory.maximum_snapshot_row_bytes).map_err(|e| e.to_string())?;
         row.try_reserve_exact(maximum).map_err(|e| e.to_string())?;
-        for binding in restored.plan.instances() {
-            read_line(&mut input, &mut row, maximum)?;
-            hash.update(&row);
-            let checkpoint: PhysicsCheckpoint =
-                serde_json::from_slice(&row).map_err(|e| e.to_string())?;
-            restored.populations[binding.profile].restore(binding.slot, &checkpoint)?;
+        for (instance, binding) in restored.plan.instances().iter().enumerate() {
+            if previous {
+                read_line(&mut input, &mut row, maximum)?;
+                hash.update(&row);
+                let checkpoint: PhysicsCheckpoint =
+                    serde_json::from_slice(&row).map_err(|e| e.to_string())?;
+                let ScheduledPopulation::Proof(population) =
+                    &mut restored.populations[binding.profile]
+                else {
+                    return Err("previous schedule snapshot requires proof-only profiles".into());
+                };
+                population.restore(binding.slot, &checkpoint)?;
+            } else {
+                read_line(&mut input, &mut row, HEADER_LIMIT)?;
+                hash.update(&row);
+                let frame: Frame = serde_json::from_slice(&row).map_err(|e| e.to_string())?;
+                if frame.instance != instance
+                    || frame.kind != restored.plan.profiles()[binding.profile].kind()
+                    || frame.bytes == 0
+                    || frame.bytes > memory.maximum_snapshot_frame_bytes
+                {
+                    return Err("schedule snapshot child order, kind or size mismatch".into());
+                }
+                let limited = (&mut input).take(frame.bytes);
+                let mut child = BufReader::with_capacity(
+                    HEADER_LIMIT,
+                    HashingRead {
+                        input: limited,
+                        hash: &mut hash,
+                    },
+                );
+                match &mut restored.populations[binding.profile] {
+                    ScheduledPopulation::Proof(population) => {
+                        read_line(&mut child, &mut row, maximum)?;
+                        let checkpoint: PhysicsCheckpoint =
+                            serde_json::from_slice(&row).map_err(|e| e.to_string())?;
+                        population.restore(binding.slot, &checkpoint)?;
+                        if !child.fill_buf().map_err(|e| e.to_string())?.is_empty() {
+                            return Err("schedule proof child has trailing input".into());
+                        }
+                    }
+                    ScheduledPopulation::Connected(population) => {
+                        population.restore_instance(binding.slot, &mut child)?
+                    }
+                }
+                if child.into_inner().input.limit() != 0 {
+                    return Err("truncated schedule child frame".into());
+                }
+            }
+            if let Some(error) = restored.populations[binding.profile].stored_failure(binding.slot)
+            {
+                let expected = failure.ok_or("schedule child has an undeclared failure")?;
+                if expected.event.instance != instance
+                    || FailureRecord::from(ScheduleFailure {
+                        event: expected.event,
+                        error,
+                    }) != expected
+                {
+                    return Err("schedule child failure differs from its declared event".into());
+                }
+            } else if matches!(
+                restored.populations[binding.profile],
+                ScheduledPopulation::Connected(_)
+            ) && failure.is_some_and(|f| f.event.instance == instance)
+            {
+                return Err("schedule gas child omits its declared failure".into());
+            }
         }
         read_line(&mut input, &mut row, HEADER_LIMIT)?;
         let footer: Footer<'_> = serde_json::from_slice(&row).map_err(|e| e.to_string())?;
@@ -161,7 +252,7 @@ impl PhysicsSchedule {
                 };
                 latest = Some(latest.map_or(event, |previous: PhysicsEvent| previous.max(event)));
             }
-            if step < model.config().steps {
+            if step < model.steps() {
                 self.pending.push(Reverse(PhysicsEvent {
                     time_us: (u64::from(step) + 1) * model.timestep_us(),
                     instance,

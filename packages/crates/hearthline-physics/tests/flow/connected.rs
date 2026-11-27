@@ -7,6 +7,7 @@ use hearthline_physics::flow::{
 use hearthline_physics::transport::{Grid3d, SolverLimits};
 use hearthline_physics::{PhysicsError, Scalar};
 
+mod isolation;
 #[path = "retries.rs"]
 mod retries;
 

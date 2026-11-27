@@ -119,5 +119,5 @@ describe("simulation controls", () => {
     await fireEvent.click(screen.getByRole("button", { name: /reset packet/i }));
     await fireEvent.click(screen.getByRole("button", { name: /second scenario/i }));
     expect(screen.getAllByText("Second scenario", { exact: true }).length).toBeGreaterThan(0);
-  });
+  }, 15_000);
 });

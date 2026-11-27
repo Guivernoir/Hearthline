@@ -2,6 +2,7 @@
 //! All coordinates must already use one nondimensional reference system.
 
 use hearthline_model::ComponentId;
+use hearthline_physics::PhysicsError;
 use hearthline_physics::flow::FlowBoundary;
 use hearthline_physics::flow::connected::{CellInventory, FaceLink, FlowCell, FlowMesh};
 use hearthline_physics::transport::Grid3d;
@@ -210,6 +211,46 @@ impl CompiledFlowMesh {
     pub fn mesh(&self) -> Result<FlowMesh<'_>, String> {
         FlowMesh::new(&self.cells, &self.boundaries).map_err(|e| e.to_string())
     }
+
+    /// Dense derived masks cost one byte per cell, separately from authoritative
+    /// connection positions. Callers preallocate this buffer before sealing.
+    pub fn isolation_mask_bytes(&self) -> usize {
+        self.cells.len()
+    }
+
+    /// Rebuilds both sides of each closed named patch. Invalid buffer sizes are
+    /// rejected before writing; connection order is the compiled ID order.
+    pub fn write_isolation_mask(
+        &self,
+        closed_connections: &[bool],
+        masks: &mut [u8],
+    ) -> Result<(), PhysicsError> {
+        if closed_connections.len() != self.connections.len() || masks.len() != self.cells.len() {
+            return Err(PhysicsError::BufferLength);
+        }
+        masks.fill(0);
+        for (connection, &closed) in self.connections.iter().zip(closed_connections) {
+            if !closed {
+                continue;
+            }
+            let regions = connection.regions.map(|index| &self.regions[index]);
+            let axis = usize::from(connection.faces[0]) / 2;
+            let transverse = [(axis + 1) % 3, (axis + 2) % 3];
+            for u in 0..regions[0].grid.shape()[transverse[0]] {
+                for v in 0..regions[0].grid.shape()[transverse[1]] {
+                    let pair = patch_pair(regions, connection.faces, u, v);
+                    for side in 0..2 {
+                        masks[pair[side]] |= 1 << connection.faces[side];
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    pub fn isolated_mesh<'a>(&'a self, masks: &'a [u8]) -> Result<FlowMesh<'a>, PhysicsError> {
+        FlowMesh::new(&self.cells, &self.boundaries)?.with_isolated_faces(masks)
+    }
     pub fn regions(&self) -> &[CompiledFlowRegion] {
         &self.regions
     }
@@ -308,18 +349,7 @@ fn connect(
     }
     for u in 0..regions[0].grid.shape()[transverse[0]] {
         for v in 0..regions[0].grid.shape()[transverse[1]] {
-            let ids = core::array::from_fn::<_, 2, _>(|side| {
-                let shape = regions[side].grid.shape();
-                let mut xyz = [0; 3];
-                xyz[axis] = if faces[side].is_multiple_of(2) {
-                    0
-                } else {
-                    shape[axis] - 1
-                };
-                xyz[transverse[0]] = u;
-                xyz[transverse[1]] = v;
-                regions[side].offset + xyz[0] + shape[0] * (xyz[1] + shape[1] * xyz[2])
-            });
+            let ids = patch_pair(regions, faces, u, v);
             if (0..2).any(|side| {
                 !matches!(
                     cells[ids[side]].faces[usize::from(faces[side])],
@@ -335,4 +365,21 @@ fn connect(
         }
     }
     Ok(())
+}
+
+fn patch_pair(regions: [&CompiledFlowRegion; 2], faces: [u8; 2], u: usize, v: usize) -> [usize; 2] {
+    let axis = usize::from(faces[0]) / 2;
+    let transverse = [(axis + 1) % 3, (axis + 2) % 3];
+    core::array::from_fn(|side| {
+        let shape = regions[side].grid.shape();
+        let mut xyz = [0; 3];
+        xyz[axis] = if faces[side].is_multiple_of(2) {
+            0
+        } else {
+            shape[axis] - 1
+        };
+        xyz[transverse[0]] = u;
+        xyz[transverse[1]] = v;
+        regions[side].offset + xyz[0] + shape[0] * (xyz[1] + shape[1] * xyz[2])
+    })
 }

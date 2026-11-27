@@ -51,35 +51,30 @@ pub(super) fn forming_moulds(
         (
             "area-02-pt-02",
             "area-02-tt-02",
-            "area-02-pos-01",
             "area-02-pos-02",
             "area-02-mt-02",
         ),
         (
             "area-02-m02-pt-01",
             "area-02-m02-tt-01",
-            "area-02-m02-pos-01",
             "area-02-m02-pos-02",
             "area-02-m02-mt-01",
         ),
         (
             "area-02-m03-pt-01",
             "area-02-m03-tt-01",
-            "area-02-m03-pos-01",
             "area-02-m03-pos-02",
             "area-02-m03-mt-01",
         ),
         (
             "area-02-m04-pt-01",
             "area-02-m04-tt-01",
-            "area-02-m04-pos-01",
             "area-02-m04-pos-02",
             "area-02-m04-mt-01",
         ),
     ];
     let mut moulds = BTreeMap::new();
-    for (index, (pressure, temperature, fill_head, position, moisture)) in
-        station_tags.into_iter().enumerate()
+    for (index, (pressure, temperature, position, moisture)) in station_tags.into_iter().enumerate()
     {
         let number = index + 1;
         let target = format!("mould-{number:02}");
@@ -92,7 +87,6 @@ pub(super) fn forming_moulds(
             slip_feed_pressure_bar: value("area-02-pt-01")?,
             mould_pressure_bar: value(pressure)?,
             mould_temperature_c: value(temperature)?,
-            fill_head_position_mm: value(fill_head)?,
             mould_position_mm: value(position)?,
             water_flow_l_min: value("area-02-ft-02")?,
             excess_slip_drain_flow_l_min: value("area-02-ft-03")?,

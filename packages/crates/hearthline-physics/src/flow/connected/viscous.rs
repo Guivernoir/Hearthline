@@ -1,4 +1,4 @@
-use super::{CellInventory, ConnectedFlow, Conserved, FaceLink, FlowBoundary, ViscousTransport};
+use super::{CellInventory, ConnectedFlow, Conserved, FlowBoundary, MeshFace, ViscousTransport};
 use crate::{PhysicsError, Scalar};
 
 #[cfg(test)]
@@ -24,8 +24,8 @@ impl ConnectedFlow<'_> {
         let center = self.primitive(state, cell)?;
         let width = self.mesh.cells[cell].spacing()[axis];
         let two = Scalar::integer(2)?;
-        match self.mesh.cells[cell].faces[face] {
-            FaceLink::Cell(peer) => {
+        match self.mesh.face(cell, face) {
+            MeshFace::Cell(peer) => {
                 let peer = peer as usize;
                 let other = self.primitive(state, peer)?;
                 let other_width = self.mesh.cells[peer].spacing()[axis];
@@ -53,8 +53,7 @@ impl ConnectedFlow<'_> {
                     .checked_div(distance)?;
                 transport.flux(gradient, velocity, temperature_gradient, axis)
             }
-            FaceLink::Boundary(id) => {
-                let boundary = self.mesh.boundaries[id as usize];
+            MeshFace::Boundary(boundary) => {
                 let mut distance = width.checked_div(two)?;
                 let (velocity, temperature) = match boundary {
                     FlowBoundary::NoSlipWall {
@@ -91,9 +90,9 @@ impl ConnectedFlow<'_> {
                 })?;
                 let mut flux = transport.flux(gradient, velocity, temperature_gradient, axis)?;
                 if boundary == FlowBoundary::AdiabaticSlipWall {
-                    for i in 0..3 {
+                    for (i, momentum) in flux.momentum.iter_mut().enumerate() {
                         if i != axis {
-                            flux.momentum[i] = Scalar::ZERO;
+                            *momentum = Scalar::ZERO;
                         }
                     }
                     flux.total_energy = Scalar::ZERO;
@@ -116,14 +115,14 @@ impl ConnectedFlow<'_> {
             let mut velocities = [[Scalar::ZERO; 3]; 2];
             let mut distances = [width; 2];
             for side in 0..2 {
-                velocities[side] = match self.mesh.cells[cell].faces[2 * axis + side] {
-                    FaceLink::Cell(peer) => {
+                velocities[side] = match self.mesh.face(cell, 2 * axis + side) {
+                    MeshFace::Cell(peer) => {
                         distances[side] = width
                             .checked_add(self.mesh.cells[peer as usize].spacing()[axis])?
                             .checked_div(two)?;
                         self.primitive(state, peer as usize)?.velocity
                     }
-                    FaceLink::Boundary(id) => match self.mesh.boundaries[id as usize] {
+                    MeshFace::Boundary(boundary) => match boundary {
                         FlowBoundary::Reservoir(state) => state.velocity,
                         FlowBoundary::AdiabaticSlipWall => {
                             let mut ghost = center.velocity;

@@ -53,17 +53,12 @@ pub(crate) fn validate_local_autonomy_state(
     }
 
     let contract = local_control_contract(scenario, appliances)?;
-    for participant in [&contract.controller] {
-        if !scenario
-            .participants
-            .iter()
-            .any(|candidate| candidate == participant)
-        {
-            return Err(ConfigError::new(format!(
-                "scenario {} local control reference {participant} is not a participant",
-                scenario.id
-            )));
-        }
+    let participant = &contract.controller;
+    if !scenario.participants.contains(participant) {
+        return Err(ConfigError::new(format!(
+            "scenario {} local control reference {participant} is not a participant",
+            scenario.id
+        )));
     }
     local_control_topology(scenario, appliances, connections, connection_states).map(|_| ())
 }

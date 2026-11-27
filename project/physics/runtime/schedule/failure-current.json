@@ -1,0 +1,21 @@
+{
+  "failure": {
+    "diagnostic": {
+      "attempts": 1,
+      "cause": {
+        "iterations": 1,
+        "kind": "non-convergence",
+        "residual_raw": 4340236889
+      },
+      "kind": "flow",
+      "smallest_solver_step_us": 10000
+    },
+    "event": {
+      "instance": 1,
+      "time_us": 100
+    }
+  },
+  "model_digest": "38cfe1b8a02b6939b5335f6f9c6d3d5f7d335bb83f3bd467386a8fb64eaf7471",
+  "schema_version": "0.2.0",
+  "state_digest": "3b8d187e355c248d640ff21f4c6f15a0287c4ad7b8f9569572d8c86a82deeb9d"
+}

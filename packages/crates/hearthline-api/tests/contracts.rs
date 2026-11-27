@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::path::Path;
 
 use hearthline_api::contracts::{MODEL_API_CONTRACT_VERSION, generated_contract_files};
 use serde_json::Value;
@@ -8,13 +9,28 @@ fn generated_contract_bundle_exposes_revisioned_model_workflows() {
     let files = generated_contract_files().expect("contracts generate");
     let by_path = files
         .iter()
-        .map(|(path, source)| (path.to_string_lossy().into_owned(), source.as_str()))
+        .map(|(path, source)| (path.as_path(), source.as_str()))
         .collect::<BTreeMap<_, _>>();
 
-    assert_eq!(files.len(), 7);
+    assert_eq!(files.len(), by_path.len(), "duplicate generated path");
+    for schema in [
+        "blueprint-definition",
+        "blueprint-instance",
+        "connected-gas",
+        "draft-change",
+        "draft-preview",
+        "drying-material",
+        "model-document-catalog",
+        "physics-capacity",
+        "physics-proof",
+        "solid-geometry",
+    ] {
+        let path = format!("project/contracts/schemas/{schema}.schema.json");
+        assert!(by_path.contains_key(Path::new(&path)), "missing {path}");
+    }
     let openapi: Value = serde_json::from_str(
         by_path
-            .get("project/contracts/openapi.json")
+            .get(Path::new("project/contracts/openapi.json"))
             .expect("OpenAPI contract"),
     )
     .expect("valid OpenAPI JSON");
@@ -35,7 +51,7 @@ fn generated_contract_bundle_exposes_revisioned_model_workflows() {
     }
 
     let client = by_path
-        .get("packages/web/src/generated/model-api.ts")
+        .get(Path::new("packages/web/src/generated/model-api.ts"))
         .expect("TypeScript client contract");
     for dto in [
         "ModelSummary",

@@ -1,8 +1,9 @@
-use criterion::{BatchSize, Criterion, black_box, criterion_group, criterion_main};
+use criterion::{BatchSize, Criterion, criterion_group, criterion_main};
 use hearthline_model::{ComponentId, PartitionMessage, Text};
 use hearthline_sim::{
     CellRegistration, ConduitConfig, ConduitId, ConduitOverflow, StableScheduler,
 };
+use std::hint::black_box;
 
 fn text(value: &str) -> Text<64> {
     Text::try_new(value).expect("benchmark identifier")

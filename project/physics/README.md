@@ -2,9 +2,10 @@
 
 The release target is a live, vendor-neutral 3D continuum simulation from Body
 Preparation through final inspection, including plant air and sector-local
-supplies. The existing `0.3.2` model is intentionally unchanged while numerical
+supplies. The canonical `0.3.x` model stays on the existing process runtime while numerical
 qualification is in progress. This directory is a verification workspace, not
 a substitute canonical plant or a production recipe collection.
+See the [0.4.0 release plan](release-plan.md) for the complete scope and acceptance gates.
 
 ## Implemented Numerical Proofs
 
@@ -14,7 +15,7 @@ a substitute canonical plant or a production recipe collection.
 | Spatial transport | Cell-centered Cartesian 3D finite volumes, implicit backward Euler, deterministic lexicographic Gauss-Seidel |
 | Isothermal receiver equilibration | Finite ideal-gas mass storage and linear pressure-driven conductances; no compression work, momentum equation, or compressor equipment yet |
 | Compressible flow kernel | Conservative density, three momentum components and total energy in 3D; implicit Rusanov fluxes, Newtonian viscous stress, Fourier heat conduction, periodic/slip/no-slip boundaries and bounded whole-horizon timestep retries; turbulence and plant integration remain pending |
-| Connected gas regions | SI-normalized immutable model, named conforming face connections, extensive mass/momentum/energy state, exact quantized accounting and bounded whole-horizon retries; dedicated worker, full-state restart, current/previous snapshot readers and native goldens; not yet integrated into appliance YAML, equipment controls or the multirate aggregate |
+| Connected gas regions | SI-normalized immutable model, named conforming face connections, extensive mass/momentum/energy state, exact quantized accounting and bounded whole-horizon retries; dedicated worker, mixed-profile scheduling, full-state restart, current/previous snapshot readers and native goldens; not yet integrated into appliance YAML or equipment controls |
 | Compressible receiver proof | Two finite chambers on a fixed Cartesian mesh, SI inputs with checked reference-scale conversion, pressure-driven charging and reflected waves; conserved-field snapshots include accepted-step retry metadata |
 | Mechanical kernel | Compiled linear tetrahedra, matrix-free or immutable sparse elasticity, imposed expansion/shrinkage strain and checked iterative equilibrium; verified free/restrained expansion and rigid motion, not fracture or a calibrated product model |
 | Drying specimen | Spatial moisture/heat diffusion, surface exchange, evaporation/condensation heat; optional tetrahedral equilibrium driven by local thermal/moisture eigenstrain, with displacement and stress snapshots; constant properties, no fracture or calibrated ceramic law yet |
@@ -38,11 +39,16 @@ The [constitutive transport work](materials/README.md) records equations, units,
 workspace requirements, standalone integration and remaining validation work.
 The [dedicated runtime work](runtime/README.md) records clock semantics, mailbox
 saturation, shutdown, checkpoint continuation and remaining factory integration.
-The [multirate schedule](runtime/schedule.md) composes numerical populations with
+The [multirate schedule](runtime/schedule/README.md) composes numerical populations with
 stable identity ordering, shared resource preflight and full-state prefix validation.
 The [connected gas-domain work](runtime/connections.md) supplies explicit face
 topology, a conservative joint solve and full-state worker restart; controller
 and canonical source integration are pending.
+Repeated gas domains can use [pooled connected storage](runtime/connected-population.md)
+with independent accepted fields/fault latches and bounded streamed restart;
+gas and drying profiles now share one compiled schedule and worker clock.
+This does not yet exchange inventory or heat between separately scheduled
+domains; connected regions within one gas instance are solved jointly.
 
 ## Run The Proofs
 

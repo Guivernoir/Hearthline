@@ -1,7 +1,7 @@
 {
   "schema_version": "0.2.0",
-  "project_digest": "18c753c94c3789e4ac9735e4a90ea82bc2a6ff01928b20ec635aecb22bb5b004",
-  "compiler_version": "0.3.2",
+  "project_digest": "054d7c037c9269e162565438f82a9cc590e0e9c1a7b0de965775f5a578376aee",
+  "compiler_version": "0.3.3",
   "schema_versions": {
     "appliance": "0.10.0",
     "blueprint": "0.1.0",
@@ -1565,7 +1565,7 @@
     {
       "path": "appliances/factory/process/material/forming/field/pressure-casting/mould-01/sensors/area-02-pos-01.yaml",
       "kind": "appliance",
-      "sha256": "bb87c3d946f58099a39785bc0ef19371f931b714e0087c5e1ad530e201060cd1"
+      "sha256": "e61590b9620b0e5b006312c17b016689643ec0205767ff1616f5e4ca1e91e902"
     },
     {
       "path": "appliances/factory/process/material/forming/field/pressure-casting/mould-01/sensors/area-02-pos-02.yaml",
@@ -1610,7 +1610,7 @@
     {
       "path": "appliances/factory/process/material/forming/field/pressure-casting/mould-02/sensors/area-02-m02-pos-01.yaml",
       "kind": "appliance",
-      "sha256": "013723c9b2a6a8b47ac89dddb1c9a63a8bded4e12fc0988bb4298bb91fef2bab"
+      "sha256": "6c3c5365441103f205db2484dbfa3211565b741d2edcb5ebf805351b6669ef8a"
     },
     {
       "path": "appliances/factory/process/material/forming/field/pressure-casting/mould-02/sensors/area-02-m02-pos-02.yaml",
@@ -1655,7 +1655,7 @@
     {
       "path": "appliances/factory/process/material/forming/field/pressure-casting/mould-03/sensors/area-02-m03-pos-01.yaml",
       "kind": "appliance",
-      "sha256": "e775a9c98ce1548d99abc9487eeff3b66c550d1f0d68c8a7cdd9f91ef440e102"
+      "sha256": "38ec131c8297b9dc7d79939aab48eb43fa20342785f6772c5e521375cd3f1dfd"
     },
     {
       "path": "appliances/factory/process/material/forming/field/pressure-casting/mould-03/sensors/area-02-m03-pos-02.yaml",
@@ -1700,7 +1700,7 @@
     {
       "path": "appliances/factory/process/material/forming/field/pressure-casting/mould-04/sensors/area-02-m04-pos-01.yaml",
       "kind": "appliance",
-      "sha256": "f7d8ba3a35f7df69fdeaf3ff9e72c8dc6a6b6e4a59675f8535c8003da2f9e8a0"
+      "sha256": "56e51b95e7ad7fb2d7c3b286611efa9b831046cfce2be89a5ecb4b9f93d76c82"
     },
     {
       "path": "appliances/factory/process/material/forming/field/pressure-casting/mould-04/sensors/area-02-m04-pos-02.yaml",
@@ -3755,7 +3755,7 @@
     {
       "path": "connections/factory/process/material/forming/field/pressure-casting/mould-01/sensors/area-02-m01-rio-01-to-area-02-pos-01.yaml",
       "kind": "connection",
-      "sha256": "4190e9f7500c1157a7ee4f389c9c6397d8e2df7f2e4ba6c097703ca0b0d4bf22"
+      "sha256": "206995fa9f24b44f77d24d149cf431f24ff8637d46d4d75a7779670bec72480e"
     },
     {
       "path": "connections/factory/process/material/forming/field/pressure-casting/mould-01/sensors/area-02-m01-rio-01-to-area-02-pos-02.yaml",
@@ -3800,7 +3800,7 @@
     {
       "path": "connections/factory/process/material/forming/field/pressure-casting/mould-02/sensors/area-02-m02-rio-01-to-area-02-m02-pos-01.yaml",
       "kind": "connection",
-      "sha256": "701198a66cfa83a0d860a0419a78ac55eabe3fb972409bc87bb1ed72c7b5f60f"
+      "sha256": "6ab26429b1d54fc0b110641374d9f2bca0ade1cf06b773b5d00abbb14a223b66"
     },
     {
       "path": "connections/factory/process/material/forming/field/pressure-casting/mould-02/sensors/area-02-m02-rio-01-to-area-02-m02-pos-02.yaml",
@@ -3845,7 +3845,7 @@
     {
       "path": "connections/factory/process/material/forming/field/pressure-casting/mould-03/sensors/area-02-m03-rio-01-to-area-02-m03-pos-01.yaml",
       "kind": "connection",
-      "sha256": "63910908daf358eb9675ec5b22d7f66f7a901a0d136cae5eb10ec5dde2ffa9bc"
+      "sha256": "e0892f6f19615c80b328266614a3af484012a09c0e14f125a70add22d3e7dbc6"
     },
     {
       "path": "connections/factory/process/material/forming/field/pressure-casting/mould-03/sensors/area-02-m03-rio-01-to-area-02-m03-pos-02.yaml",
@@ -3890,7 +3890,7 @@
     {
       "path": "connections/factory/process/material/forming/field/pressure-casting/mould-04/sensors/area-02-m04-rio-01-to-area-02-m04-pos-01.yaml",
       "kind": "connection",
-      "sha256": "40bed5165f687c5e9fd1a760f71716bcf69c97035ae197c6362a3eb14854f456"
+      "sha256": "fc2d633cea0e2fc6349858bfb3911c98f6ca5d20fc530992d5f9e14429f005db"
     },
     {
       "path": "connections/factory/process/material/forming/field/pressure-casting/mould-04/sensors/area-02-m04-rio-01-to-area-02-m04-pos-02.yaml",
@@ -5387,7 +5387,7 @@
     {
       "path": "area-02-m02-pos-01",
       "kind": "appliance",
-      "sha256": "013723c9b2a6a8b47ac89dddb1c9a63a8bded4e12fc0988bb4298bb91fef2bab"
+      "sha256": "6c3c5365441103f205db2484dbfa3211565b741d2edcb5ebf805351b6669ef8a"
     },
     {
       "path": "area-02-m02-pos-02",
@@ -5452,7 +5452,7 @@
     {
       "path": "area-02-m03-pos-01",
       "kind": "appliance",
-      "sha256": "e775a9c98ce1548d99abc9487eeff3b66c550d1f0d68c8a7cdd9f91ef440e102"
+      "sha256": "38ec131c8297b9dc7d79939aab48eb43fa20342785f6772c5e521375cd3f1dfd"
     },
     {
       "path": "area-02-m03-pos-02",
@@ -5517,7 +5517,7 @@
     {
       "path": "area-02-m04-pos-01",
       "kind": "appliance",
-      "sha256": "f7d8ba3a35f7df69fdeaf3ff9e72c8dc6a6b6e4a59675f8535c8003da2f9e8a0"
+      "sha256": "56e51b95e7ad7fb2d7c3b286611efa9b831046cfce2be89a5ecb4b9f93d76c82"
     },
     {
       "path": "area-02-m04-pos-02",
@@ -5567,7 +5567,7 @@
     {
       "path": "area-02-pos-01",
       "kind": "appliance",
-      "sha256": "bb87c3d946f58099a39785bc0ef19371f931b714e0087c5e1ad530e201060cd1"
+      "sha256": "e61590b9620b0e5b006312c17b016689643ec0205767ff1616f5e4ca1e91e902"
     },
     {
       "path": "area-02-pos-02",
@@ -7667,7 +7667,7 @@
     {
       "path": "area-02-m01-rio-01-to-area-02-pos-01",
       "kind": "connection",
-      "sha256": "4190e9f7500c1157a7ee4f389c9c6397d8e2df7f2e4ba6c097703ca0b0d4bf22"
+      "sha256": "206995fa9f24b44f77d24d149cf431f24ff8637d46d4d75a7779670bec72480e"
     },
     {
       "path": "area-02-m01-rio-01-to-area-02-pos-02",
@@ -7712,7 +7712,7 @@
     {
       "path": "area-02-m02-rio-01-to-area-02-m02-pos-01",
       "kind": "connection",
-      "sha256": "701198a66cfa83a0d860a0419a78ac55eabe3fb972409bc87bb1ed72c7b5f60f"
+      "sha256": "6ab26429b1d54fc0b110641374d9f2bca0ade1cf06b773b5d00abbb14a223b66"
     },
     {
       "path": "area-02-m02-rio-01-to-area-02-m02-pos-02",
@@ -7757,7 +7757,7 @@
     {
       "path": "area-02-m03-rio-01-to-area-02-m03-pos-01",
       "kind": "connection",
-      "sha256": "63910908daf358eb9675ec5b22d7f66f7a901a0d136cae5eb10ec5dde2ffa9bc"
+      "sha256": "e0892f6f19615c80b328266614a3af484012a09c0e14f125a70add22d3e7dbc6"
     },
     {
       "path": "area-02-m03-rio-01-to-area-02-m03-pos-02",
@@ -7802,7 +7802,7 @@
     {
       "path": "area-02-m04-rio-01-to-area-02-m04-pos-01",
       "kind": "connection",
-      "sha256": "40bed5165f687c5e9fd1a760f71716bcf69c97035ae197c6362a3eb14854f456"
+      "sha256": "fc2d633cea0e2fc6349858bfb3911c98f6ca5d20fc530992d5f9e14429f005db"
     },
     {
       "path": "area-02-m04-rio-01-to-area-02-m04-pos-02",
@@ -9251,7 +9251,7 @@
     {
       "path": "packages/web/src/generated/appliance-configs.json",
       "kind": "generated-catalog",
-      "sha256": "783758d7fc986ca29b0e120ea5bf3396bebf2fdfcb962088f4b34802e29cc6a4"
+      "sha256": "3acdbc6f438128b94f50bc321adbb285014e8ce84c8fdd0a84514118937933cf"
     },
     {
       "path": "packages/web/src/generated/process-view.json",
@@ -12833,5 +12833,5 @@
       }
     ]
   },
-  "update_reason": "Implement ADR 0001-cell-capacity-and-dynamic-composition.md with compiled capacity evidence and the 0.3.2 crate ownership boundary"
+  "update_reason": "Hearthline 0.3.3 release: permanently connected mould slip feeds and fill valve feedback"
 }

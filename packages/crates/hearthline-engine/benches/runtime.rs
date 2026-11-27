@@ -1,6 +1,6 @@
 use core::net::Ipv4Addr;
 
-use criterion::{BatchSize, Criterion, black_box, criterion_group, criterion_main};
+use criterion::{BatchSize, Criterion, criterion_group, criterion_main};
 use hearthline_engine::{
     BodyPreparationProcess, ConnectionMedium, CopperCategory, CopperMedium, CopperWiring,
     LinkAppliance, LinkEndpoint, LinkMode, MediaLink, MediaLinkConfig, PortDuplex,
@@ -12,6 +12,7 @@ use hearthline_model::{
     Ipv4Packet, MacAddress, NetworkPayload, PortId, Route, ServiceKind, TcpFlags, TcpSegment,
     Transport, VlanId,
 };
+use std::hint::black_box;
 
 fn id(value: &str) -> ComponentId {
     ComponentId::new(value).expect("benchmark ID")

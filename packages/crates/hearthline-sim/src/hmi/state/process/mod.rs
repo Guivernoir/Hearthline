@@ -223,7 +223,6 @@ impl PlantControlRuntime {
             for (tag, value) in [
                 (station.pressure, measurements.mould_pressure_bar),
                 (station.temperature, measurements.mould_temperature_c),
-                (station.fill_head, measurements.fill_head_position_mm),
                 (station.position, measurements.mould_position_mm),
                 (station.moisture, measurements.mould_moisture_percent),
                 (station.inclination, inclination),
@@ -391,13 +390,29 @@ impl PlantControlRuntime {
         }
     }
 
-    pub(super) fn set_actuator(&mut self, tag: &str, state: &str) {
+    pub(in crate::hmi) fn set_actuator(&mut self, tag: &str, state: &str) {
         if let Some(actuator) = self
             .actuators
             .iter_mut()
             .find(|actuator| actuator.command_tag == tag)
         {
             actuator.current_state = state.into();
+            if let Some(station) = MOULD_STATIONS
+                .iter()
+                .find(|station| station.manifold == tag)
+                && let Some(mould) = self.moulds.get(station.target)
+            {
+                let timestamp_ms = mould
+                    .process()
+                    .scan_count()
+                    .saturating_mul(FormingProcess::SCAN_INTERVAL_MS);
+                let value = if state == "slip-fill" {
+                    FixedValue::ONE
+                } else {
+                    FixedValue::ZERO
+                };
+                self.set_signal(station.slip_fill_feedback, value, timestamp_ms);
+            }
         }
     }
 }
@@ -407,7 +422,7 @@ struct MouldStationTags {
     target: &'static str,
     pressure: &'static str,
     temperature: &'static str,
-    fill_head: &'static str,
+    slip_fill_feedback: &'static str,
     position: &'static str,
     moisture: &'static str,
     inclination: &'static str,
@@ -420,7 +435,7 @@ const MOULD_STATIONS: [MouldStationTags; 4] = [
         target: "mould-01",
         pressure: "area-02-pt-02",
         temperature: "area-02-tt-02",
-        fill_head: "area-02-pos-01",
+        slip_fill_feedback: "area-02-pos-01",
         position: "area-02-pos-02",
         moisture: "area-02-mt-02",
         inclination: "area-02-m01-inc-01",
@@ -431,7 +446,7 @@ const MOULD_STATIONS: [MouldStationTags; 4] = [
         target: "mould-02",
         pressure: "area-02-m02-pt-01",
         temperature: "area-02-m02-tt-01",
-        fill_head: "area-02-m02-pos-01",
+        slip_fill_feedback: "area-02-m02-pos-01",
         position: "area-02-m02-pos-02",
         moisture: "area-02-m02-mt-01",
         inclination: "area-02-m02-inc-01",
@@ -442,7 +457,7 @@ const MOULD_STATIONS: [MouldStationTags; 4] = [
         target: "mould-03",
         pressure: "area-02-m03-pt-01",
         temperature: "area-02-m03-tt-01",
-        fill_head: "area-02-m03-pos-01",
+        slip_fill_feedback: "area-02-m03-pos-01",
         position: "area-02-m03-pos-02",
         moisture: "area-02-m03-mt-01",
         inclination: "area-02-m03-inc-01",
@@ -453,7 +468,7 @@ const MOULD_STATIONS: [MouldStationTags; 4] = [
         target: "mould-04",
         pressure: "area-02-m04-pt-01",
         temperature: "area-02-m04-tt-01",
-        fill_head: "area-02-m04-pos-01",
+        slip_fill_feedback: "area-02-m04-pos-01",
         position: "area-02-m04-pos-02",
         moisture: "area-02-m04-mt-01",
         inclination: "area-02-m04-inc-01",

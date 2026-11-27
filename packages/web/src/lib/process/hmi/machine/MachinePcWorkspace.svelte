@@ -54,8 +54,8 @@
   ];
 
   $: selectedMould = snapshot.moulds.find((mould) => mould.target === page) ?? null;
-  $: selectedSignals = selectedMould ? signalsForMould(selectedMould.target) : [];
-  $: selectedActuators = selectedMould ? actuatorsForMould(selectedMould.target) : [];
+  $: selectedSignals = selectedMould ? signalsForMould(snapshot.signals, selectedMould.target) : [];
+  $: selectedActuators = selectedMould ? actuatorsForMould(snapshot.actuators, selectedMould.target) : [];
   $: tankSignals = snapshot.signals.filter((signal) => [
     "area-02-lt-01",
     "area-02-dt-01",
@@ -65,24 +65,21 @@
     "area-02-pt-01",
   ].includes(signal.tag));
   $: activeAlarms = snapshot.alarms.filter((alarm) => alarm.active);
-  $: tankLevel = signal("area-02-lt-01")?.value ?? 0;
+  $: tankLevel = snapshot.signals.find((item) => item.tag === "area-02-lt-01")?.value ?? 0;
+  $: tankTemperature = snapshot.signals.find((item) => item.tag === "area-02-tt-01")?.value;
 
-  function signalsForMould(target: string) {
+  function signalsForMould(signals: HmiSignal[], target: string) {
     const index = Number(target.slice(-2));
     const tags = index === 1
       ? ["area-02-pt-02", "area-02-tt-02", "area-02-pos-01", "area-02-pos-02", "area-02-mt-02", "area-02-m01-inc-01"]
       : ["pt-01", "tt-01", "pos-01", "pos-02", "mt-01", "inc-01"].map((suffix) => `area-02-m${String(index).padStart(2, "0")}-${suffix}`);
-    return snapshot.signals.filter((candidate) => tags.includes(candidate.tag));
+    return signals.filter((candidate) => tags.includes(candidate.tag));
   }
 
-  function actuatorsForMould(target: string) {
+  function actuatorsForMould(actuators: HmiActuator[], target: string) {
     const index = Number(target.slice(-2));
     const tag = `area-02-m${String(index).padStart(2, "0")}-manifold-01-command`;
-    return snapshot.actuators.filter((candidate) => candidate.commandTag === tag);
-  }
-
-  function signal(tag: string) {
-    return snapshot.signals.find((candidate) => candidate.tag === tag);
+    return actuators.filter((candidate) => candidate.commandTag === tag);
   }
 
   function signalValue(item: HmiSignal) {
@@ -145,7 +142,7 @@
             </button>
           {/each}
           <button type="button" onclick={() => (page = "slip-tank")}>
-            <span><Cylinder size={22} /></span><div><small>Material supply</small><strong>Slip tank</strong><em>{tankLevel.toFixed(1)} percent / {signal("area-02-tt-01")?.value.toFixed(1)} C</em></div><ChevronRight size={18} />
+            <span><Cylinder size={22} /></span><div><small>Material supply</small><strong>Slip tank</strong><em>{tankLevel.toFixed(1)} percent / {tankTemperature?.toFixed(1) ?? "--"} C</em></div><ChevronRight size={18} />
           </button>
           <button type="button" onclick={() => (page = "production")}>
             <span><Factory size={22} /></span><div><small>Operations</small><strong>Production</strong><em>{snapshot.moulds.reduce((total, mould) => total + mould.cycleCount, 0)} completed pieces</em></div><ChevronRight size={18} />

@@ -133,35 +133,12 @@ pub fn exercise_compile(input: &[u8]) {
 }
 
 pub fn exercise_snapshot(input: &[u8]) {
-    static MODELS: [OnceLock<Arc<CompiledConnectedGas>>; 3] = [const { OnceLock::new() }; 3];
     let index = match input.first() {
         Some(b'E') => 1,
         Some(b'F') => 2,
         _ => 0,
     };
-    let model = MODELS[index]
-        .get_or_init(|| {
-            let (regions, connections, initial, mut profile) = source();
-            let compiled = if index == 0 {
-                CompiledConnectedGas::compile(regions, connections, initial, profile, 128 * 1024)
-            } else {
-                profile.timestep_us = 1001;
-                profile.limits.iterations = if index == 1 { 14 } else { 1 };
-                CompiledConnectedGas::compile_with_retries(
-                    regions,
-                    connections,
-                    initial,
-                    profile,
-                    128 * 1024,
-                    GasRetryConfig {
-                        maximum_substeps: 64,
-                        minimum_timestep_us: 1,
-                    },
-                )
-            };
-            Arc::new(compiled.unwrap())
-        })
-        .clone();
+    let model = cached_model(index);
     if input.first() == Some(&b'C') {
         let _ = ConnectedGasSession::read_snapshot(model, Cursor::new(&input[1..]));
         return;
@@ -183,6 +160,71 @@ pub fn exercise_snapshot(input: &[u8]) {
         assert_eq!(
             restored.unwrap().state_digest().unwrap(),
             session.state_digest().unwrap()
+        );
+    }
+}
+
+pub(super) fn cached_model(index: usize) -> Arc<CompiledConnectedGas> {
+    static MODELS: [OnceLock<Arc<CompiledConnectedGas>>; 3] = [const { OnceLock::new() }; 3];
+    MODELS[index]
+        .get_or_init(|| {
+            let (regions, connections, initial, mut profile) = source();
+            let compiled = if index == 0 {
+                CompiledConnectedGas::compile(regions, connections, initial, profile, 128 * 1024)
+            } else {
+                profile.timestep_us = 1001;
+                profile.limits.iterations = if index == 1 { 14 } else { 1 };
+                CompiledConnectedGas::compile_with_retries(
+                    regions,
+                    connections,
+                    initial,
+                    profile,
+                    128 * 1024,
+                    GasRetryConfig {
+                        maximum_substeps: 64,
+                        minimum_timestep_us: 1,
+                    },
+                )
+            };
+            Arc::new(compiled.unwrap())
+        })
+        .clone()
+}
+
+pub fn exercise_population(input: &[u8]) {
+    use hearthline_sim::physics::flow::connected::population::ConnectedGasPopulation;
+    let model = cached_model(if input.first() == Some(&b'N') { 2 } else { 1 });
+    if input.first() == Some(&b'L') {
+        let _ = ConnectedGasPopulation::read_snapshot(model, Cursor::new(&input[1..]));
+        return;
+    }
+    let count = usize::from(input.get(1).copied().unwrap_or(0) % 3 + 1);
+    let mut pool = ConnectedGasPopulation::new(Arc::clone(&model), count).unwrap();
+    let mut direct: Vec<_> = (0..count)
+        .map(|_| ConnectedGasSession::new(Arc::clone(&model)).unwrap())
+        .collect();
+    for byte in input.iter().skip(2).take(5) {
+        let slot = usize::from(*byte) % count;
+        assert_eq!(pool.step(slot).is_ok(), direct[slot].step_next().is_ok());
+        for (slot, state) in direct.iter().enumerate() {
+            assert_eq!(pool.fields(slot).unwrap(), state.fields());
+            assert_eq!(
+                pool.instance_digest(slot).unwrap(),
+                state.state_digest().unwrap()
+            );
+        }
+    }
+    let mut snapshot = Vec::new();
+    pool.write_snapshot(&mut snapshot).unwrap();
+    if let Some(mutation) = input.get(7..10) {
+        let index = (usize::from(mutation[0]) * 256 + usize::from(mutation[1])) % snapshot.len();
+        snapshot[index] ^= mutation[2];
+    }
+    let restored = ConnectedGasPopulation::read_snapshot(model, Cursor::new(snapshot));
+    if input.len() < 10 || input[9] == 0 {
+        assert_eq!(
+            restored.unwrap().state_digest().unwrap(),
+            pool.state_digest().unwrap()
         );
     }
 }

@@ -1,9 +1,9 @@
 schema_version: "0.2.0"
 id: "area-02-m02-rio-01-to-area-02-m02-pos-01"
-label: "Mould 2 Fill-head position input"
+label: "Mould 2 slip fill valve open feedback"
 lifecycle: "simulated"
 transport: "field-io"
-medium: { type: "field-wiring", signal: "Fill-head position input", length_m: 20.0 }
+medium: { type: "field-wiring", signal: "Slip fill valve open feedback", length_m: 20.0 }
 endpoints:
   a: { appliance: "area-02-m02-rio-01", interface: "field-io-03" }
   b: { appliance: "area-02-m02-pos-01", interface: "field-io" }

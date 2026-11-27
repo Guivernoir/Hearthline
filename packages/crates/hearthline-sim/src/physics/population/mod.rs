@@ -167,6 +167,12 @@ impl PhysicsProofPopulation {
         serde_json::to_writer(output, &checkpoint::CheckpointView::new(&self.worker))
     }
 
+    pub fn instance_digest(&mut self, instance: usize) -> Result<[u8; 64], serde_json::Error> {
+        self.load(instance)
+            .map_err(|error| serde_json::Error::io(std::io::Error::other(error)))?;
+        self.worker.state_digest()
+    }
+
     pub fn step(&mut self, instance: usize) -> Result<PhysicsStepReport, PopulationError> {
         self.load(instance)?;
         let report = self.worker.step().map_err(PopulationError::Step)?;

@@ -146,21 +146,34 @@ fn local_start_repeats_cycles_without_starting_other_moulds() {
             .value,
         85.0
     );
-    assert!(
+    assert_eq!(
         filling
             .signals
             .iter()
             .find(|signal| signal.tag == "area-02-pos-01")
-            .expect("Mould 1 fill head")
-            .value
-            > 0.0
+            .expect("Mould 1 fill valve feedback")
+            .value,
+        1.0
     );
     assert_eq!(
         filling
             .signals
             .iter()
             .find(|signal| signal.tag == "area-02-m02-pos-01")
-            .expect("Mould 2 fill head")
+            .expect("Mould 2 fill valve feedback")
+            .value,
+        0.0
+    );
+    sessions.tick(750);
+    let pressurizing = sessions
+        .profile(&appliances, "area-02-machine-pc-01")
+        .expect("machine PC after filling");
+    assert_eq!(
+        pressurizing
+            .signals
+            .iter()
+            .find(|signal| signal.tag == "area-02-pos-01")
+            .expect("Mould 1 fill valve closed before pressurizing")
             .value,
         0.0
     );

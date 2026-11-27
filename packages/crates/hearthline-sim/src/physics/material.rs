@@ -234,9 +234,9 @@ pub(super) fn initialize_caloric_boundary(
     model: &CompiledPhysicsProof,
     buffers: &mut TransportBuffers,
 ) -> Result<(), PhysicsError> {
-    if !model
+    if model
         .material()
-        .is_some_and(|material| material.caloric().is_some())
+        .is_none_or(|material| material.caloric().is_none())
     {
         return Ok(());
     }

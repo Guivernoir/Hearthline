@@ -15,11 +15,18 @@ mod schedule;
 
 fuzz_target!(|data: &[u8]| {
     let bounded = &data[..data.len().min(256 * 1_024)];
+    if matches!(bounded.first(), Some(b'L' | b'M' | b'N')) {
+        gas::exercise_population(bounded);
+        return;
+    }
     if matches!(bounded.first(), Some(b'C' | b'D' | b'E' | b'F')) {
         gas::exercise_snapshot(bounded);
         return;
     }
-    if matches!(bounded.first(), Some(b'H' | b'J' | b'W')) {
+    if matches!(
+        bounded.first(),
+        Some(b'H' | b'J' | b'W' | b'X' | b'Y' | b'Z' | b'K')
+    ) {
         schedule::exercise(bounded);
         return;
     }

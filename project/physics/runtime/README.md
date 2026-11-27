@@ -97,7 +97,7 @@ projection publication and headless steps, is allocation-tested.
 This plan does not measure total RSS: OS/thread metadata, model-document strings,
 allocator overhead, HTTP and rendering still need application-level evidence.
 It also does not replace the factory population resource studies. The
-[multirate population schedule](schedule.md) supplies compiled event order and
+[multirate population schedule](schedule/README.md) supplies compiled event order and
 full-state restart. Physical connections and the remaining constitutive/control
 models must join this runtime before it can host the canonical coupled factory.
 
@@ -144,6 +144,7 @@ This worker is progress toward the integrated release, not completion of those
 requirements or a physical-validation claim.
 
 The [connected-gas runtime](connections.md) now joins finite-volume regions in
-one accepted step and supports full-state worker restart. This is separate from
-the independent-population schedule: cross-island multirate transfer, equipment
+one accepted step and supports full-state worker restart. Independent gas islands
+and drying profiles also share the same aggregate worker, including mixed
+snapshots and fault-preserving restart. Cross-island multirate transfer, equipment
 ports, controller tasks and canonical YAML/CLI integration remain pending.

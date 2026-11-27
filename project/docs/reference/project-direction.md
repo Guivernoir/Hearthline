@@ -134,7 +134,7 @@ only after complete overlay validation succeeds.
 
 ## Current Rust Foundation
 
-The `0.3.2` Rust workspace contains:
+The Rust workspace contains:
 
 - `hearthline-model` for stable identifiers, appliance kinds, network data, and
   process events without `std` or heap allocation.

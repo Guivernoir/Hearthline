@@ -8,6 +8,15 @@ pub enum FaceLink {
     Boundary(u32),
 }
 
+#[derive(Clone, Copy, Debug)]
+pub(super) enum MeshFace {
+    Cell(u32),
+    Boundary(FlowBoundary),
+}
+
+pub const FLOW_ISOLATION_CONTRACT: &str =
+    "flow-isolation/1:reciprocal-face-mask:stationary-adiabatic-slip:boundary-impulse";
+
 /// Axis-aligned, conforming control volume. Faces are -X,+X,-Y,+Y,-Z,+Z.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct FlowCell {
@@ -55,6 +64,7 @@ impl FlowCell {
 pub struct FlowMesh<'a> {
     pub(super) cells: &'a [FlowCell],
     pub(super) boundaries: &'a [FlowBoundary],
+    isolated_faces: Option<&'a [u8]>,
 }
 
 impl<'a> FlowMesh<'a> {
@@ -91,7 +101,51 @@ impl<'a> FlowMesh<'a> {
                 }
             }
         }
-        Ok(Self { cells, boundaries })
+        Ok(Self {
+            cells,
+            boundaries,
+            isolated_faces: None,
+        })
+    }
+
+    /// One six-bit mask per cell. Each closed interior face must be mirrored on
+    /// its peer; exterior boundaries cannot be overridden. State is not changed.
+    pub fn with_isolated_faces(mut self, masks: &'a [u8]) -> Result<Self, PhysicsError> {
+        if masks.len() != self.cells.len() {
+            return Err(PhysicsError::BufferLength);
+        }
+        for (cell, &mask) in self.cells.iter().zip(masks) {
+            if mask & !0b11_1111 != 0 {
+                return Err(PhysicsError::InvalidGeometry);
+            }
+            for (face, link) in cell.faces.iter().enumerate() {
+                let closed = mask & (1 << face) != 0;
+                match *link {
+                    FaceLink::Cell(peer) => {
+                        if closed != (masks[peer as usize] & (1 << (face ^ 1)) != 0) {
+                            return Err(PhysicsError::InvalidGeometry);
+                        }
+                    }
+                    FaceLink::Boundary(_) if closed => return Err(PhysicsError::InvalidGeometry),
+                    FaceLink::Boundary(_) => (),
+                }
+            }
+        }
+        self.isolated_faces = Some(masks);
+        Ok(self)
+    }
+
+    pub(super) fn face(self, cell: usize, face: usize) -> MeshFace {
+        if self
+            .isolated_faces
+            .is_some_and(|m| m[cell] & (1 << face) != 0)
+        {
+            return MeshFace::Boundary(FlowBoundary::AdiabaticSlipWall);
+        }
+        match self.cells[cell].faces[face] {
+            FaceLink::Cell(peer) => MeshFace::Cell(peer),
+            FaceLink::Boundary(id) => MeshFace::Boundary(self.boundaries[id as usize]),
+        }
     }
     pub fn cells(self) -> &'a [FlowCell] {
         self.cells

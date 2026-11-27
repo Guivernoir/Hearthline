@@ -3,12 +3,16 @@
 
 mod archive;
 mod diagnostic;
+mod framing;
 mod memory;
+mod population;
 #[cfg(test)]
-mod tests;
+pub(in crate::physics) mod tests;
 
 pub use archive::SCHEDULE_SNAPSHOT_SCHEMA;
 pub use memory::ScheduleMemoryPlan;
+use population::ScheduledPopulation;
+pub use population::{ScheduleInstanceError, ScheduledStepReport};
 
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
@@ -17,8 +21,7 @@ use std::sync::Arc;
 use hearthline_project::physics::schedule::CompiledPhysicsSchedule;
 use serde::{Deserialize, Serialize};
 
-use super::population::{PhysicsProofPopulation, PopulationError};
-use super::{PhysicsCheckpoint, PhysicsStepReport};
+use super::PhysicsCheckpoint;
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -31,7 +34,7 @@ pub struct PhysicsEvent {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ScheduleFailure {
     pub event: PhysicsEvent,
-    pub error: PopulationError,
+    pub error: ScheduleInstanceError,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -51,7 +54,7 @@ impl std::error::Error for ScheduleError {}
 pub struct ScheduledPhysicsStep {
     pub event: PhysicsEvent,
     pub sequence: u64,
-    pub report: PhysicsStepReport,
+    pub report: ScheduledStepReport,
     pub instance_step: u32,
     pub fields: super::NumericalFieldRanges,
 }
@@ -61,7 +64,7 @@ pub struct ScheduledPhysicsStep {
 /// instance banks. No new event or spatial buffer is allocated while stepping.
 pub struct PhysicsSchedule {
     plan: Arc<CompiledPhysicsSchedule>,
-    populations: Vec<PhysicsProofPopulation>,
+    populations: Vec<ScheduledPopulation>,
     pending: BinaryHeap<Reverse<PhysicsEvent>>,
     time_us: u64,
     committed_events: u64,
@@ -80,7 +83,7 @@ impl PhysicsSchedule {
             .try_reserve_exact(plan.profiles().len())
             .map_err(|e| e.to_string())?;
         for (model, &count) in plan.profiles().iter().zip(plan.profile_counts()) {
-            populations.push(PhysicsProofPopulation::new(Arc::clone(model), count)?);
+            populations.push(ScheduledPopulation::new(model, count)?);
         }
         let mut pending = Vec::new();
         pending
@@ -128,23 +131,45 @@ impl PhysicsSchedule {
         self.pending.len()
     }
 
-    pub fn completed_steps(&self, instance: usize) -> Result<u32, PopulationError> {
+    pub fn completed_steps(&self, instance: usize) -> Result<u32, ScheduleInstanceError> {
         let binding = self
             .plan
             .instances()
             .get(instance)
-            .ok_or(PopulationError::UnknownInstance)?;
+            .ok_or(ScheduleInstanceError::UnknownInstance)?;
         self.populations[binding.profile].completed_steps(binding.slot)
     }
 
     /// Host-only allocating projection. The runtime path uses streamed capture.
-    pub fn checkpoint(&mut self, instance: usize) -> Result<PhysicsCheckpoint, PopulationError> {
+    /// Compatibility projection for proof profiles only. Use
+    /// `write_instance_snapshot` to capture either numerical family.
+    pub fn checkpoint(
+        &mut self,
+        instance: usize,
+    ) -> Result<PhysicsCheckpoint, ScheduleInstanceError> {
         let binding = self
             .plan
             .instances()
             .get(instance)
-            .ok_or(PopulationError::UnknownInstance)?;
+            .ok_or(ScheduleInstanceError::UnknownInstance)?;
         self.populations[binding.profile].checkpoint(binding.slot)
+    }
+
+    pub fn write_instance_snapshot(
+        &mut self,
+        instance: usize,
+        output: impl std::io::Write,
+    ) -> Result<(), serde_json::Error> {
+        let binding = self.plan.instances().get(instance).ok_or_else(|| {
+            serde_json::Error::io(std::io::Error::other("unknown scheduled instance"))
+        })?;
+        self.populations[binding.profile].write_instance(binding.slot, output)
+    }
+    pub fn instance_digest(&mut self, instance: usize) -> Result<[u8; 64], serde_json::Error> {
+        let binding = self.plan.instances().get(instance).ok_or_else(|| {
+            serde_json::Error::io(std::io::Error::other("unknown scheduled instance"))
+        })?;
+        self.populations[binding.profile].instance_digest(binding.slot)
     }
 
     pub fn step_next(&mut self) -> Result<ScheduledPhysicsStep, ScheduleError> {
@@ -169,7 +194,7 @@ impl PhysicsSchedule {
         let step = population
             .completed_steps(binding.slot)
             .expect("compiled slot");
-        if step < model.config().steps {
+        if step < model.steps() {
             self.pending.push(Reverse(PhysicsEvent {
                 time_us: (u64::from(step) + 1) * model.timestep_us(),
                 instance: event.instance,
@@ -183,7 +208,7 @@ impl PhysicsSchedule {
             sequence,
             report,
             instance_step: step,
-            fields: population.accepted_field_ranges(),
+            fields: population.fields(binding.slot),
         })
     }
 }

@@ -927,7 +927,6 @@ fn forming_process() -> FormingProcess {
         slip_feed_pressure_bar: fixed!(2.5),
         mould_pressure_bar: fixed!(0.0),
         mould_temperature_c: fixed!(25.0),
-        fill_head_position_mm: fixed!(0.0),
         mould_position_mm: fixed!(0.0),
         water_flow_l_min: fixed!(0.0),
         excess_slip_drain_flow_l_min: fixed!(0.0),
@@ -952,7 +951,7 @@ fn forming_cycle_changes_measurements_and_returns_to_idle() {
     assert_eq!(process.phase(), FormingPhase::Filling);
     assert_eq!(process.outputs().slip, "filling");
     assert_eq!(process.measurements().slip_feed_flow_l_min, fixed!(85.0));
-    assert_eq!(process.measurements().fill_head_position_mm, fixed!(400.0));
+    assert_eq!(process.measurements().mould_position_mm, fixed!(0.0));
 
     process.tick(13_250);
     assert_eq!(process.phase(), FormingPhase::Idle);
@@ -970,6 +969,8 @@ fn forming_cycle_keeps_release_assist_separate_from_mould_cleaning() {
 
     process.tick(1_500);
     assert_eq!(process.phase(), FormingPhase::Pressurizing);
+    assert_eq!(process.outputs().slip, "isolated");
+    assert_eq!(process.measurements().slip_feed_flow_l_min, fixed!(0.0));
     assert_eq!(process.outputs().air, "pressurizing");
 
     process.tick(750);

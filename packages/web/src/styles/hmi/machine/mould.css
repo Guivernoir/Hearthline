@@ -203,10 +203,33 @@
   opacity: 0.58;
 }
 
-.fill-probe path {
-  fill: #b9c7c2;
-  stroke: #53665d;
+.slip-pipe,
+.slip-valve-stem,
+.slip-valve-handle {
+  fill: none;
+  stroke: #65746b;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.slip-valve-body,
+.slip-inlet {
+  fill: #e1e7e1;
+  stroke: #65746b;
   stroke-width: 2;
+}
+
+.slip-feed.open .slip-pipe {
+  stroke: #a9603a;
+}
+
+.slip-feed.open .slip-valve-body {
+  fill: #a9603a;
+}
+
+.hmi-mould-metrics .hmi-mould-valve-status {
+  font-size: 13px;
+  overflow-wrap: anywhere;
 }
 
 .machine-labels {

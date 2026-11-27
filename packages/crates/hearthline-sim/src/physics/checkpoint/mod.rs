@@ -1,12 +1,16 @@
 use std::io::{self, BufRead, Write};
 
 use hearthline_physics::{PhysicsError, Scalar};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use sha2::{Digest, Sha256};
 
 use super::PhysicsProofSession;
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+mod cause;
+#[cfg(test)]
+mod tests;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "kebab-case", deny_unknown_fields)]
 pub(super) enum NumericalCause {
     Overflow,

@@ -443,6 +443,7 @@ function inspectWorkflow() {
     "cargo xtask verify",
     "cargo xtask contracts --check",
     "cargo test",
+    "Rust quality (stable)",
     "model validate",
     "model compile --locked",
     "capacity report --format json",
@@ -459,7 +460,7 @@ function inspectWorkflow() {
     "npm run build",
     "ubuntu-24.04-arm",
     "windows-2025",
-    "macos-14",
+    "macos-15",
   ]) {
     if (!content.includes(command)) {
       failures.push(`CI workflow does not run '${command}'`);
@@ -483,7 +484,7 @@ function inspectWorkflow() {
     }
   }
   for (const command of [
-    "cargo mutants --manifest-path packages/Cargo.toml --copy-target false",
+    "cargo mutants --manifest-path packages/Cargo.toml --in-place",
     "test -n \"$mutants\"",
     "--file crates/hearthline-engine/src/industrial/process/safety.rs",
     "--file crates/hearthline-sim/src/scheduler.rs",
@@ -521,10 +522,10 @@ function inspectWorkflow() {
 
 function inspectToolchainPins() {
   const expected = {
-    rust: "1.98.1",
-    node: "26.8.1",
-    npm: "12.0.2",
-    svelteKit: "2.70.3",
+    rust: "1.100.0",
+    node: "26.13.1",
+    npm: "12.2.3",
+    svelteKit: "3.4.1",
   };
   const rustToolchain = readFileSync(join(root, "rust-toolchain.toml"), "utf8");
   const nodeVersion = readFileSync(join(root, ".nvmrc"), "utf8").trim();
@@ -553,11 +554,10 @@ function inspectToolchainPins() {
     failures.push(`npm metadata must pin SvelteKit ${expected.svelteKit}`);
   }
   const viteConfig = readFileSync(join(root, "packages", "web", "vite.config.ts"), "utf8");
-  const svelteConfig = readFileSync(join(root, "packages", "web", "svelte.config.js"), "utf8");
-  if (!viteConfig.includes("@sveltejs/kit/vite") || !viteConfig.includes("sveltekit()")) {
+  if (!viteConfig.includes("@sveltejs/kit/vite") || !viteConfig.includes("sveltekit(")) {
     failures.push("the frontend must use SvelteKit's Vite plugin");
   }
-  if (!svelteConfig.includes("@sveltejs/adapter-static")) {
+  if (!viteConfig.includes("@sveltejs/adapter-static") || !viteConfig.includes("adapter: adapter(")) {
     failures.push("the SvelteKit build must declare its static adapter");
   }
 }

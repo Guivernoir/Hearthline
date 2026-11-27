@@ -8,7 +8,8 @@ pub use advance::{
     CONNECTED_ADVANCE_CONTRACT, ConnectedAdvanceError, ConnectedAdvanceReport,
     ConnectedAdvanceWorkspace, ConnectedRetryPolicy,
 };
-pub use mesh::{FaceLink, FlowCell, FlowMesh};
+use mesh::MeshFace;
+pub use mesh::{FLOW_ISOLATION_CONTRACT, FaceLink, FlowCell, FlowMesh};
 
 use super::{Conserved, FlowBoundary, IdealGas, Primitive, ViscousTransport};
 use crate::transport::SolverLimits;
@@ -107,10 +108,10 @@ impl<'a> ConnectedFlow<'a> {
         if limits.iterations == 0 || limits.residual <= Scalar::ZERO {
             return Err(PhysicsError::InvalidCoefficient);
         }
-        for cell in mesh.cells {
-            for (face, link) in cell.faces.iter().enumerate() {
-                if let FaceLink::Boundary(id) = *link {
-                    match mesh.boundaries[id as usize] {
+        for index in 0..mesh.cells.len() {
+            for face in 0..6 {
+                if let MeshFace::Boundary(boundary) = mesh.face(index, face) {
+                    match boundary {
                         FlowBoundary::Reservoir(state) => {
                             gas.conserved(state)?;
                         }
@@ -257,16 +258,17 @@ impl<'a> ConnectedFlow<'a> {
         next.copy_from_slice(old);
         let mut exchange = CellInventory::default();
         for (index, cell) in self.mesh.cells.iter().enumerate() {
-            for (face, link) in cell.faces.iter().enumerate() {
+            for face in 0..6 {
+                let link = self.mesh.face(index, face);
                 let positive = face % 2 == 1;
-                if matches!(link, FaceLink::Cell(_)) && !positive {
+                if matches!(link, MeshFace::Cell(_)) && !positive {
                     continue;
                 }
                 let axis = face / 2;
                 let center = self.density(trial, index)?;
-                let peer = match *link {
-                    FaceLink::Cell(peer) => self.density(trial, peer as usize)?,
-                    FaceLink::Boundary(id) => match self.mesh.boundaries[id as usize] {
+                let peer = match link {
+                    MeshFace::Cell(peer) => self.density(trial, peer as usize)?,
+                    MeshFace::Boundary(boundary) => match boundary {
                         FlowBoundary::Reservoir(state) => self.gas.conserved(state)?,
                         FlowBoundary::AdiabaticSlipWall | FlowBoundary::NoSlipWall { .. } => {
                             let mut ghost = center;
@@ -293,11 +295,11 @@ impl<'a> ConnectedFlow<'a> {
                 }
                 let transfer = CellInventory::from_density(flux, factor)?;
                 next[index] = next[index].add(transfer, positive)?;
-                match *link {
-                    FaceLink::Cell(peer) => {
+                match link {
+                    MeshFace::Cell(peer) => {
                         next[peer as usize] = next[peer as usize].add(transfer, false)?;
                     }
-                    FaceLink::Boundary(_) => {
+                    MeshFace::Boundary(_) => {
                         exchange = exchange.add(transfer, positive)?;
                     }
                 }

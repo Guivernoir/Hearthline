@@ -281,7 +281,7 @@ impl PlantControlRuntime {
                 trace,
             );
         }
-        self.actuators[actuator_index].current_state = signal_value_text(actuator.value());
+        self.set_actuator(&tag, &signal_value_text(actuator.value()));
         if tag == "area-02-robot-01-command"
             && let Some(robot) = &mut self.robot
         {

@@ -1,6 +1,6 @@
 # Hearthline
 
-**Current development release:** `0.3.2`
+**Current development release:** `0.3.3`
 
 Hearthline is a vendor-neutral industrial architecture and deterministic
 simulation project. It connects a public customer path, enterprise services,
@@ -19,11 +19,12 @@ controller engineering environments, hardware laboratories, or commissioning.
 
 ![Hearthline regional logical architecture](project/docs/logical-screenshot.png)
 
-## Release 0.3.2
+## Release 0.3.3
 
-Release `0.3.2` is a clean foundation break. It introduces an immutable,
-content-addressed project model and separates deterministic execution from
-configuration, project compilation, replay, and operator sessions.
+Release `0.3.3` updates the pinned toolchains and corrects mould filling: each
+mould keeps its slip feed connected, with flow controlled by a valve. It builds
+on the immutable, content-addressed project model and separate execution,
+compilation, replay, and operator layers introduced in `0.3.2`.
 
 The canonical model currently validates:
 
@@ -79,24 +80,29 @@ An isolated [dedicated physics worker](project/physics/runtime/README.md) now
 owns single-proof, connected-gas or multirate population execution with bounded revision-checked clock commands, copied
 engineering projections, checkpoint continuation, and paced/headless CLI runs.
 It is not yet the coupled factory runtime or connected to HTTP/HMIs.
-The [multirate population schedule](project/physics/runtime/schedule.md)
-compiles stable event ordering and validates full-state restart frontiers;
+The [multirate population schedule](project/physics/runtime/schedule/README.md)
+composes gas and drying profiles, compiles stable event ordering and validates
+full-state restart frontiers, including previous-schema migration;
 integration of conservative exchanges between profiles remains pending. A
 [connected gas runtime](project/physics/runtime/connections.md) now joins
 named regions through shared finite-volume faces with exact quantized inventory
 accounting, bounded whole-horizon retries, full-state snapshots with previous-schema
 migration and worker restart/pacing equivalence.
-It is not yet connected to canonical YAML, equipment controls or the multirate aggregate.
+It is not yet connected to canonical appliance YAML or equipment controls.
 Its standalone [YAML/CLI fixture](project/physics/runtime/connections.md#yaml-and-cli)
 supports bounded source validation, worker pacing and streamed snapshot
 continuation without changing the canonical appliances or existing golden results.
+[Pooled gas storage](project/physics/runtime/connected-population.md) now separates
+per-domain accepted fields and failure latches from a shared serial workspace;
+these domains participate in the same worker clock as drying proofs without
+exchanging material or heat across separately scheduled instances.
 Production geometry qualification, remaining constitutive fields, factory integration and
 application memory measurements are still required to qualify the memory gate.
 These proofs do not yet replace the canonical factory,
 provide qualified coupled CFD/material mechanics, predict real product defects,
 or add controls to the frontend.
-The current application and locked model remain on `0.3.2` until migration is
-qualified. See the [numerical qualification decision](project/docs/decisions/0002-physics-qualification-before-factory-migration.md).
+The current application and locked model remain on the baseline process runtime
+until migration is qualified. See the [numerical qualification decision](project/docs/decisions/0002-physics-qualification-before-factory-migration.md).
 
 Dependencies flow downward through these Rust crates:
 
@@ -245,7 +251,7 @@ allocation. Construction, snapshots, operator projection, and replay are also
 tested on constrained worker stacks to prevent recurrence of stack overflow.
 
 Pull requests run architecture, version, schema, lock, generated-output,
-formatting, Clippy, MSRV, stable, `no_std`, sharded tests, capacity, regression
+formatting, Clippy, pinned stable Rust, `no_std`, sharded tests, capacity, regression
 corpus, fuzz smoke, SvelteKit, Vitest, Chromium, and four-platform golden-replay
 gates. Nightly evidence adds deep fuzzing, branch coverage, mutation testing,
 Miri, dependency and license policy, SBOMs, soak runs, benchmarks, allocation

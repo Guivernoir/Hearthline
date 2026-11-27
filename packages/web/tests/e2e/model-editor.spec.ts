@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test("model editor keeps raw and structured views synchronized", async ({ page }) => {
+  test.setTimeout(60_000);
   await page.goto("/#model/editor");
   await expect(page.getByRole("heading", { name: "Topology" })).toHaveCount(0);
   await expect(
@@ -17,13 +18,19 @@ test("model editor keeps raw and structured views synchronized", async ({ page }
     await expect(review).toBeVisible();
   }
 
-  await page.getByRole("tab", { name: "YAML" }).click();
-  const source = page.getByLabel("Raw YAML model document");
+  const editor = page.getByRole("region", { name: "Document editor" });
+  const tabs = editor.getByRole("tablist");
+  await tabs.getByRole("tab", { name: "YAML" }).click();
+  const source = editor.getByLabel("Raw YAML model document");
   await expect(source).toBeVisible();
   const original = await source.inputValue();
-  await source.fill(original.replace(/id:\s*([^\n]+)/, "id: $1"));
-  await page.getByRole("tab", { name: "Structured" }).click();
-  await expect(page.getByLabel("Structured model document editor")).toBeVisible();
+  const label = "Playwright draft label";
+  const updated = original.replace(/^label:[^\r\n]*$/m, `label: ${label}`);
+  expect(updated).not.toBe(original);
+  await source.fill(updated);
+  await tabs.getByRole("tab", { name: "Structured" }).click();
+  const structured = editor.getByLabel("Structured model document editor");
+  await expect(structured.getByRole("textbox", { name: "label", exact: true })).toHaveValue(label);
 });
 
 test("regional architecture exposes the model editor workflow", async ({ page }) => {

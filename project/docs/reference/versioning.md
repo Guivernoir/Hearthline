@@ -2,7 +2,7 @@
 
 Hearthline follows Semantic Versioning using `MAJOR.MINOR.PATCH`.
 
-The current development release is `0.3.2`. The repository-root
+The current development release is `0.3.3`. The repository-root
 [`VERSION`](../../VERSION) file is the human-readable authority for the release
 number. The same value must be synchronized into the Rust workspace and Svelte
 package metadata.
@@ -30,9 +30,9 @@ used for local artifacts but does not change compatibility.
 
 | Surface | Current version | Authority |
 | --- | --- | --- |
-| Hearthline application release | `0.3.2` | `project/VERSION` |
-| Rust workspace packages | `0.3.2` | `packages/Cargo.toml` workspace package |
-| Svelte package | `0.3.2` | `packages/web/package.json` |
+| Hearthline application release | `0.3.3` | `project/VERSION` |
+| Rust workspace packages | `0.3.3` | `packages/Cargo.toml` workspace package |
+| Svelte package | `0.3.3` | `packages/web/package.json` |
 | Appliance YAML schema | `0.10.0` | `APPLIANCE_SCHEMA_VERSION` |
 | Connection YAML schema | `0.2.0` | `CONNECTION_SCHEMA_VERSION` |
 | Generated appliance catalog schema | `0.9.0` | `FRONTEND_CATALOG_SCHEMA_VERSION` |

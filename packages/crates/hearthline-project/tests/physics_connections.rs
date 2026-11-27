@@ -220,6 +220,51 @@ fn each_axis_connects_the_correct_exterior_patch_and_uniform_state_stays_station
 }
 
 #[test]
+fn named_patch_isolation_marks_only_the_reciprocal_transverse_faces() {
+    for axis in 0..3 {
+        let oriented_region = |name, width| {
+            let mut region = region(name, Scalar::ONE);
+            let mut spacing = [Scalar::ONE; 3];
+            spacing[usize::from(axis)] = width;
+            region.grid = Grid3d::new([2; 3], spacing).unwrap();
+            region
+        };
+        let model = CompiledFlowMesh::compile(
+            vec![
+                oriented_region("b", s("0.7")),
+                oriented_region("a", s("1.2")),
+            ],
+            vec![connection("link", "b", "a", axis)],
+            BUDGET,
+        )
+        .unwrap();
+        let mut masks = vec![u8::MAX; model.isolation_mask_bytes()];
+        assert!(model.write_isolation_mask(&[], &mut masks).is_err());
+        assert!(masks.iter().all(|&mask| mask == u8::MAX));
+        let measured = allocation_counter::measure(|| {
+            model.write_isolation_mask(&[true], &mut masks).unwrap();
+            model.isolated_mesh(&masks).unwrap();
+        });
+        assert_eq!(measured.count_total, 0);
+        for (region, face) in model.regions().iter().zip([axis * 2, axis * 2 + 1]) {
+            for local in 0..region.grid.count() {
+                let exterior = region
+                    .grid
+                    .face_neighbor(local, usize::from(face))
+                    .unwrap()
+                    .is_none();
+                assert_eq!(
+                    masks[region.offset + local],
+                    if exterior { 1 << face } else { 0 }
+                );
+            }
+        }
+        model.write_isolation_mask(&[false], &mut masks).unwrap();
+        assert!(masks.iter().all(|&mask| mask == 0));
+    }
+}
+
+#[test]
 fn named_three_dimensional_regions_exchange_finite_inventory_and_recompute_exactly() {
     let (regions, connections) = inputs();
     let model = CompiledFlowMesh::compile(regions, connections, BUDGET).unwrap();

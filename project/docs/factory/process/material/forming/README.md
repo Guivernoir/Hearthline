@@ -51,9 +51,12 @@ legend separately identifies network/control, I/O, and safety/status paths.
   four transfer stations with inner and operator-side position feedback, an
   interlocked personnel gate, and separate robot and guard safety interfaces.
 
-Each mould exposes casting pressure, mould temperature, fill-head position,
-mould position, residual moisture, and inclination. Rust updates these values
-from that mould's current process phase. Its valve manifold is logically
+Each mould exposes casting pressure, mould temperature, slip fill valve
+feedback, mould position, residual moisture, and inclination. A permanently
+connected slip line stays attached through every phase. The inlet valve opens
+for filling in Auto or when commanded by the machine PC in Manual; the
+separate drain state closes the inlet. Local HMIs and the machine PC show the
+simulated valve-open feedback. The valve manifold is logically
 addressable but physically represented inside the mould assembly, not as a
 standalone floor cabinet. The physical and logical views remain architecture
 models; dimensions and placement are illustrative.

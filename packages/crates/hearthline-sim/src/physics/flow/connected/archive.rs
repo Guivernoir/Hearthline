@@ -14,6 +14,10 @@ use crate::physics::checkpoint::{HashWriter, NumericalCause, hex_digest, read_li
 
 pub const CONNECTED_SNAPSHOT_SCHEMA: &str = "0.2.0";
 pub(super) const ROW_LIMIT: usize = 4096;
+// One row, up to two rows of JSON string scratch, two concurrently formatted
+// errors at two rows each, and one row of fixed decoder/error overhead. DTOs
+// contain only borrowed strings, fixed arrays and direct-map numerical causes.
+pub(super) const DECODER_BYTES: usize = 8 * ROW_LIMIT;
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -229,6 +233,12 @@ impl ConnectedGasSession {
         Ok(self.write_fields(io::sink())?.1)
     }
     pub fn write_snapshot(&self, output: impl Write) -> Result<(), serde_json::Error> {
+        self.write_snapshot_digest(output).map(|_| ())
+    }
+    pub(super) fn write_snapshot_digest(
+        &self,
+        output: impl Write,
+    ) -> Result<[u8; 64], serde_json::Error> {
         if self.memory.restore_bytes > self.memory.reviewed_budget_bytes {
             return Err(json_io(
                 "connected snapshot cannot be restored inside budget",
@@ -241,7 +251,8 @@ impl ConnectedGasSession {
                 sha256: std::str::from_utf8(&digest).expect("hex digest"),
             },
         )?;
-        output.write_all(b"\n").map_err(serde_json::Error::io)
+        output.write_all(b"\n").map_err(serde_json::Error::io)?;
+        Ok(digest)
     }
     pub fn read_snapshot(
         model: Arc<CompiledConnectedGas>,

@@ -82,15 +82,13 @@ impl FormingProcess {
         self.measurements.water_flow_l_min = fixed!(0.0);
         self.measurements.excess_slip_drain_flow_l_min = fixed!(0.0);
         match self.phase {
-            FormingPhase::Filling => {
+            FormingPhase::Filling if self.outputs.slip == "filling" => {
                 self.measurements.slip_tank_level_percent =
                     self.tank_level_at_cycle_start - fixed!(0.8) * progress;
                 self.measurements.slip_feed_flow_l_min =
                     fixed!(85.0) * self.material_effects.filling_flow_factor;
-                self.measurements.fill_head_position_mm = fixed!(800.0) * progress;
             }
             FormingPhase::Pressurizing => {
-                self.measurements.fill_head_position_mm = fixed!(800.0) * (fixed!(1.0) - progress);
                 self.measurements.mould_pressure_bar = self.setpoints.pressure_bar * progress;
             }
             FormingPhase::PressureDwell => {
@@ -147,7 +145,7 @@ impl FormingProcess {
                 self.measurements.vacuum_pressure_kpa = fixed!(-80.0) * (fixed!(1.0) - progress);
                 self.measurements.mould_position_mm = fixed!(600.0) * (fixed!(1.0) - progress);
             }
-            FormingPhase::Idle | FormingPhase::Faulted => {}
+            FormingPhase::Idle | FormingPhase::Filling | FormingPhase::Faulted => {}
         }
     }
 

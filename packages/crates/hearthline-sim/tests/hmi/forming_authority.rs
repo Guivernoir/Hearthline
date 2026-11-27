@@ -116,6 +116,69 @@ fn forming_machine_pc_requires_local_manual_authority_and_cannot_drive_robot() {
 }
 
 #[test]
+fn manual_fill_valve_feedback_is_independent_for_each_mould() {
+    let appliances = repository();
+    let mut sessions = PlantRuntimeStore::default();
+    for number in 1..=4 {
+        let hmi = format!("area-02-hmi-{number:02}");
+        let tag = format!("area-02-m{number:02}-manifold-01-command");
+        let manual = sessions
+            .execute(
+                &appliances,
+                &hmi,
+                HmiAction::SetControlMode {
+                    mode: HmiControlMode::Manual,
+                    password: None,
+                },
+            )
+            .expect("manual selector");
+        assert!(matches!(manual.status, HmiActionStatus::Applied));
+        for (state, open) in [("slip-fill", true), ("drain-under-pressure", false)] {
+            let report = sessions
+                .execute(
+                    &appliances,
+                    "area-02-machine-pc-01",
+                    HmiAction::Command {
+                        tag: tag.clone(),
+                        value: state.into(),
+                    },
+                )
+                .expect("fill manifold command");
+            assert!(
+                matches!(report.status, HmiActionStatus::Applied),
+                "{}",
+                report.message
+            );
+            for (index, feedback_tag) in [
+                "area-02-pos-01",
+                "area-02-m02-pos-01",
+                "area-02-m03-pos-01",
+                "area-02-m04-pos-01",
+            ]
+            .into_iter()
+            .enumerate()
+            {
+                let feedback = report
+                    .snapshot
+                    .signals
+                    .iter()
+                    .find(|signal| signal.tag == feedback_tag)
+                    .expect("valve feedback");
+                assert!(feedback.quality_good);
+                assert_eq!(
+                    feedback.value,
+                    if open && index + 1 == number {
+                        1.0
+                    } else {
+                        0.0
+                    }
+                );
+            }
+        }
+    }
+}
+
+#[test]
 fn forming_machine_pc_owns_parameters_recipes_and_control_source() {
     let appliances = repository();
     let mut sessions = PlantRuntimeStore::default();

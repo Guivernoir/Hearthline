@@ -12,8 +12,7 @@ to keep the target wall time below 15 minutes.
 | Check | Required evidence |
 | --- | --- |
 | Policy and generated contracts | Version alignment, Cargo-metadata dependency direction, AST runtime policy, generated OpenAPI/JSON Schema/TypeScript drift, current model lock, and clean generated catalogs |
-| Rust quality (MSRV) | Formatting, Clippy with warnings denied, and `no_std` embedded-target compilation on Rust `1.92.0` |
-| Rust quality (stable) | The same checks on pinned Rust `1.98.1` |
+| Rust quality (stable) | Formatting, Clippy with warnings denied, and `no_std` embedded-target compilation on pinned Rust `1.100.0` |
 | Rust tests (four shards) | All model, engine, config, project, simulation, operator, CLI, API, and `xtask` tests compiled normally, then their binaries execute directly with a fixed 1.25 MiB worker stack and two test threads; the HMI construction/projection regression separately enforces 512 KiB |
 | Capacity and deterministic budgets | Locked compilation, generated capacity report, saturation contracts, 75-cell acceptance model, 24-hour nominal/failure run, allocation counter, queue high-water marks, and structural size budgets |
 | Regression corpus and fuzz smoke | Eight parallel checked-in corpora plus short identifier, appliance, connection, blueprint, compiler, scheduler, replay, and control-parser campaigns |
@@ -82,6 +81,19 @@ mutated schedule archives and reordered registrations; nightly mutation targets
 the schedule compiler, event loop, memory plan and frontier reader. This evidence
 does not establish physical coupling between independent numerical populations.
 
+The same native suite includes mixed connected-gas/drying populations with
+different physical timesteps, independent reference sessions and a full snapshot
+at every event boundary. Schedule schema `0.2.0` bounds typed child frames and
+requires agreement between child failures and the aggregate failed event.
+Archived `0.1.0` proof-only snapshots retain their original hashes; migration
+checks compare every field, frontier and failure before current-schema capture.
+Mixed source-order/snapshot fuzz cases and nightly mutations cover framing and
+typed population dispatch. Budget regressions reject conflicting shared-profile
+policies and runtime-only fits whose restore workspace exceeds aggregate or
+profile limits. Diagnostic decoding must avoid arbitrary-map allocation.
+Four-platform CI must recompute these goldens;
+successful local tests alone do not establish cross-platform equivalence.
+
 The worker suite now runs aggregate schedules as well as individual proofs.
 It verifies native headless/all-rate equivalence, identity-qualified live field
 updates, equal-time manual steps, restored failure latches and a full unread
@@ -115,6 +127,13 @@ readers migrate them to `0.2.0` in memory and writers emit only the current sche
 The current header changes state hashes without changing the preceding case's
 physical fields, which are independently compared after migration. Separate
 retry goldens pin changed numerical paths rather than replacing old outcomes.
+
+Connected-population checks compare every interleaved slot with an independent
+session, pin normalized population digests, retain per-slot failures and verify
+streamed continuation. Construction/restore peaks include the shared workspace,
+accepted bank, metadata and bounded transactional decoder. Native tests cover
+1 MiB stacks, allocation-free steps/capture, frame boundaries and output failure;
+snapshot fuzzing and a dedicated mutation scope exercise the population layer.
 
 Capacity evidence also includes the experimental factory physics resource
 report. Its current independent-workspace baseline is deliberately over budget;
@@ -150,13 +169,15 @@ prepared and reassembled loads across preconditioners and checked failures.
 Passing these tests is not physical qualification, a residence-cycle run or
 acceptance of unimplemented fields.
 
-The stable toolchain is pinned to Rust `1.98.1`, Node `26.8.1`, npm `12.0.2`,
-and SvelteKit `2.70.3`. Repository policy requires the Rust toolchain file,
+The stable toolchain is pinned to Rust `1.100.0`, Node `26.13.1`, npm `12.2.3`,
+and SvelteKit `3.4.1`. The project tests this Rust pin and does not maintain a
+separate older-Rust compatibility lane.
+Repository policy requires the Rust toolchain file,
 `.nvmrc`, npm engine metadata, package-manager declaration, lockfile, and
 SvelteKit build integration to agree. Web CI jobs install the declared npm
 version explicitly before dependency installation; Node's bundled npm is not
-the project pin. Node follows the stable Current release, not the LTS line.
-The Rust `1.92.0` MSRV and dated nightly toolchains remain separate test lanes.
+the project pin. Node follows the newest stable release line. Dated nightly
+Rust remains separate for tools that require it.
 
 ## Nightly Evidence
 
@@ -169,8 +190,9 @@ wall-clock-sensitive for pull requests:
 - line and branch coverage with crate and critical-module gates;
 - mutation testing for safety, capacity, scheduling, replay, blueprint, and
   control-boundary code; each selected scope must enumerate at least one
-  mutant, runs without copying the full target tree, and publishes the
-  `packages/mutants.out` report;
+  mutant, and publishes the `packages/mutants.out` report. Each matrix job
+  uses one in-place mutation worker in its disposable checkout so baseline
+  and mutant tests have access to fixture files outside the Cargo workspace;
 - bounded Miri-compatible tests for model quantities/contracts and the engine
   allocator-free core; long simulated-time cadence tests remain in the soak
   lane rather than being interpreted under Miri;

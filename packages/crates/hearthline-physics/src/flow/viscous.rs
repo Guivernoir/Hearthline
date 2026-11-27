@@ -158,9 +158,9 @@ impl CompressibleFlow {
         })?;
         let mut flux = transport.flux(gradient, velocity, temperature_gradient, axis)?;
         if self.boundaries[face] == FlowBoundary::AdiabaticSlipWall {
-            for component in 0..3 {
+            for (component, momentum) in flux.momentum.iter_mut().enumerate() {
                 if component != axis {
-                    flux.momentum[component] = Scalar::ZERO;
+                    *momentum = Scalar::ZERO;
                 }
             }
             flux.total_energy = Scalar::ZERO;

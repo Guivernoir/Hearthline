@@ -197,7 +197,6 @@ pub struct FormingMeasurements {
     pub slip_feed_pressure_bar: FixedValue,
     pub mould_pressure_bar: FixedValue,
     pub mould_temperature_c: FixedValue,
-    pub fill_head_position_mm: FixedValue,
     pub mould_position_mm: FixedValue,
     pub water_flow_l_min: FixedValue,
     pub excess_slip_drain_flow_l_min: FixedValue,

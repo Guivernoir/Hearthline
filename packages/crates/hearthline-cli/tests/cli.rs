@@ -42,7 +42,10 @@ fn public_command_surface_is_available() {
 #[test]
 fn binary_reports_workspace_version() {
     let output = hearthline(&["--version"]);
-    assert_eq!(output.trim(), "hearthline 0.3.2");
+    assert_eq!(
+        output.trim(),
+        concat!("hearthline ", env!("CARGO_PKG_VERSION"))
+    );
 }
 
 #[test]

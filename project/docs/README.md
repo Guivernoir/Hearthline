@@ -15,7 +15,7 @@ The documentation currently covers all 25 documented application views with
 matching physical and logical captures. It documents the rendered Svelte model,
 the parsed appliance, connection, and process-topology YAML baseline, the
 Rust-generated frontend contracts, and target engineering requirements. Captures and supporting
-evidence track development release `0.3.2`; the Body Preparation and Forming
+evidence track development release `0.3.3`; the Body Preparation and Forming
 operator captures are refreshed as their executable views change. Reference
 pages also document the
 30 current configured scenarios, including Business IT internal

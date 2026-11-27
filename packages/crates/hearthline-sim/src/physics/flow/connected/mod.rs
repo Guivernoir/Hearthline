@@ -3,6 +3,7 @@
 
 mod archive;
 pub use archive::CONNECTED_SNAPSHOT_SCHEMA;
+pub mod population;
 
 use crate::physics::{FieldRange, NumericalFieldRanges};
 use hearthline_physics::PhysicsError;
@@ -22,6 +23,7 @@ pub enum ConnectedStepError {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ConnectedSessionMemory {
     pub runtime_bytes: u64,
+    pub snapshot_decoder_bytes: u64,
     pub restore_bytes: u64,
     pub reviewed_budget_bytes: u64,
 }
@@ -33,8 +35,9 @@ impl ConnectedSessionMemory {
             .runtime_bytes
             .checked_add(size_of::<ConnectedGasSession>() as u64 + 2 * size_of::<usize>() as u64)
             .ok_or("connected session memory overflow")?;
+        let snapshot_decoder_bytes = archive::DECODER_BYTES as u64;
         let restore_bytes = runtime_bytes
-            .checked_add(archive::ROW_LIMIT as u64)
+            .checked_add(snapshot_decoder_bytes)
             .ok_or("connected restore memory overflow")?;
         let reviewed_budget_bytes =
             u64::try_from(u128::from(model.memory().allocation_budget_bytes) * 3 / 4)
@@ -44,6 +47,7 @@ impl ConnectedSessionMemory {
         }
         Ok(Self {
             runtime_bytes,
+            snapshot_decoder_bytes,
             restore_bytes,
             reviewed_budget_bytes,
         })
